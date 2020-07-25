@@ -6,7 +6,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 
-## 01认识Java
+## 认识Java
 
 * Java简介
 * Java开发环境的搭建
