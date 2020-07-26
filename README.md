@@ -10,7 +10,7 @@
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
 
 ### 组织结构
-```
+``````
 0-1Learning
 └──algorithm -- 算法
     ├── LeetCode -- LeetCode
@@ -18,11 +18,11 @@
     └── sort -- 排序算法
 ├── android -- 安卓
 ├── bigdata -- 大数据
-├── computer-network -- 计算机网络(http，socket)
-├── computer-os -- 计算机操作系统
+├── computer-network -- 计算机网络结构
+├── computer-os -- 计算操作系统
 ├── data-structure -- 数据结构
 ├── database -- 数据库
-├── design-pattern -- 23种设计模式
+├── design-pattern -- 设计模式
 ├── html -- html网页
 ├── interview -- 面试题和面试经验
 └── java -- java技术栈
@@ -50,7 +50,7 @@
 ├── redis -- redis缓存
 ├── search-engines -- 搜索引擎
 └── static -- 静态文件包
-```
+``````
 * 适用对象：菜鸟 or 老手
 * 适用范围：菜鸟 or 老手
 * 适用目标：菜鸟 or 老手
