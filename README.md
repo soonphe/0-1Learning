@@ -27,7 +27,21 @@
 ├── interview -- 面试题和面试经验
 └── java -- java技术栈
     ├── java-concurrent -- java并发编程
-    ├── java-se -- java初级
+    └── java-se -- java初级
+        ├── 01认识Java
+        ├── 02Java虚拟机简介
+        ├── 03变量和运算符
+        ├── 04流程控制语句
+        ├── 05数组
+        ├── 06函数
+        ├── 07面对对象基础
+        ├── 08面对对象高级特性
+        ├── 09异常处理
+        ├── 10工具类
+        ├── 11集合
+        ├── 12文件与流IO
+        ├── 13多线程编程
+        └── 14网络编程
     ├── java-senior -- java高级
     ├── java-源码 -- java源码解析
     └── jvm -- java虚拟机
@@ -46,6 +60,19 @@
     * [java-concurrent(java并发)](https://github.com/soonphe/0-1Learning/tree/master/java/java-concurrent)
     * [java-se(java初级)](https://github.com/soonphe/0-1Learning/tree/master/java/java-se)
         * [01认识Java](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/01认识Java.md)
+        * [02Java虚拟机简介](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/02Java虚拟机简介.md)
+        * [03变量和运算符](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/03变量和运算符.md)
+        * [04流程控制语句](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/04流程控制语句.md)
+        * [05数组](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/05数组.md)
+        * [06函数](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/06函数.md)
+        * [07面对对象基础](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/07面对对象基础.md)
+        * [08面对对象高级特性](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/08面对对象高级特性.md)
+        * [09异常处理](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/09异常处理.md)
+        * [10工具类](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/10工具类.md)
+        * [11集合](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/11集合.md)
+        * [12文件与流IO](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/12文件与流IO.md)
+        * [13多线程编程](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/13多线程编程.md)
+        * [14网络编程](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/14网络编程.md)
     * [java-senior(java高级)](https://github.com/soonphe/0-1Learning/tree/master/java/java-senior)
     * [jvm(java虚拟机)](https://github.com/soonphe/0-1Learning/tree/master/java/jvm)
 
