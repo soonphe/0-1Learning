@@ -54,91 +54,56 @@
 
 ###集合
 
+#### Collection包结构，与Collections的区别
+* Collection是一个接口，它是Set、List等容器的父接口；
+* Collections是一个工具类，提供了一系列的静态方法来辅助容器操作，这些方法包括对容器的搜索、排序、线程安全化等等。
+
 #### ArrayList、LinkedList、Vector的底层实现和区别
 * 从同步性来看，ArrayList和LinkedList是不同步的，而Vector是的。所以线程安全的话，可以使用ArrayList或LinkedList，可以节省为同步而耗费的开销。但在多线程下，有时候就不得不使用Vector了。当然，也可以通过一些办法包装ArrayList、LinkedList，使我们也达到同步，但效率可能会有所降低。
 * 从内部实现机制来讲ArrayList和Vector都是使用Object的数组形式来存储的。当你向这两种类型中增加元素的时候，如果元素的数目超出了内部数组目前的长度它们都需要扩展内部数组的长度，Vector缺省情况下自动增长原来一倍的数组长度，ArrayList是原来的50%，所以最后你获得的这个集合所占的空间总是比你实际需要的要大。如果你要在集合中保存大量的数据，那么使用Vector有一些优势，因为你可以通过设置集合的初始化大小来避免不必要的资源开销。
 * ArrayList和Vector中，从指定的位置（用index）检索一个对象，或在集合的末尾插入、删除一个对象的时间是一样的，可表示为O(1)。但是，如果在集合的其他位置增加或者删除元素那么花费的时间会呈线性增长O(n-i)，其中n代表集合中元素的个数，i代表元素增加或移除元素的索引位置，因为在进行上述操作的时候集合中第i和第i个元素之后的所有元素都要执行(n-i)个对象的位移操作。LinkedList底层是由双向循环链表实现的，LinkedList在插入、删除集合中任何位置的元素所花费的时间都是一样的O(1)，但它在索引一个元素的时候比较慢，为O(i)，其中i是索引的位置，如果只是查找特定位置的元素或只在集合的末端增加、移除元素，那么使用Vector或ArrayList都可以。如果是对其它指定位置的插入、删除操作，最好选择LinkedList。
 
+#### Map、HashMap、HashTable、LinkedHashMap、TreeMap的底层实现区别
+* Map主要用于存储健值对，根据键得到值，因此不允许键重复(重复了覆盖了),但允许值重复。
+* Hashmap 是一个最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度，遍历时，取得数据的顺序是完全随机的。HashMap最多只允许一条记录的键为Null;允许多条记录的值为 Null;HashMap不支持线程的同步，即任一时刻可以有多个线程同时写HashMap;可能会导致数据的不一致。如果需要同步，可以用 Collections的synchronizedMap方法使HashMap具有同步的能力，或者使用ConcurrentHashMap。
+* Hashtable与 HashMap类似,它继承自Dictionary类，不同的是:它不允许记录的键或者值为空;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了 Hashtable在写入时会比较慢。
+* LinkedHashMap保存了记录的插入顺序，在用Iterator遍历LinkedHashMap时，先得到的记录肯定是先插入的.也可以在构造时用带参数，按照应用次数排序。在遍历的时候会比HashMap慢，不过有种情况例外，当HashMap容量很大，实际数据较少时，遍历起来可能会比LinkedHashMap慢，因为LinkedHashMap的遍历速度只和实际数据有关，和容量无关，而HashMap的遍历速度和他的容量有关。
+* TreeMap实现SortMap接口，能够把它保存的记录根据键排序,默认是按键值的升序排序，也可以指定排序的比较器，当用Iterator 遍历TreeMap时，得到的记录是排过序的
+
+#### Map、Set、List、Queue、Stack的特点与用法。**
+* Collection 是对象集合， 
+* Collection 有两个子接口 List 和 Set
+    * List 可以通过下标 (1,2..) 来取得值，值可以重复，而 Set 只能通过游标来取值，并且值是不能重复的
+
+* ArrayList ， Vector ， LinkedList 是 List 的实现类
+    * ArrayList 是线程不安全的， Vector 是线程安全的，这两个类底层都是由数组实现的
+    * LinkedList 是线程不安全的，底层是由链表实现的   
+
+* Map 是键值对集合
+    * HashTable 和 HashMap 是 Map 的实现类   
+    * HashTable 是线程安全的，不能存储 null 值   
+    * HashMap 不是线程安全的，可以存储 null 值  
+    * Stack类：继承自Vector，实现一个后进先出的栈。提供了几个基本方法，push、pop、peak、empty、search等。
+    * Queue接口：提供了几个基本方法，offer、poll、peek等。已知实现类有LinkedList、PriorityQueue等。
 
 
+#### Interface与abstract类的区别
+* 抽象类和接口都不能够实例化，但可以定义抽象类和接口类型的引用。
+* 一个类如果继承了某个抽象类或者实现了某个接口都需要对其中的抽象方法全部进行实现，否则该类仍然需要被声明为抽象类。
+* 接口比抽象类更加抽象，因为抽象类中可以定义构造器，可以有抽象方法和具体方法，而接口中不能定义构造器而且其中的方法全部都是抽象方法。
+* 抽象类中的成员可以是private、默认、protected、public的，而接口中的成员全都是public的。
+* 抽象类中可以定义成员变量，而接口中定义的成员变量实际上都是常量。
+* 有抽象方法的类必须被声明为抽象类，而抽象类未必要有抽象方法。
 
 
+#### Static class 与non static class的区别
+内部静态类不需要有指向外部类的引用。
+但非静态内部类需要持有对外部类的引用。
+非静态内部类能够访问外部类的静态和非静态成员。
+静态类不能访问外部类的非静态成员。他只能访问外部类的静态成员。
+一个非静态内部类不能脱离外部类实体被创建，一个非静态内部类可以访问外部类的数据和方法，因为他就在外部类里面。
 
----
-
-**Arraylist和HashMap如何扩容？负载因子有什么作用？如何保证读写进程安全？**
-
-
-ArrayList 本身不是线程安全的。
-所以正确的做法是去用 java.util.concurrent 里的 CopyOnWriteArrayList 或者某个同步的 Queue 类。
-
-HashMap实现不是同步的。如果多个线程同时访问一个哈希映射，而其中至少一个线程从结构上修改了该映射，则它必须 保持外部同步。（结构上的修改是指添加或删除一个或多个映射关系的任何操作；仅改变与实例已经包含的键关联的值不是结构上的修改。）这一般通过对自然封装该映射的对象进行同步操作来完成。如果不存在这样的对象，则应该使用 Collections.synchronizedMap 方法来“包装”该映射。最好在创建时完成这一操作，以防止对映射进行意外的非同步访问.
-
----
-
-**TreeMap、HashMap、LinkedHashMap的底层实现区别。**
-
-[http://blog.csdn.net/lolashe/article/details/20806319](http://blog.csdn.net/lolashe/article/details/20806319)
-
----
-
-**Collection包结构，与Collections的区别。**
-
-Collection是一个接口，它是Set、List等容器的父接口；
-Collections是一个工具类，提供了一系列的静态方法来辅助容器操作，这些方法包括对容器的搜索、排序、线程安全化等等。
-
----
-
-**Set、List之间的区别是什么?**
-
-[http://developer.51cto.com/art/201309/410205_all.htm](http://developer.51cto.com/art/201309/410205_all.htm)
-
----
-
-**Map、Set、List、Queue、Stack的特点与用法。**
-
-[http://www.cnblogs.com/yumo/p/4908718.html](http://www.cnblogs.com/yumo/p/4908718.html)
-
-Collection 是对象集合， Collection 有两个子接口 List 和 Set
-
-List 可以通过下标 (1,2..) 来取得值，值可以重复
-
-而 Set 只能通过游标来取值，并且值是不能重复的
-
-ArrayList ， Vector ， LinkedList 是 List 的实现类
-
-ArrayList 是线程不安全的， Vector 是线程安全的，这两个类底层都是由数组实现的
-
-LinkedList 是线程不安全的，底层是由链表实现的   
-
-
-Map 是键值对集合
-
-HashTable 和 HashMap 是 Map 的实现类   
-HashTable 是线程安全的，不能存储 null 值   
-HashMap 不是线程安全的，可以存储 null 值  
-
-Stack类：继承自Vector，实现一个后进先出的栈。提供了几个基本方法，push、pop、peak、empty、search等。
-
-Queue接口：提供了几个基本方法，offer、poll、peek等。已知实现类有LinkedList、PriorityQueue等。
-
-
-**Interface与abstract类的区别。**
-
-抽象类和接口都不能够实例化，但可以定义抽象类和接口类型的引用。一个类如果继承了某个抽象类或者实现了某个接口都需要对其中的抽象方法全部进行实现，否则该类仍然需要被声明为抽象类。接口比抽象类更加抽象，因为抽象类中可以定义构造器，可以有抽象方法和具体方法，而接口中不能定义构造器而且其中的方法全部都是抽象方法。抽象类中的成员可以是private、默认、protected、public的，而接口中的成员全都是public的。抽象类中可以定义成员变量，而接口中定义的成员变量实际上都是常量。有抽象方法的类必须被声明为抽象类，而抽象类未必要有抽象方法。
-
----
-
-**Static class 与non static class的区别。**
-
-内部静态类不需要有指向外部类的引用。但非静态内部类需要持有对外部类的引用。非静态内部类能够访问外部类的静态和非静态成员。静态类不能访问外部类的非静态成员。他只能访问外部类的静态成员。一个非静态内部类不能脱离外部类实体被创建，一个非静态内部类可以访问外部类的数据和方法，因为他就在外部类里面。
-
----
-
-**foreach与正常for循环效率对比。**
-
-[http://904510742.iteye.com/blog/2118331](http://904510742.iteye.com/blog/2118331)
-
+#### foreach与正常for循环效率对比
 直接for循环效率最高，其次是迭代器和 ForEach操作。
 作为语法糖，其实 ForEach 编译成 字节码之后，使用的是迭代器实现的，反编译后，testForEach方法如下：
 
@@ -150,7 +115,6 @@ public static void testForEach(List list) {
     }  
 }  
 ```
-
 可以看到，只比迭代器遍历多了生成中间变量这一步，因为性能也略微下降了一些。
 
 
@@ -160,10 +124,6 @@ public static void testForEach(List list) {
 * Overload：顾名思义，就是Over(重新)——load（加载），所以中文名称是重载。它可以表现类的多态性，可以是函数里面可以有相同的函数名但是参数名、类型不能相同；或者说可以改变参数、类型但是函数名字依然不变。
 * Override：就是ride(重写)的意思，在子类继承父类的时候子类中可以定义某方法与其父类有相同的名称和参数，当子类在调用这一函数时自动调用子类的方法，而父类相当于被覆盖（重写）了。
 * 方法的重写Overriding和重载Overloading是Java多态性的不同表现。重写Overriding是父类与子类之间多态性的一种表现，重载Overloading是一个类中多态性的一种表现。如果在子类中定义某方法与其父类有相同的名称和参数，我们说该方法被重写 (Overriding)。子类的对象使用这个方法时，将调用子类中的定义，对它而言，父类中的定义如同被“屏蔽”了。如果在一个类中定义了多个同名的方法，它们或有不同的参数个数或有不同的参数类型，则称为方法的重载(Overloading)。Overloaded的方法是可以改变返回值的类型。
-
-
-
-
 
 
 ### Object有哪些公用方法？
@@ -201,3 +161,46 @@ final方法，获得运行时类型。
 
 9．notifyAll方法
 该方法唤醒在该对象上等待的所有线程。
+
+
+### Java相关问题
+~~~~
+问：八种基本数据类型的大小，以及他们的封装类
+答：
+八种基本数据类型，int ,double ,long ,float, short,byte,character,boolean
+对应的封装类型是：Integer ,Double ,Long ,Float, Short,Byte,Character,Boolean
+
+问：Switch能否用string做参数？
+答：在Java 5以前，switch(expr)中，expr只能是byte、short、char、int。从Java 5开始，Java中引入了枚举类型，expr也可以是enum类型，从Java 7开始，expr还可以是字符串（String），但是长整型（long）在目前所有的版本中都是不可以的。
+
+问：==与equals的主要区别是：
+答：
+==常用于比较原生类型，而equals()方法用于检查对象的相等性。
+另一个不同的点是：如果==和equals()用于比较对象，当两个引用地址相同，==返回true。
+而equals()可以返回true或者false主要取决于重写实现。最常见的一个例子，字符串的比较，不同情况==和equals()返回不同的结果。equals()方法最重要的一点是，能够根据业务要求去重写，按照自定义规则去判断两个对象是否相等。重写equals()方法的时候，要注意一下hashCode是否会因为对象的属性改变而改变，否则在使用散列集合储存该对象的时候会碰到坑！！理解equals()方法的存在是很重要的。
+1. 使用==比较有两种情况：
+        比较基础数据类型(Java中基础数据类型包括八中：short,int,long,float,double,char,byte,boolen)：这种情况下，==比较的是他们的值是否相等。
+        引用间的比较：在这种情况下，==比较的是他们在内存中的地址，也就是说，除非引用指向的是同一个new出来的对象，此时他们使用`==`去比较得到true，否则，得到false。
+2. 使用equals进行比较：
+        equals追根溯源，是Object类中的一个方法，在该类中，equals的实现也仅仅只是比较两个对象的内存地址是否相等，但在一些子类中，如：String、Integer 等，该方法将被重写。
+
+
+问：String、StringBuffer与StringBuilder的区别
+答：其中String是只读字符串，也就意味着String引用的字符串内容是不能被改变的。
+而StringBuffer和StringBulder类表示的字符串对象可以直接进行修改。
+StringBuilder是JDK1.5引入的，它和StringBuffer的方法完全相同，
+区别在于它是单线程环境下使用的，因为它的所有方面都没有被synchronized修饰，因此它的效率也比StringBuffer略高。
+
+问：try catch finally，try里有return，finally还执行么？
+答：会执行，在方法 返回调用者前执行。Java允许在finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是纪录下返回值待finally代码块执行完毕之后再向调用者返回其值，然后如果在finally中修改了返回值，这会对程序造成很大的困扰，C#中就从语法规定不能做这样的事。
+
+问：Hashcode的作用。
+答：
+以Java.lang.Object来理解,JVM每new一个Object,它都会将这个Object丢到一个Hash哈希表中去,这样的话,下次做Object的比较或者取这个对象的时候,它会根据对象的hashcode再从Hash表中取这个对象。这样做的目的是提高取对象的效率。具体过程是这样: 
+1. new Object(),JVM根据这个对象的Hashcode值,放入到对应的Hash表对应的Key上,如果不同的对象确产生了相同的hash值,也就是发生了Hash key相同导致冲突的情况,那么就在这个Hash key的地方产生一个链表,将所有产生相同hashcode的对象放到这个单链表上去,串在一起。 
+2. 比较两个对象的时候,首先根据他们的hashcode去hash表中找他的对象,当两个对象的hashcode相同,那么就是说他们这两个对象放在Hash表中的同一个key上,那么他们一定在这个key上的链表上。那么此时就只能根据Object的equal方法来比较这个对象是否equal。当两个对象的hashcode不同的话，肯定他们不能equal. 
+
+问：Excption与Error区别
+答：Error表示系统级的错误和程序不必处理的异常，是恢复不是不可能但很困难的情况下的一种严重问题；比如内存溢出，不可能指望程序能处理这样的状况；Exception表示需要捕捉或者需要程序进行处理的异常，是一种设计或实现问题；也就是说，它表示如果程序运行正常，从不会发生的情况。
+
+

@@ -5,7 +5,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-## Java虚拟机简介
+## Java虚拟机
 
 ### JVM简介
 * JVM是Java Virtual Machine（Java虚拟机）的缩写，
