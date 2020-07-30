@@ -5,12 +5,12 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-## Java并发
+## Java并发基础知识
 
 ### 重点
 * Executor框架和多线程基础
 
-### Thread与Runable如何实现多线程**
+### Thread与Runable如何实现多线程
 
 * Java 5以前实现多线程有两种实现方法：
     * 继承Thread类
@@ -151,6 +151,29 @@ public class Test {
 
 ### 线程
 
+#### 线程阻塞
+
+线程可以阻塞于四种状态：
+
+1. 当线程执行Thread.sleep()时，它一直阻塞到指定的毫秒时间之后，或者阻塞被另一个线程打断
+2. 当线程碰到一条wait()语句时，它会一直阻塞到接到通知(notify())、被中断或经过了指定毫秒 时间为止(若指定了超时值的话)
+3. 线程阻塞与不同的I/O的方式有多种。常见的一种方式是InputStream的read()方法，该方法一直阻塞到从流中读取一个字节的数据为止，它可以无限阻塞，因此不能指定超时时间
+4. 线程也可以阻塞等待获取某个对象锁的排它性访问权限(即等待获得synchronized语句必须的锁时阻塞)
+
+并非所有的阻塞状态都是可中断的，以上阻塞状态的前两种可以被中断，后两种不会对中断做出反应。
+
+#### 守护线程
+Java中有两类线程：
+    * User Thread(用户线程)
+    * Daemon Thread(守护线程)
+用户线程即运行在前台的线程，而守护线程是运行在后台的线程。 守护线程作用是为其他前台线程的运行提供便利服务，而且仅在普通、非守护线程仍然运行时才需要，比如垃圾回收线程就是一个守护线程。当VM检测仅剩一个守护线程，而用户线程都已经退出运行时，VM就会退出，因为如果没有了守护者，也就没有继续运行程序的必要了。如果有非守护线程仍然活着，VM就不会退出。
+守护线程并非只有虚拟机内部提供，用户在编写程序时也可以自己设置守护线程。用户可以用Thread的setDaemon(true)方法设置当前线程为守护线程。
+虽然守护线程可能非常有用，但必须小心确保其它所有非守护线程消亡时，不会由于它的终止而产生任何危害。因为你不可能知道在所有的用户线程退出运行前，守护线程是否已经完成了预期的服务任务。一旦所有的用户线程退出了，虚拟机也就退出运行了。因此，不要再守护线程中执行业务逻辑操作(比如对数据的读写等)。
+还有几点：
+1. setDaemon(true)必须在调用线程的start()方法之前设置，否则会跑出IllegalThreadStateException异常。
+2. 在守护线程中产生的新线程也是守护线程
+3. 不要认为所有的应用都可以分配给守护线程来进行服务，比如读写操作或者计算逻辑。
+
 #### 线程间通信，使用wait/notify/notifyAll
 * Object是所有类的超类，它有5个方法组成了等待/通知机制的核心：
     * notify（）
@@ -200,25 +223,115 @@ notifyAll使所有原来在该对象上wait的线程统统退出wait的状态（
     * synchronized块
     * 信号量等
 
-### 锁的等级：
-* 方法锁
-* 对象锁
-* 类锁
 
-
-### ThreadPool（线程池）的底层实现和工作原理
+---
+### ThreadPool（线程池）
 
 #### 为什么要使用线程池
 * 当需要多线程并发执行任务时，只能不断的通过new Thread创建线程，每创建一个线程都需要在堆上分配内存空间，同时需要分配虚拟机栈、本地方法栈、程序计数器等线程私有的内存空间，当这个线程对象被可达性分析算法标记为不可用时被GC回收，这样频繁的创建和回收需要大量的额外开销。
 * 再者说，JVM的内存资源是有限的，如果系统中大量的创建线程对象，JVM很可能直接抛出OutOfMemoryError异常，还有大量的线程去竞争CPU会产生其他的性能开销，更多的线程反而会降低性能，所以必须要限制线程数。
 
 * 使用线程池好处：
-    * 使用线程池可以复用池中的线程，不需要每次都创建新线程，减少创建和销毁线程的开销；
-    * 同时，线程池具有队列缓冲策略、拒绝机制和动态管理线程个数，特定的线程池还具有定时执行、周期执行功能，比较重要的一点是线程池可实现线程环境的隔离，例如分别定义支付功能相关线程池和优惠券功能相关线程池，当其中一个运行有问题时不会影响另一个。 
+    * 降低资源消耗。使用线程池可以复用池中的线程，不需要每次都创建新线程，减少创建和销毁线程的开销；
+    * 提高响应速度。当任务到达时，任务可以不需要等到线程创建就能立即执行。
+    * 提高线程的可管理性。线程是稀缺资源，如果无限的创建，不仅会消耗资源，还会较低系统的稳定性，使用线程池可以进行统一分配，调优和监控。
+    * 线程池具有队列缓冲策略、拒绝机制和动态管理线程个数，特定的线程池还具有定时执行、周期执行功能，比较重要的一点是线程池可实现线程环境的隔离，例如分别定义支付功能相关线程池和优惠券功能相关线程池，当其中一个运行有问题时不会影响另一个。 
+
+#### 架构实现
+  Java 中的线程池是通过 Executor 框架实现的，该框架中用到了Executor，Executors，ExecutorService，ThreadPoolExecutor 这几个类。
 
 
 
-### Java相关问题
+#### 如何构造一个线程池对象
+* 本文内容我们只聊线程池ThreadPoolExecutor，查看它的源码会发现它继承了AbstractExecutorService抽象类，
+而AbstractExecutorService实现了ExecutorService接口，
+ExecutorService继承了Executor接口，
+所以ThreadPoolExecutor间接实现了ExecutorService接口和Executor接口
+
+* 一般我们使用的execute方法是在Executor接口中定义的，而submit方法是在ExecutorService接口中定义的，所以当我们创建一个Executor类型变量引用ThreadPoolExecutor对象实例时可以使用execute方法提交任务，当我们创建一个ExecutorService类型变量时可以使用submit方法，当然我们可以直接创建ThreadPoolExecutor类型变量使用execute方法或submit方法。
+
+* ThreadPoolExecutor定义了七大核心属性：
+    * corePoolSize(int)：核心线程数量。默认情况下，在创建了线程池后，线程池中的线程数为0，当有任务来之后，就会创建一个线程去执行任务，当线程池中的线程数目达到corePoolSize后，就会把到达的任务放到任务队列当中。线程池将长期保证这些线程处于存活状态，即使线程已经处于闲置状态。除非配置了allowCoreThreadTimeOut=true，核心线程数的线程也将不再保证长期存活于线程池内，在空闲时间超过keepAliveTime后被销毁。
+    * workQueue：阻塞队列，存放等待执行的任务，线程从workQueue中取任务，若无任务将阻塞等待。当线程池中线程数量达到corePoolSize后，就会把新任务放到该队列当中。JDK提供了四个可直接使用的队列实现，分别是：基于数组的有界队列ArrayBlockingQueue、基于链表的无界队列LinkedBlockingQueue、只有一个元素的同步队列SynchronousQueue、优先级队列PriorityBlockingQueue。在实际使用时一定要设置队列长度。
+    * maximumPoolSize(int)：线程池内的最大线程数量，线程池内维护的线程不得超过该数量，大于核心线程数量小于最大线程数量的线程将在空闲时间超过keepAliveTime后被销毁。当阻塞队列存满后，将会创建新线程执行任务，线程的数量不会大于maximumPoolSize。
+    * keepAliveTime(long)：线程存活时间，若线程数超过了corePoolSize，线程闲置时间超过了存活时间，该线程将被销毁。除非配置了allowCoreThreadTimeOut=true，核心线程数的线程也将不再保证长期存活于线程池内，在空闲时间超过keepAliveTime后被销毁。
+    * TimeUnit unit：线程存活时间的单位，例如TimeUnit.SECONDS表示秒。
+    * RejectedExecutionHandler：拒绝策略，当任务队列存满并且线程池个数达到maximunPoolSize后采取的策略。ThreadPoolExecutor中提供了四种拒绝策略，分别是：抛RejectedExecutionException异常的AbortPolicy(如果不指定的默认策略)、使用调用者所在线程来运行任务CallerRunsPolicy、丢弃一个等待执行的任务，然后尝试执行当前任务DiscardOldestPolicy、不动声色的丢弃并且不抛异常DiscardPolicy。项目中如果为了更多的用户体验，可以自定义拒绝策略。
+    * threadFactory：创建线程的工厂，虽说JDK提供了线程工厂的默认实现DefaultThreadFactory，但还是建议自定义实现最好，这样可以自定义线程创建的过程，例如线程分组、自定义线程名称等。
+
+* 构造方法
+* Executors提供的构造方法：
+    Executors.newSingleThreadExecutor：创建一个单线程化的线程池
+    Executors.newScheduledThreadPool：创建一个定长线程池，支持定时及周期性任务执行。
+    Executors.newFixedThreadPool：创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待
+    Executors.newCachedThreadPool：创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。
+* ThreadPoolExecutor提供的构造方法：(建议使用)
+    ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime, TimeUnit unit,BlockingQueue<Runnable> workQueue)
+    ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime, TimeUnit unit,BlockingQueue<Runnable> workQueue,RejectedExecutionHandler handler)
+    ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime, TimeUnit unit,BlockingQueue<Runnable> workQueue,ThreadFactory threadFactory)
+    ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime, TimeUnit unit,BlockingQueue<Runnable> workQueue,ThreadFactory threadFactory,RejectedExecutionHandler handler)
+* 可以看到前三个方法最终都调用了最后一个、参数列表最长的那个方法，在这个方法中给七个属性赋值。
+
+#### 创建线程池对象，强烈建议通过使用ThreadPoolExecutor的构造方法创建，不要使用Executors
+* 阿里《Java开发手册》中的一段描述。
+    * 【强制】线程池不允许使用Executors创建，建议通过ThreadPoolExecutor的方式创建，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。
+    * 说明：Executors返回的线程池对象的弊端如下：
+    * 1.FixedThreadPool和SingleThreadPool:    允许的请求队列长度为Integet.MAX_VALUE,可能会堆积大量的请求从而导致OOM;
+    * 2.CachedThreadPool:    允许创建线程数量为Integet.MAX_VALUE,可能会创建大量的线程，从而导致OOM.
+* 使用自定义线程工厂：
+    当项目规模逐渐扩展，各系统中线程池也不断增多，当发生线程执行问题时，通过自定义线程工厂创建的线程设置有意义的线程名称可快速追踪异常原因，高效、快速的定位问题。
+* 使用自定义拒绝策略：虽然，JDK给我们提供了一些默认的拒绝策略，但我们可以根据项目需求的需要，或者是用户体验的需要，定制拒绝策略，完成特殊需求。
+* 线程池划分隔离：不同业务、执行效率不同的分不同线程池，避免因某些异常导致整个线程池利用率下降或直接不可用，进而影响整个系统或其它系统的正常运行。
+    
+
+#### 线程池工作原理
+1. 通过execute方法提交任务时，当线程池中的线程数小于corePoolSize时，新提交的任务将通过创建一个新线程来执行，即使此时线程池中存在空闲线程。
+2. 通过execute方法提交任务时，当线程池中线程数量达到corePoolSize时，新提交的任务将被放入workQueue中，等待线程池中线程调度执行。
+3. 通过execute方法提交任务时，当workQueue已存满，且maxmumPoolSize大于corePoolSize时，新提交的任务将通过创建新线程执行。
+4. 当线程池中的线程执行完任务空闲时，会尝试从workQueue中取头结点任务执行。
+5. 通过execute方法提交任务，当线程池中线程数达到maxmumPoolSize，并且workQueue也存满时，新提交的任务由RejectedExecutionHandler执行拒绝操作。
+6. 当线程池中线程数超过corePoolSize，并且未配置allowCoreThreadTimeOut=true，空闲时间超过keepAliveTime的线程会被销毁，保持线程池中线程数为corePoolSize。（注：销毁空闲线程，保持线程数为corePoolSize，不是销毁corePoolSize中的线程。）
+7. 当设置allowCoreThreadTimeOut=true时，任何空闲时间超过keepAliveTime的线程都会被销毁。
+
+
+#### 合理配置线程池
+分两种情况：
+* CPU密集
+    * CPU密集的意思是该任务需要大量的运算，而没有阻塞，CPU一直全速运行。
+    * CPU密集任务只有在真正的多核CPU上才可能得到加速(通过多线程)，而在单核CPU上，无论你开几个模拟的多线程，该任务都不可能得到加速，因为CPU总的运算能力就那些。
+
+* IO密集
+    * IO密集型，即该任务需要大量的IO，即大量的阻塞。在单线程上运行IO密集型的任务会导致浪费大量的CPU运算能力浪费在等待。所以在IO密集型任务中使用多线程可以大大的加速程序运行，即时在单核CPU上，这种加速主要就是利用了被浪费掉的阻塞时间。
+
+要想合理的配置线程池的大小，首先得分析任务的特性，可以从以下几个角度分析：
+1.  任务的性质：CPU密集型任务、IO密集型任务、混合型任务。
+2.  任务的优先级：高、中、低。
+3.  任务的执行时间：长、中、短。
+4.  任务的依赖性：是否依赖其他系统资源，如数据库连接等。
+
+性质不同的任务可以交给不同规模的线程池执行：
+* CPU密集型任务应配置尽可能小的线程，如配置CPU个数+1的线程数，
+* IO密集型任务应配置尽可能多的线程，因为IO操作不占用CPU，不要让CPU闲下来，应加大线程数量，如配置两倍CPU个数+1，
+* 对于混合型的任务，如果可以拆分，拆分成IO密集型和CPU密集型分别处理，前提是两者运行的时间是差不多的，如果处理时间相差很大，则没必要拆分了。
+* 若任务对其他系统资源有依赖，如某个任务依赖数据库的连接返回的结果，这时候等待的时间越长，则CPU空闲的时间越长，那么线程数量应设置得越大，才能更好的利用CPU。
+* 当然具体合理线程池值大小，需要结合系统实际情况，在大量的尝试下比较才能得出，以上只是前人总结的规律。
+
+~~~~
+最佳线程数目 = （（线程等待时间+线程CPU时间）/线程CPU时间 ）* CPU数目
+比如平均每个线程CPU运行时间为0.5s，而线程等待时间（非CPU运行时间，比如IO）为1.5s，CPU核心数为8，那么根据上面这个公式估算得到：((0.5+1.5)/0.5)*8=32。
+
+这个公式进一步转化为：
+最佳线程数目 = （线程等待时间与线程CPU时间之比 + 1）* CPU数目
+
+可以得出一个结论： 
+线程等待时间所占比例越高，需要越多线程。线程CPU时间所占比例越高，需要越少线程。 
+以上公式与之前的CPU和IO密集型任务设置线程数基本吻合。
+~~~~
+
+### 总结
+实际工作中，我们经常使用线程池，对这块的要求不仅是常规的如何使用，原理我们也要清楚是怎么回事。同时，线程池工作原理和底层实现原理也是面试必问的考题，所以，这块是一定要掌握的。
+
+### 相关问题
 ~~~~
 问：wait()和sleep()的区别
 答:
