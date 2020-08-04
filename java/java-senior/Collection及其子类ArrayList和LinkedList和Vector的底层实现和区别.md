@@ -101,6 +101,7 @@
     * ArrayList和LinkedList一样，不具备线程同步的安全性，Vector线程安全
     * ArrayList、Vector底部都是采用数组实现的
     * 第一次定义的时候没有指定数组的长度则长度是0，在第一次添加的时候判断如果是空则追加10。
+    * 扩容机制：ArrayList每次对size增长50%.
 2. LinkedList 
     * 是一个双链表
     * 它还是队列、双端队列，可以用作堆栈

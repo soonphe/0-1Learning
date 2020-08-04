@@ -1,10 +1,16 @@
-#数据结构和算法：
----
-(推荐书籍：剑指offer、编程之美、Cracking、程序员代码面试指南，特别是这四本书上的重复题)
+# 0-1Learning
 
-**数组与链表**
+![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
+![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-####数组：
+## 数据结构和算法
+
+
+### 数组与链表
+
+#### 数组
 
 创建
 
@@ -12,8 +18,6 @@
 int c[] = {2,3,6,10,99};
 int[] d = new int[10];
 ```
-
-
 
 ```
 	/**
@@ -81,15 +85,27 @@ Tips:数组中删除和增加元素的原理：增加元素，需要将index后�
 数组表示相同类型的一类数据的集合，下标从0开始。
 
 
-####单链表：
+#### 单链表
 
-![](http://img.my.csdn.net/uploads/201304/13/1365855052_1221.jpg)
+**链表的删除、插入、反向。**
+
+链表反转
+~~~~
+public Node reverse(Node head) {
+    if (head == null || head.next == null)
+        return head;
+    Node temp = head.next;
+    Node newHead = reverse(head.next);
+    temp.next = head;
+    head.next = null;
+    return newHead;
+}
+~~~~
+
 
 
 
 **队列和栈，出栈与入栈。**
-
-**链表的删除、插入、反向。**
 
 **字符串操作。**
 
