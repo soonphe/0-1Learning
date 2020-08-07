@@ -10,9 +10,6 @@
 ### 简介：
 Kafka是最初由Linkedin公司开发，用scala语言编写的，是一个分布式、支持分区的（partition）、多副本的（replica），基于zookeeper协调的分布式消息系统。
 
-### JMS规范的消息系统中消息收发分类
-点对点/队列模式，一般基于拉取或轮询来接收消息，在这种模式中，可以有多个消费者同时在queue（队列）中侦听同一消息，但一条消息只会被一个消费者接收。既支持即发即弃的消息传送方式也支持同步请求/应答的消息传送方式。
-发布/订阅模式，既可以支持推送来接收消息，也可以通过拉取或轮询的形式来接收。发布到一个topic（主题）的消息可以被多个订阅者接收，解耦能力更强。
 
 ### kafka组成
 分布式（负载均衡提高处理性能和容错能力）
@@ -20,26 +17,44 @@ Kafka是最初由Linkedin公司开发，用scala语言编写的，是一个分�
 * 每个partition(分区)在Kafka集群的若干服务(server)中都有副本/备份，这样这些持有副本的服务可以共同处理数据和请求，副本数量是可以配置的。
 * 每个分区有一个leader服务器，若干个followers服务器，leader负责处理消息的读和写，followers则去复制leader，如果leader down了，followers中的一台则会自动成为leader。
 
-kafka对消息保存时根据Topic进行归类，
-发送消息者成为Producer,
-消息接受者成为Consumer,
-此外kafka集群有多个kafka实例组成，每个实例(server)成为broker（中介）。
+关键概念：
+1. 生产者Producer：将向Kafka topic发布消息的程序成为producers.
+2. 消费者Consumer：将订阅topics并消费消息的程序成为consumer.
+3. broker：此外kafka集群有多个kafka实例组成，每个实例(server)成为broker（中介）。
+4. Topic：消息的主题或分类，kafka对消息保存时根据Topic进行归类，每条消息都属于且只属于一个topic，生产者在发送消息时、消费者在接收消息时都必须指定消息的topic。一个topic中可以包含多个partition（分区）。
+5. Partition：可以理解为一个partition物理上对应一个文件夹。一个partition只分布于一个broker上（不考虑备份的情况下），每个partition都是一个有序队列，分为多个大小相等的segment（对用户透明）,每个segment对应一个文件，而segment文件由一条条不可变的记录组成（消息发出后就不可变更了），这里面的数据记录就是生产者发送的消息内容。
+补充：
+每个 topic 可以划分多个分区（每个 Topic 至少有一个分区），同一 topic 下的不同分区包含的消息是不同的。
+每个消息在被添加到分区时，都会被分配一个 offset（称之为偏移量），它是消息在此分区中的唯一编号，kafka 通过 offset保证消息在分区内的顺序，offset 的顺序不跨分区，即 kafka只保证在同一个分区内的消息是有序的
 
 无论是kafka集群，还是producer和consumer都依赖于zookeeper来保证系统可用性，zookeeper保存kafka集群的meta（元数据）信息（broker/consumer）。
 
 ![alt text](../static/middleware/kafka.png )
 
+### 消息发布模式
+对于kafka来说，发布消息通常有两种模式：
+* 点对点/队列模式（queuing）：
+    * 一般基于拉取或轮询来接收消息，在队列模式中，可以有多个consumers同时在queue（队列）中侦听同一消息，但一条消息只会被一个consumer接收。
+    既支持即发即弃的消息传送方式也支持同步请求/应答的消息传送方式。
+* 发布/订阅模式(publish-subscribe)：
+    * 既可以支持推送来接收消息，也可以通过拉取或轮询的形式来接收。发布到一个topic（主题）的消息可以被多个订阅者接收，解耦能力更强。
+
+发布-订阅模式中消息被广播到所有的consumer，Consumers可以加入一个consumer 组，共同竞争一个topic，topic中的消息将被分发到组中的一个成员中。同一组中的consumer可以在不同的程序中，也可以在不同的机器上。
+ 
+如果所有的consumer都在一个组中，这就成为了传统的队列模式，在各consumer中实现负载均衡。
+如果所有的consumer都不在不同的组中，这就成为了发布-订阅模式，所有的消息都被分发到所有的consumer中。
+更常见的是，每个topic都有若干数量的consumer组，每个组都是一个逻辑上的“订阅者”，为了容错和更好的稳定性，每个组由若干consumer组成。这其实就是一个发布-订阅模式，只不过订阅者是个组而不是单个consumer。
+
+
 ### kafka的message格式是什么样的
+一个Kafka的Message组成：
+    * 一个固定长度的header和
+    * 一个变长的消息体body组成
 
-一个Kafka的Message由一个固定长度的header和一个变长的消息体body组成
+* header部分由一个字节的magic(文件格式)和四个字节的CRC32(用于判断body消息体是否正常)构成。
+当magic的值为1的时候，会在magic和crc32之间多一个字节的数据：attributes(保存一些相关属性，比如是否压缩、压缩格式等等);如果magic的值为0，那么不存在attributes属性
 
-header部分由一个字节的magic(文件格式)和四个字节的CRC32(用于判断body消息体是否正常)构成。
-
-当magic的值为1的时候，会在magic和crc32之间多一个字节的数据：attributes(保存一些相关属性，
-
-比如是否压缩、压缩格式等等);如果magic的值为0，那么不存在attributes属性
-
-body是由N个字节构成的一个消息体，包含了具体的key/value消息
+* body是由N个字节构成的一个消息体，包含了具体的key/value消息
 
 
 ### kafka中consumer group 是什么概念
@@ -50,10 +65,13 @@ body是由N个字节构成的一个消息体，包含了具体的key/value消息
 group内的worker可以使用多线程或多进程来实现，也可以将进程分散在多台机器上，worker的数量通常不超过partition的数量，且二者最好保持整数倍关系，因为Kafka在设计时假定了一个partition只能被一个worker消费（同一group内）。
 
 
+### kafka中的broker 是干什么的
+broker 是消息的代理，Producers往Brokers里面的指定Topic中写消息，Consumers从Brokers里面拉取指定Topic的消息，然后进行业务处理，broker在中间起到一个代理保存消息的中转站。
+
 
 ### kafka 为什么那么快
-
 Cache Filesystem Cache PageCache缓存
+
 顺序写 由于现代的操作系统提供了预读和写技术，磁盘的顺序写大多数情况下比随机写内存还要快。
 
 Zero-copy 零拷技术减少拷贝次数
@@ -62,16 +80,13 @@ Batching of Messages 批量量处理。合并小的请求，然后以流的方�
 
 Pull 拉模式 使用拉模式进行消息的获取消费，与消费端处理能力相符。
 
-### kafka中的broker 是干什么的
-
-broker 是消息的代理，Producers往Brokers里面的指定Topic中写消息，Consumers从Brokers里面拉取指定Topic的消息，然后进行业务处理，broker在中间起到一个代理保存消息的中转站。
-
 
 ### kafka中的 zookeeper 起到什么作用，可以不用zookeeper么
 
 zookeeper 是一个分布式的协调组件，早期版本的kafka用zk做meta信息存储，consumer的消费状态，group的管理以及 offset的值。考虑到zk本身的一些因素以及整个架构较大概率存在单点问题，新版本中逐渐弱化了zookeeper的作用。新的consumer使用了kafka内部的group coordination协议，也减少了对zookeeper的依赖，
 
 但是broker依然依赖于ZK，zookeeper 在kafka中还用来选举controller 和 检测broker是否存活等等。
+
 
 ### Kafka中的ISR、AR又代表什么？ISR的伸缩又指什么
 
@@ -87,6 +102,28 @@ leader会维护一个与其基本保持同步的Replica列表，该列表称为I
 ### kafka follower如何与leader同步数据
 
 Kafka的复制机制既不是完全的同步复制，也不是单纯的异步复制。完全同步复制要求All Alive Follower都复制完，这条消息才会被认为commit，这种复制方式极大的影响了吞吐率。而异步复制方式下，Follower异步的从Leader复制数据，数据只要被Leader写入log就被认为已经commit，这种情况下，如果leader挂掉，会丢失数据，kafka使用ISR的方式很好的均衡了确保数据不丢失以及吞吐率。Follower可以批量的从Leader复制数据，而且Leader充分利用磁盘顺序读以及send file(zero copy)机制，这样极大的提高复制性能，内部批量写磁盘，大幅减少了Follower与Leader的消息量差。
+
+
+### kafka producer如何优化打入速度
+
+增加线程
+
+提高 batch.size
+
+增加更多 producer 实例
+
+增加 partition 数
+
+设置 acks=-1 时，如果延迟增大：可以增大 num.replica.fetchers（follower 同步数据的线程数）来调解；
+
+跨数据中心的传输：增加 socket 缓冲区设置以及 OS tcp 缓冲区设置。
+
+
+### kafka producer 中，ack  为 0， 1， -1 的时候代表啥
+
+1（默认）  数据发送到Kafka后，经过leader成功接收消息的的确认，就算是发送成功了。在这种情况下，如果leader宕机了，则会丢失数据。
+0 生产者将数据发送出去就不管了，不去等待任何返回。这种情况下数据传输效率最高，但是数据可靠性确是最低的。
+-1 producer需要等待ISR中的所有follower都确认接收到数据后才算一次发送完成，可靠性最高。当ISR中所有Replica都向Leader发送ACK时，leader才commit，这时候producer才能认为一个请求中的消息都commit了。
 
 
 ### 消息如何保证幂等性——重复消费？
@@ -138,6 +175,14 @@ transactionalId与PID一一对应，两者之间所不同的是transactionalId�
 要分别确保上述三个过程都是成功的，有如下做法：
 
 * 对于生产消息阶段：
+Kafka消息发送有两种方式：同步（sync）和异步（async），默认是同步方式，可通过producer.type属性进行配置。Kafka通过配置request.required.acks属性来确认消息的生产：
+0---表示不进行消息接收是否成功的确认；
+1---表示当Leader接收成功时确认；
+-1---表示Leader和Follower都接收成功时确认；
+综上所述，有6种消息生产的情况，下面分情况来分析消息丢失的场景：
+（1）acks=0，不和Kafka集群进行消息接收确认，则当网络异常、缓冲区满了等情况时，消息可能丢失；
+（2）acks=1、同步模式下，只有Leader确认接收成功后但挂掉了，副本没有同步，数据可能丢失；
+解决：
     * 发送时启用消息事务，channel发送失败就回滚。但是不推荐使用，因为事务时同步的，性能会下降。
     * 发送时使用confirm模式（就是回调模式）。推荐使用，因为是异步的，吞吐量高。消息发送后，回调消息发送成功或者失败的接口。那么业务层面也就可以根据是否发送成功和失败做处理，比如发送前缓存到redis，发送成功后从redis中移除，对于在redis中一直没有处理的，再进行重发操作。
 
@@ -150,6 +195,15 @@ transactionalId与PID一一对应，两者之间所不同的是transactionalId�
     4. 生产者可设置发送失败后无限重试（也就会卡住，消息不会丢）；
 
 * 消费者丢数据
+Kafka消息消费有两个consumer接口，Low-level API和High-level API：
+Low-level API：消费者自己维护offset等值，可以实现对Kafka的完全控制；
+High-level API：封装了对parition和offset的管理，使用简单；
+如果使用高级接口High-level API，可能存在一个问题就是当消息消费者从集群中把消息取出来、并提交了新的消息offset值后，还没来得及消费就挂掉了，那么下次再消费时之前没消费成功的消息就“诡异”的消失了；    
+
+解决办法：
+        针对消息丢失：同步模式下，确认机制设置为-1，即让消息写入Leader和Follower之后再确认消息发送成功；异步模式下，为防止缓冲区满，可以在配置文件设置不限制阻塞超时时间，当缓冲区满时让生产者一直处于阻塞状态；
+        针对消息重复：将消息的唯一标识保存到外部介质中，每次消费时判断是否处理过即可。
+
 与rabbit情况相同，主要是autoACK模式造成offset自动提交，建议都做成手动提交offset。
 
 
@@ -165,9 +219,10 @@ Producer使用push模式将消息发布到broker，Consumer使用pull模式从br
 kafka每个partition中的消息在写入时都是有序的，
 消费时，每个partition只能被每一个group中的一个consumer消费，不能投递给同组内两个consumer，只是同组内的consumer却可以消费多个partition，保证了消费时也是有序的。
 
-然后生产者可以设定一个key，同一个key的可以发送到同一个partition中，这样同一个key的消息在partition中是保序；
+Kafka只能保证一个分区之内消息的有序性，在不同的分区之间是不可以的，这已经可以满足大部分应用的需求。
+如果需要整个topic中所有消息的有序性，那就只能让这个topic只有一个分区，即将partition调整为1，当然也就只有一个consumer组消费它。
 
-整个topic不保证有序。如果为了保证topic整个有序，那么将partition调整为1.
+然后生产者可以设定一个key，同一个key的可以发送到同一个partition中，这样同一个key的消息在partition中是保序；
 
 
 如果kafka在消费端开启多线程,也会出现乱序。
@@ -176,14 +231,11 @@ kafka每个partition中的消息在写入时都是有序的，
 
 
 ### 消费者提交消费位移时提交的是当前消费到的最新消息的offset还是offset+1?
-
 offset+1
 
 
 ### 什么Kafka不支持读写分离？
-
 在 Kafka 中，生产者写入消息、消费者读取消息的操作都是与 leader 副本进行交互的，从 而实现的是一种主写主读的生产消费模型。
-
 Kafka 并不支持主写从读，因为主写从读有 2 个很明 显的缺点:
 
 (1)数据一致性问题。数据从主节点转到从节点必然会有一个延时的时间窗口，这个时间 窗口会导致主从节点之间的数据不一致。某一时刻，在主节点和从节点中 A 数据的值都为 X， 之后将主节点中 A 的值修改为 Y，那么在这个变更通知到从节点之前，应用读取从节点中的 A 数据的值并不为最新的 Y，由此便产生了数据不一致的问题。
@@ -202,3 +254,12 @@ Kafka 并不支持主写从读，因为主写从读有 2 个很明 显的缺点:
     * 再开启对应新partition个数的consumer对新的topic进行消费；
     * 这种做法相当于通过物理资源扩充了10倍来快速消费；
 3. 当消费完成后，需要恢复原有架构，开启原来的consumer进行正常消费；
+
+
+### kafka如何实现延迟队列？
+
+Kafka并没有使用JDK自带的Timer或者DelayQueue来实现延迟的功能，而是基于时间轮自定义了一个用于实现延迟功能的定时器（SystemTimer）。JDK的Timer和DelayQueue插入和删除操作的平均时间复杂度为O(nlog(n))，并不能满足Kafka的高性能要求，而基于时间轮可以将插入和删除操作的时间复杂度都降为O(1)。时间轮的应用并非Kafka独有，其应用场景还有很多，在Netty、Akka、Quartz、Zookeeper等组件中都存在时间轮的踪影。
+
+底层使用数组实现，数组中的每个元素可以存放一个TimerTaskList对象。TimerTaskList是一个环形双向链表，在其中的链表项TimerTaskEntry中封装了真正的定时任务TimerTask.
+
+Kafka中到底是怎么推进时间的呢？Kafka中的定时器借助了JDK中的DelayQueue来协助推进时间轮。具体做法是对于每个使用到的TimerTaskList都会加入到DelayQueue中。Kafka中的TimingWheel专门用来执行插入和删除TimerTaskEntry的操作，而DelayQueue专门负责时间推进的任务。再试想一下，DelayQueue中的第一个超时任务列表的expiration为200ms，第二个超时任务为840ms，这里获取DelayQueue的队头只需要O(1)的时间复杂度。如果采用每秒定时推进，那么获取到第一个超时的任务列表时执行的200次推进中有199次属于“空推进”，而获取到第二个超时任务时有需要执行639次“空推进”，这样会无故空耗机器的性能资源，这里采用DelayQueue来辅助以少量空间换时间，从而做到了“精准推进”。Kafka中的定时器真可谓是“知人善用”，用TimingWheel做最擅长的任务添加和删除操作，而用DelayQueue做最擅长的时间推进工作，相辅相成。
