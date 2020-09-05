@@ -217,7 +217,7 @@ Producer使用push模式将消息发布到broker，Consumer使用pull模式从br
 
 ### Kafka中是怎么体现消息顺序性的？
 kafka每个partition中的消息在写入时都是有序的，
-消费时，每个partition只能被每一个group中的一个consumer消费，不能投递给同组内两个consumer，只是同组内的consumer却可以消费多个partition，保证了消费时也是有序的。
+消费时，每个partition只能被每一个group中的一个consumer消费，不能投递给同组内两个consumer，只是同组内的consumer却可以消费多个partition。
 
 Kafka只能保证一个分区之内消息的有序性，在不同的分区之间是不可以的，这已经可以满足大部分应用的需求。
 如果需要整个topic中所有消息的有序性，那就只能让这个topic只有一个分区，即将partition调整为1，当然也就只有一个consumer组消费它。
@@ -263,3 +263,30 @@ Kafka并没有使用JDK自带的Timer或者DelayQueue来实现延迟的功能，
 底层使用数组实现，数组中的每个元素可以存放一个TimerTaskList对象。TimerTaskList是一个环形双向链表，在其中的链表项TimerTaskEntry中封装了真正的定时任务TimerTask.
 
 Kafka中到底是怎么推进时间的呢？Kafka中的定时器借助了JDK中的DelayQueue来协助推进时间轮。具体做法是对于每个使用到的TimerTaskList都会加入到DelayQueue中。Kafka中的TimingWheel专门用来执行插入和删除TimerTaskEntry的操作，而DelayQueue专门负责时间推进的任务。再试想一下，DelayQueue中的第一个超时任务列表的expiration为200ms，第二个超时任务为840ms，这里获取DelayQueue的队头只需要O(1)的时间复杂度。如果采用每秒定时推进，那么获取到第一个超时的任务列表时执行的200次推进中有199次属于“空推进”，而获取到第二个超时任务时有需要执行639次“空推进”，这样会无故空耗机器的性能资源，这里采用DelayQueue来辅助以少量空间换时间，从而做到了“精准推进”。Kafka中的定时器真可谓是“知人善用”，用TimingWheel做最擅长的任务添加和删除操作，而用DelayQueue做最擅长的时间推进工作，相辅相成。
+
+
+### 操作示例
+安装zookeeper服务（已完成）端口2181 
+安装kafka服务（已完成）端口9092
+
+~~~~
+如果没有zookeeper服务，则可以启动kafka自带的zookeeper服务
+> bin/zookeeper-server-start.sh config/zookeeper.properties
+
+启动kafka服务
+> bin/kafka-server-start.sh config/server.properties &
+
+
+命令行创建topic，生产消息，消费消息，远程ip访问
+
+创建topic：
+bin/kafka-topics.sh --create --zookeeper 47.98.121.127:2181 --replication-factor 1 --partitions 1 --topic test
+查看已创建的topic信息：
+bin/kafka-topics.sh --list --zookeeper 47.98.121.127:2181
+发送消息：
+bin/kafka-console-producer.sh --broker-list 47.98.121.127:9092 --topic test
+消费消息：
+bin/kafka-console-consumer.sh --bootstrap-server 47.98.121.127:9092 --topic test --from-beginning
+
+
+~~~~

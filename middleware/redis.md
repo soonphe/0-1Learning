@@ -1,9 +1,9 @@
 # 0-1Learning
 
-![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
-![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
-![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
+![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 ## Redis
 
@@ -85,3 +85,27 @@ DISCARD取消事务
 ### Jedis
 Jedis是Redis官方推荐的面向Java的操作Redis的客户端，而RedisTemplate是SpringDataRedis中对JedisApi的高度封装。
 SpringDataRedis相对于Jedis来说可以方便地更换Redis的Java客户端，比Jedis多了自动管理连接池的特性，方便与其他Spring框架进行搭配使用如：SpringCache
+
+### redis实现消息队列
+redis自带pub和sub机制：即发布者和订阅者
+Redis的PUSH/POP机制：利用的Redis的列表(lists)数据结构。
+比较好的使用模式是，生产者lpush消息，消费者brpop消息，并设定超时时间，可以减少redis的压力
+
+架构：异步写入
+先抽象出对象访问层，对外屏蔽数据来源（redis，mysql，others）
+写的请求直接写入缓存，然后前端的请求直接走缓存，这样存入的数据就有意义了，
+然后是数据落地，简单的读取RDB文件（实时性不高），复杂一点的可以实现Redis的主从同步协议（实时性高）
+
+命令行写入 LPUSH list1 a
+取值： RPOP list1 0
+
+
+### 常见问题
+1.Redis从客户端登录服务器
+本地客户端访问192.168.56.56远程数据库服务 (主机为 192.168.56.56，端口为 6379 ，密码为aabbcc 的 redis 服务上)
+[root@localhost src]# ./redis-cli -h  192.168.56.56 -p 6379 -a "aabbcc"
+
+
+注1：设置redis服务的密码，详见：http://blog.csdn.net/fly43108622/article/details/52972308
+
+注2：在客户端登录远程服务时，redis服务有保护模式，需要关闭，详见：http://blog.csdn.net/fly43108622/article/details/52972433

@@ -62,6 +62,15 @@
 * 泛型常用特点，List`<String>`能否转为List`<Object>`**
     * 能，但是利用类都继承自Object，所以使用是每次调用里面的函数都要通过强制转换还原回原来的类，这样既不安全，运行速度也慢。
 
+ Java泛型中的标记符含义： 
+ E - Element (在集合中使用，因为集合中存放的是元素)
+ T - Type（Java 类）
+ K - Key（键）
+ V - Value（值）
+ N - Number（数值类型）
+？ -  表示不确定的java类型
+ S、U、V  - 2nd、3rd、4th typ
+
 ###集合
 
 #### Collection包结构，与Collections的区别
