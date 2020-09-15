@@ -12,13 +12,13 @@
 ### 组织结构
 ``````
 0-1Learning
-└──algorithm -- 算法
+├── algorithm -- 算法
     ├── LeetCode -- LeetCode
     ├── logical-question    逻辑算法问题
     ├── Lookup -- 查询算法
     └── sort -- 排序算法
-└── android -- 安卓
-    └── 0-1java -- 从0到1学android
+├── android -- 安卓
+    ├── 0-1java -- 从0到1学android
         ├── 01认识Android
         ├── 02四大组件——活动Activity
         ├── 03四大组件——服务Service
@@ -31,16 +31,28 @@
         ├── 10网络技术
         └── 11Android特色开发
     └── android-senior -- android高级
-└── bigdata -- 大数据
+├── bigdata -- 大数据
 ├── computer-network -- 计算机网络结构
 ├── computer-os -- 计算操作系统
 ├── data-structure -- 数据结构
 ├── database -- 数据库
+    ├── 0-1database -- 从0到1学database
+        ├── 01数据库基础
+        ├── 02编写简单的查询语句
+        ├── 03条件查询和数据排序
+        ├── 04单行函数
+        ├── 05多表查询
+        ├── 06分组函数
+        ├── 07子查询
+        ├── 08数据操作与事务控制
+        ├── 09表和约束
+        └── 10数据库其他对象
+    └── database-senior -- database高级
 ├── design-pattern -- 设计模式
 ├── html -- html网页
 ├── interview -- 面试题和面试经验
 └── java -- java技术栈
-    └── 0-1java -- 从0到1学java
+    ├── 0-1java -- 从0到1学java
         ├── 01认识Java
         ├── 02Java虚拟机简介
         ├── 03变量和运算符
@@ -64,8 +76,9 @@
 ├── linux -- linux常用操作和命令
 ├── middleware -- 中间件
 ├── message queue -- 消息队列
-├── redis -- redis缓存
-├── search-engines -- 搜索引擎
+    ├── redis -- redis缓存
+    ├── search-engines -- 搜索引擎
+    └── zookeeper -- zookeeper
 └── static -- 静态文件包
 ``````
 * 适用对象：菜鸟 or 老手
