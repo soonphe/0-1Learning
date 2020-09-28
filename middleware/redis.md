@@ -100,6 +100,16 @@ Redis的PUSH/POP机制：利用的Redis的列表(lists)数据结构。
 取值： RPOP list1 0
 
 
+### redis中set、setnx、setex区别
+1、SET key value：直接覆写旧值，无视类型。
+
+2、SETEX key seconds value：覆写旧值并将 key 的生存时间设为 seconds (以秒为单位)
+
+3、SETNX key value：将 key 的值设为 value ，当且仅当 key 不存在。若给定的 key 已经存在，则 SETNX 不做任何动作。设置成功，返回 1 。设置失败，返回 0 。
+
+4、GETSET key value：将给定 key 的值设为 value ，并返回 key 的旧值(old value)，key 不存在时，返回 null
+
+
 ### 常见问题
 1.Redis从客户端登录服务器
 本地客户端访问192.168.56.56远程数据库服务 (主机为 192.168.56.56，端口为 6379 ，密码为aabbcc 的 redis 服务上)
