@@ -1,5 +1,13 @@
-#Android：
----
+# 0-1Learning
+
+![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
+![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
+## Andorid基础知识总结
+
+
 **五种布局： FrameLayout 、 LinearLayout 、 AbsoluteLayout 、 RelativeLayout 、 TableLayout 全都继承自ViewGroup，各自特点及绘制效率对比。**
 
 * FrameLayout(框架布局)

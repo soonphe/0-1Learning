@@ -8,6 +8,15 @@
 
 ## 广播接收器broadcast receiver
 
+### 广播机制简介
+标准广播（Normal broadcasts）是一种完全异步执行的广播，在广播发出之后，所有的
+广播接收器几乎都会在同一时刻接收到这条广播消息，因此它们之间没有任何先后顺序可言。这种广播的效率会比较高，但同时也意味着它是无法被截断的。
+
+有序广播（Ordered broadcasts）则是一种同步执行的广播，在广播发出之后，同一时刻
+只会有一个广播接收器能够收到这条广播消息，当这个广播接收器中的逻辑执行完毕后，广播才会继续传递
+
+
+### 广播接收器
 Broadcast Receiver
 android 广播分为两个角色：广播发送者、广播接收者
 android 广播：
@@ -15,21 +24,22 @@ android 广播：
 2），用于多线程通信
 3），与android系统的通信
 
-自定义广播接收者
-继承BroadcastReceive 基类
-必须重写抽象方法onReceive()方法
-1，广播接收器收到相应广播后，会自动调用onReceive(） 方法
-2，一般情况下，onReceive方法会会涉及与其他组件之间的交互，如 发送Notiotification，启动server等
-3，默认情况下，广播接收器运行在UI线程，因此，onReceive方法不能执行耗时操作，否则将导致ANR
-1
-2
-3
-广播接收器注册
-注册的方式有两种：静态注册、动态注册
-静态注册
 
+### 自定义广播接收者
+继承BroadcastReceive 基类，重写抽象方法onReceive()方法
+1.广播接收器收到相应广播后，会自动调用onReceive(） 方法
+2.一般情况下，onReceive方法会会涉及与其他组件之间的交互，如 发送Notiotification，启动server等
+3.默认情况下，广播接收器运行在UI线程，因此，onReceive方法不能执行耗时操作，否则将导致ANR
+4.最后要记得，动态注册的广播接收器一定都要取消注册才行，这里我们是在onDestroy()方法中通过调用unregisterReceiver()方法来实现的
+
+
+### 广播接收器注册
+注册的方式有两种：静态注册、动态注册
+
+#### 静态注册
 注册方式：在AndroidManifest.xml 里通过<receive 标签声明
 属性说明
+```
 <receiver
 	android:enable="true"/"false"
 	//此broadcastReceiver 是否接受其他应用发出的广播
@@ -52,30 +62,8 @@ android 广播：
 	<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
  </intent-filter>
  </receiver>
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-注册示例：
 
+注册示例：
 <receiver 
     //此广播接收者类是mBroadcastReceiver
     android:name=".mBroadcastReceiver" >
@@ -84,19 +72,13 @@ android 广播：
         <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
     </intent-filter>
 </receiver>
-1
-2
-3
-4
-5
-6
-7
-8
+```
 当此APP首次启动时，系统会自动实例化mBroadcastReceiver类，并注册到系统中。
 
-动态注册
+#### 动态注册
 
 注册方式：在代码中调用Context.registerReceiver() 方法
+```
 具体代码如下：
 	// 1. 实例化BroadcastReceiver子类 &  IntentFilter
      mBroadcastReceiver mBroadcastReceiver = new mBroadcastReceiver();
@@ -108,45 +90,72 @@ android 广播：
     // 3. 动态注册：调用Context的registerReceiver（）方法
      registerReceiver(mBroadcastReceiver, intentFilter);
 
+```
 
 //动态注册广播后，需要在相应位置记得销毁广播
 unregisterReceiver(mBroadcastReceiver);
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-特别注意
+
+### 动态广播应该何时注册和注销
 动态广播最好在onResume中注册， onPause注销
 原因：
 1，对于动态广播，有注册必然得有注销，否则会导致内存泄漏
 2，onPause在App死亡前一定会被执行，从而保证app死亡前一定会被注销，从而防止内存泄漏
 
-两种注册方式的区别
-在这里插入图片描述
+### 两种注册方式的区别
 
-广播的发送
 广播的发送 = 广播发送者 将此广播的意图（intent）通过 sendBroasdcast() 方法发送出去
-广播的类型
+广播的类型：普通广播 系统广播 有序广播 粘性广播 App 应用内广播
 
-普通广播 系统广播 有序广播 粘性广播 App 应用内广播
 特别注意：
 对于不同注册方式的广播接收器回调OnReceive（Context context，Intent intent）中的context返回值是不一样的：
 
-对于静态注册（全局+应用内广播），回调onReceive(context,
-intent)中的context返回值是：ReceiverRestrictedContext；
-对于全局广播的动态注册，回调onReceive(context, intent)中的context返回值是：Activity
-Context；
-对于应用内广播的动态注册（LocalBroadcastManager方式），回调onReceive(context,
-intent)中的context返回值是：Application Context。
-对于应用内广播的动态注册（非LocalBroadcastManager方式），回调onReceive(context,
-intent)中的context返回值是：Activity Context；
+对于静态注册（全局+应用内广播），回调onReceive(context,intent)中的context返回值是：ReceiverRestrictedContext；
 
+对于全局广播的动态注册，回调onReceive(context, intent)中的context返回值是：Activity Context；
+
+对于应用内广播的动态注册（LocalBroadcastManager方式），回调onReceive(context,intent)中的context返回值是：Application Context。
+
+对于应用内广播的动态注册（非LocalBroadcastManager方式），回调onReceive(context,intent)中的context返回值是：Activity Context；
+
+
+### 发送广播
+```
+Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
+sendBroadcast(intent);  //发送标准广播,这个是context中的方法
+
+sendOrderedBroadcast(intent, null); // 发送有序广播
+```
+
+### 使用本地广播——LocalBroadcastManager
+前面我们发送和接收的广播全部都是属于系统全局广播，即发出的广播可以被其他任何
+的任何应用程序接收到，并且我们也可以接收来自于其他任何应用程序的广播。这样就很容
+易会引起安全性的问题，比如说我们发送的一些携带关键性数据的广播有可能被其他的应用
+程序截获，或者其他的程序不停地向我们的广播接收器里发送各种垃圾广播。
+为了能够简单地解决广播的安全性问题，Android 引入了一套本地广播机制，使用这个
+机制发出的广播只能够在应用程序的内部进行传递，并且广播接收器也只能接收来自本应用
+程序发出的广播，这样所有的安全性问题就都不存在了。
+
+```
+localBroadcastManager = LocalBroadcastManager.getInstance(this);// 获取实例
+Button button = (Button) findViewById(R.id.button);
+button.setOnClickListener(new OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent("com.example.broadcasttest.LOCAL_BROADCAST");
+        localBroadcastManager.sendBroadcast(intent); // 发送本地广播
+    }
+});
+intentFilter = new IntentFilter();
+intentFilter.addAction("com.example.broadcasttest.LOCAL_BROADCAST");
+localReceiver = new LocalReceiver();
+localBroadcastManager.registerReceiver(localReceiver, intentFilter);    // 注册本地广播监听器
+
+
+class LocalReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Toast.makeText(context, "received local broadcast",
+        Toast.LENGTH_SHORT).show();
+    }
+}
+```

@@ -8,20 +8,40 @@
 
 ## 内容提供者content provider
 
-Content Provider
-对于每一个应用程序来说，如果想要访问内容提供器中共享的数据，就一定要借助ContentResolver 类，可以通过Context中的getContentResolver() 方法获取该类的实例。ContentResolver中提供了一系列的方法用于对数据进行CRUD操作，其中insert() 方法用于添加数据，update() 方法用于更新数据，delete() 方法用于删除数据，query() 方法用于查询数据。
-不同于SQLiteDatabase，ContentResolver 中的增删改查都是接收一个URl参数，这个参数被称为内容URL。内容URL给内容提供器中的数据建立了唯一标识符，它主要由两部分组成：authority 和 path 。authority 是用于对不同的应用程序做区分的，一般为了避免冲突，都会采用程序包名的方式进行命名。path则是用于对同一应用程序中不同的表做区分，通常都会添加到authority后面：
+### 简介
+内容提供器（Content Provider）主要用于在不同的应用程序之间实现数据共享的功能，它提供了一套完整的机制，允许一个程序访问另一个程序中的数据，同时还能保证被访数据的安全性
 
+### 访问其他程序中的数据
+当一个应用程序通过内容提供器对其数据提供了外部访问接口，任何其他的应用程序就都可以对这部分数据进行访问。
+Android 系统中自带的电话簿、短信、媒体库等程序都提供了类似的访问接口
+
+### ContentResolver 的基本用法
+对于每一个应用程序来说，如果想要访问内容提供器中共享的数据，就一定要借助ContentResolver 类，可以通过Context中的getContentResolver() 方法获取该类的实例。
+ContentResolver中提供了一系列的方法用于对数据进行CRUD操作，其中insert() 方法用于添加数据，update() 方法用于更新数据，delete() 方法用于删除数据，query() 方法用于查询数据。
+不同于SQLiteDatabase，ContentResolver 中的增删改查都是接收一个URl参数，这个参数被称为内容URL。
+内容URL给内容提供器中的数据建立了唯一标识符，它主要由两部分组成：authority 和 path 。
+authority 是用于对不同的应用程序做区分的，一般为了避免冲突，都会采用程序包名的方式进行命名。
+path则是用于对同一应用程序中不同的表做区分，通常都会添加到authority后面：
+
+内容URI 最标准的格式写法如下：
 content://com.example.app.provider/table1
-content://com.example.app.provider/table2
-1
-2
-在使用内容URL作为参数的时候，需要将URL转换成URL对象：
+content://com.example.app.provider/table2/1
 
+内容URI 的格式主要就只有以上两种，以路径结尾就表示期望访问该表中所有的数据，以id 结尾就表示期望访问该表中拥有相应id 的数据。
+我们可以使用通配符的方式来分别匹配这两种格式的内容URI，规则如下:
+* : 表示匹配任意长度的任意字符
+\# : 表示匹配任意长度的数字
+
+//一个能够匹配任意表的内容URI格式就可以写成:
+content://com.example.app.provider/*
+//一个能够匹配表中任意一行数据的内容URI格式就可以写成：
+content://com.example.app.provider/table1/#
+
+将内容URI 字符串解析成Uri 对象：
 Uri uri = Uri.parse("content://com.example.app.provider/table1")
-1
-现在我们就可以使用这个uri对象来查询talbe1表中的数据了：
 
+现在我们就可以使用这个uri对象来查询talbe1表中的数据了：
+```
 Cursor cursor = getContentResolver().query（
 	uri,
 	projection,
@@ -29,23 +49,18 @@ Cursor cursor = getContentResolver().query（
 	selectionArgs,
 	sortOrder
 ）;
-1
-2
-3
-4
-5
-6
-7
-对应参数的解释：
+```
 
+参数解释：
 query()方法参数	对应SQL部分	描述
 uri	from table_name	指定查询某个应用程序下的某个表
 projection	select column1, column2	指定查询的列名
 selection	where column=value	指定where约束条件
 selectArgs	-	为where中的占位符提供具体的值
 orderBy	order by column1, column2	指定查询结果的排序方式
-查询完之后，就可以从游标中取值了：
 
+查询完之后，就可以从游标中取值了：
+```
 if(cursor != null){
 	while(cursor.moveToNext()) {
 		String column1 = cursor.getString(cursor.getColumnIndex("column1"));
@@ -53,46 +68,38 @@ if(cursor != null){
 	}
 	cursor.close();
 }
-1
-2
-3
-4
-5
-6
-7
-增删改查
-添加数据
+```
 
+添加数据
+```
 ContentValues values = new ContentValues();
 values.put(“column1”, "text");
 values.put("column2", 1);
 getContentResolver().insert(uri, values);
-1
-2
-3
-4
-更新数据
+```
 
+更新数据
+```
 ContentValues valuse = new ContentValues();
 valuse.put("column1", "");
 getContentResolver().update(uri, values, "column1 = ? and column2 = ?", new String[]{"text", 1});
-1
-2
-3
+```
+
 删除数据
-
+```
 getContentResolver().delete(uri , "column2 = ?", new String[]{ "1"});
-1
-实例.
-读取系统联系人
-读取系统联系人需要声明权限，如果系统是6.0以后的，需要申请运行时权限
+```
 
+### 读取系统联系人
+读取系统联系人需要声明权限，如果系统是6.0以后的，需要申请运行时权限
+```
 if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) 
 	!= PackageManager.PERMISSION_GRANTED) {
 		ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, 1);
 	}else {
 		readContacts();  //读取联系人
 	}
+
 private void readContacts(){
 	Cursor cursor = null;
 	try{
@@ -127,49 +134,12 @@ public void onRequestPermissionResult(int requestCode, String[] permissions, int
 			}
 	}
 }
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-创建自己的内容提供器
-创建自己的内容提供器，需要去继承 ContentProvider 类，ContentProvider 类中有6个抽象方法，我们在使用子类继承它的时候，需要将这6个方法全部重写。
+```
 
+
+### 创建自己的内容提供器
+创建自己的内容提供器，需要去继承 ContentProvider 类，ContentProvider 类中有6个抽象方法，我们在使用子类继承它的时候，需要将这6个方法全部重写。
+```
 public class MyProvider extends ContentProvider{
 	@Override
 	public boolean onCreate() {
@@ -196,42 +166,7 @@ public class MyProvider extends ContentProvider{
 		return null；
 	}
 }
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-URI 的主要格式有以下两种
+```
 
-content://com.example.app.provider/table1
-content://com.example.app.provider/table1/1
 
-* : 表示匹配任意长度的任意字符
-# : 表示匹配任意长度的数字
-
-//一个能够匹配任意表的内容URI格式就可以写成:
-content://com.example.app.provider/*
-//一个能够匹配表中任意一行数据的内容URI格式就可以写成：
-content://com.example.app.provider/table1/#
 
