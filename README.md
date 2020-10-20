@@ -30,8 +30,15 @@
         ├── 09多媒体技术
         ├── 10网络技术
         └── 11Android特色开发
-    └── android-senior -- android高级
+    ├── android-framework -- android系统
+    ├── android-senior -- android高级
+    └── android-ui -- android UI
 ├── bigdata -- 大数据
+    ├── hadoop -- hadoop/hdfs
+    ├── hive -- sql操作大数据
+    ├── scala -- 函数编程
+    └── spark -- 大数据计算
+├── blockchain -- 区块链
 ├── computer-network -- 计算机网络结构
 ├── computer-os -- 计算操作系统
 ├── data-structure -- 数据结构
@@ -47,10 +54,23 @@
         ├── 08数据操作与事务控制
         ├── 09表和约束
         └── 10数据库其他对象
-    └── database-senior -- database高级
+    ├── database-senior -- database高级
+    └── mysql开发规范
 ├── design-pattern -- 设计模式
+├── git -- 版本控制
 ├── html -- html网页
 ├── interview -- 面试题和面试经验
+└── ios -- ios技术栈
+    ├── 0-1ios -- 从0到1学ios
+        ├── 01认识Ios
+        ├── 02用户界面
+        ├── 03界面优化
+        ├── 04系统功能
+        ├── 05数据存储
+        ├── 06多媒体技术
+        ├── 07网络技术
+        └── 08IOS特色开发
+    └── swift语法
 └── java -- java技术栈
     ├── 0-1java -- 从0到1学java
         ├── 01认识Java
@@ -75,10 +95,12 @@
     └── jvm -- java虚拟机
 ├── linux -- linux常用操作和命令
 ├── middleware -- 中间件
-├── message queue -- 消息队列
+    ├── docker -- 容器化技术
+    ├── elasticSearch -- 搜索引擎
+    ├── kafka -- 分布式消息队列
+    ├── mongodb -- nosql数据库
     ├── redis -- redis缓存
-    ├── search-engines -- 搜索引擎
-    └── zookeeper -- zookeeper
+    └── zookeeper -- 分布式调度
 └── static -- 静态文件包
 ``````
 * 适用对象：菜鸟 or 老手
@@ -86,25 +108,32 @@
 * 适用目标：菜鸟 or 老手
 
 ## 文档链接
+* [逻辑算法](https://github.com/soonphe/0-1Learning/tree/master/algorithm)
+    * [leecode](https://github.com/soonphe/0-1Learning/tree/master/algorithm/LeeCode)
+    * [logical-question(逻辑题)](https://github.com/soonphe/0-1Learning/tree/master/algorithm/logical-question)
+
 * [java(java技术栈)](https://github.com/soonphe/0-1Learning/tree/master/java)
+    * [0-1java(从0到1学java)](https://github.com/soonphe/0-1Learning/tree/master/java/0-1java)
     * [java-concurrent(java并发)](https://github.com/soonphe/0-1Learning/tree/master/java/java-concurrent)
-    * [java-se(java初级)](https://github.com/soonphe/0-1Learning/tree/master/java/java-se)
-        * [01认识Java](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/01认识Java.md)
-        * [02Java虚拟机简介](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/02Java虚拟机简介.md)
-        * [03变量和运算符](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/03变量和运算符.md)
-        * [04流程控制语句](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/04流程控制语句.md)
-        * [05数组](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/05数组.md)
-        * [06函数](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/06函数.md)
-        * [07面对对象基础](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/07面对对象基础.md)
-        * [08面对对象高级特性](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/08面对对象高级特性.md)
-        * [09异常处理](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/09异常处理.md)
-        * [10工具类](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/10工具类.md)
-        * [11集合](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/11集合.md)
-        * [12文件与流IO](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/12文件与流IO.md)
-        * [13多线程编程](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/13多线程编程.md)
-        * [14网络编程](https://github.com/soonphe/0-1Learning/tree/master/java/java-se/14网络编程.md)
     * [java-senior(java高级)](https://github.com/soonphe/0-1Learning/tree/master/java/java-senior)
+    * [java-spring(java-spring相关)](https://github.com/soonphe/0-1Learning/tree/master/java/java-spring)
+    * [java-spring-cloud](https://github.com/soonphe/0-1Learning/tree/master/java/java-spring-cloud)
+    * [java-源码](https://github.com/soonphe/0-1Learning/tree/master/java/java源码)
+    * [java-应用拓展](https://github.com/soonphe/0-1Learning/tree/master/java/java应用拓展)
     * [jvm(java虚拟机)](https://github.com/soonphe/0-1Learning/tree/master/java/jvm)
+    * [java编程规范](https://github.com/soonphe/0-1Learning/tree/master/java/java编程规范.md)
+
+* [android(android技术栈)](https://github.com/soonphe/0-1Learning/tree/master/java)
+    * [0-1android(从0到1学android)](https://github.com/soonphe/0-1Learning/tree/master/android/0-1android)
+    * [android-framework(android系统)](https://github.com/soonphe/0-1Learning/tree/master/android/android-framework)
+    * [android-senior(android高级)](https://github.com/soonphe/0-1Learning/tree/master/android/android-senior)
+    * [android-ui(android UI相关)](https://github.com/soonphe/0-1Learning/tree/master/android/android-ui)
+    
+* [database(数据库)](https://github.com/soonphe/0-1Learning/tree/master/database)
+    * [0-1database(从0到1学android)](https://github.com/soonphe/0-1Learning/tree/master/database/0-1database)
+    * [database-senior(android高级)](https://github.com/soonphe/0-1Learning/tree/master/database/database-senior)
+    * [mysql开发规范](https://github.com/soonphe/0-1Learning/tree/master/database/mysql开发规范.md)
+
 
 
 ## 感谢其他开源作者
