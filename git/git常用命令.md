@@ -50,6 +50,9 @@ $ git push origin test:test              // 提交本地test分支作为远程�
 $git symbolic-ref HEAD refs/heads/[name]
 $rm .git/index
 $git clean -fdx
+
+更新远程分支：git remote update origin --prune
+git remote update origin -p
  
 ### 3 版本(tag)操作相关命令
 查看版本：$ git tag

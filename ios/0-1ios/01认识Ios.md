@@ -23,24 +23,73 @@ esc 代码提示
 模拟器:
 command+shift+H 回到主界面
 
-### ios项目界面
-
-Main.storyboard:主界面UI
+### ios项目结构
+Main.storyboard/Launch.storyboard:主界面UI
 是否使用自动布局use Auto layout（一般关闭）
 
-选择控件：右上角+号，选择控件，
-例如（Image view图片控件），右侧image view中设置图片链接，图片缩放，view中设置起始位置和大小
-图片存放位置：xcassets，可以配置图片不同尺寸，适配不同设备
+选择控件(右上角+号)：例如（Image view图片控件，View Controller界面,Navigation controller界面）
+file inspector(文件属性)：命名，文件路径等
+Identity inspector：关联的Controller，Module等
+attribute inspector(控件属性)：，可分别设置Image View属性（图片链接，缩放等）和View属性（定位其实位置，背景等）
+size inspector（位置大小属性）：其实位置，偏移量等
 
-todo 。。。
-
+资源文件存放地址：xcassets，可以配置图片不同尺寸，适配不同设备
 
 ### 程序执行流程
+1.info.plist：程序启动读取
+Launch screen interface file base name：设置启动时的storyboard
+2.View Controller：程序控制器
+重载方法：
+viewDidLoad：Controller的入口
+didReceiveMemoryWarning：释放资源
 
-### 程序状态监听
+
+关闭代码预览：miniMap
+关闭手机预览:canvas 快捷键option+command+return
+AVD快捷回到主界面：command+shift+H
+
+storyboard跳转view：安装control拖动（可在左侧或视图中拖动）
 
 
-appDelegate:侦听引用程序的状态
+### UI设计传统方法
+
+### 程序添加控件
+控件绑定代码
+新建控件，双击选择reference outlet，选择viewController中新建的控件
+````
+    @IBOutlet var iv:UIImageView!
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        print("Hello")
+        //程序设置图片内容
+        iv.image = UIImage(named: "wawa.jpeg")
+        // Do any additional setup after loading the view.
+    }
+````
+
+### 事件绑定
+新建控件button，双击选择touch up inside，选择viewController中新建方法
+
+````
+    @IBAction func btnClick(sender:AnyObject){
+        print("click ")
+    }
+````
+
+### 控件与swift类绑定
+在storyboard中新建viewController，拖动跳转，选择present modally模式
+新建MyviewController：选择Cocoa Touch Class，继承UIViewController
+在main.story将新的viewController绑定给MyviewController
+
+### 源代码添加控件
+
+````
+        //代码添加控件
+        var label = UILabel(frame: <#T##CGRect#>(x: 50,y: 50,width: 100,height: 100))
+        label.text = "Hello"
+        view.addSubview(label)
+````
+
 
 storyborad界面跳转：按住按钮拖动，返回界面只需要杀死当前controller
 self.dissmissModalViewControllerAnimated(true)

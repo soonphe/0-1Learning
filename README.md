@@ -103,9 +103,6 @@
     └── zookeeper -- 分布式调度
 └── static -- 静态文件包
 ``````
-* 适用对象：菜鸟 or 老手
-* 适用范围：菜鸟 or 老手
-* 适用目标：菜鸟 or 老手
 
 ## 文档链接
 * [逻辑算法](https://github.com/soonphe/0-1Learning/tree/master/algorithm)

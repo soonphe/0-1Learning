@@ -333,7 +333,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 ```
 
-### 服务的声明周期
+### 服务的生命周期
 之前章节我们学习过了活动以及碎片的生命周期。类似地，服务也有自己的生命周期，
 前面我们使用到的onCreate()、onStartCommand()、onBind()和onDestroy()等方法都是在服务的生命周期内可能回调的方法。
 

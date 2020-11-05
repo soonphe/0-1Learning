@@ -49,6 +49,10 @@ tail 		//将某个文件的最后几行显示到终端上
 cat -n 文件	//查看文件 -n：打印行号
 		//-b去除空白行
 		//-A显示时文件中的[tab]会以“^I”表示，而空格依然显示空格。断行符是以”$”表示
+cat error.log | grep -C 5 'nick' 显示file文件里匹配foo字串那行以及上下5行
+cat error.log | grep -B 5 'nick' 显示foo及前5行
+cat error.log | grep -A 5 'nick' 显示foo及后5行
+
 nl 文件		//打印文件内容，且添加行号（默认忽略空白行）
 		//-b a 空白行打印行号
 		//-b a -n rz行号前自动补零（默认6位）
