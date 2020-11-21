@@ -6,39 +6,36 @@
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 
-## 条件查询和数据排序
+## where条件查询和Order By数据排序
 
 ### 前言 
-    有了数据库和数据，下面我们肯定是要查询数据库，编写第一条查询语句。
+    有没有觉得前面的查询过于简单，根本不满足我们的日常需求，
+    其实，在查询中我们还可以添加很多查询条件，还可以添加运算符，加上排序，让我们赶紧试试吧
 
 ### 要点
-1) 运算符的使用 
-2）Order by的使用
-
-### 限制数据和对数据排序
-
-3.1WHERE子句的使用
-
-3.2ORDER BY子句的使用
-
+    1.where子句
+    2.运算符的使用 
+    3.Order by子句
 
 ### WHERE子句的使用 
 
-使用WHERE子句限定返回的记录
+WHERE子句一般用来限制数据，使用WHERE子句限定返回符合条件的记录
 
-• WHERE子句在 FROM 子句后
+**• WHERE子句在 FROM 子句后，一般后面还会使用各类运算符去筛选数据**
 
 • 语法：
 
-SELECT *|{[DISTINCT] 列名|表达式 [别名][,...]} FROM 表名 [WHERE 条件];
+    SELECT *|{[DISTINCT] 列名|表达式 [别名][,...]} 
+    FROM 表名 
+    WHERE 条件;
 
 • 查询公司月薪高于12000的员工信息。
 
-SELECT employee_id, last_name, salary FROM employees WHERE salary >= 12000;
+    SELECT employee_id, last_name, salary FROM employees WHERE salary >= 12000;
 
 • 查询部门编号为20的所有员工
 
-SELECT * FROM emp WHERE deptno= 20;
+    SELECT * FROM emp WHERE deptno= 20;
 
 ### 比较运算符的使用
 |运算符|含义|
@@ -58,17 +55,12 @@ SELECT * FROM emp WHERE deptno= 20;
 
 – 字符类型大小写敏感；
 
-– 日期类型格式敏感，默认格式’DD-MON-RR’;
+– 日期类型格式敏感，默认格式’yyyy-MM-dd HH:mm:ss’;
 
+例:
 • 查询在1999年1月1日以后进入公司的雇员信息。
 
-SELECT last_name, hire_date FROM employees WHERE hire_date >= '01-1月-1999';
-
-• 转换英文环境 – 查询在1999年1月1日以后进入公司的雇员信息（英文环境）
-
-ALTER SESSION SET NLS_LANGUAGE='AMERICAN';
-
-SELECT last_name, hire_date FROM employees WHERE hire_date >= '01-JAN-1999';
+	SELECT last_name, hire_date FROM employees WHERE hire_date >= '1999-01-01';
 
 ### 特殊比较运算符
 |运算符 |含义|
@@ -82,16 +74,16 @@ SELECT last_name, hire_date FROM employees WHERE hire_date >= '01-JAN-1999';
 #### BETWEEN…AND…运算符的使用
 • 查询月薪在4200元到6000公司的雇员。
 
-SELECT employee_id, last_name, salary
-FROM employees
-WHERE salary BETWEEN 4200 AND 6000;
+    SELECT employee_id, last_name, salary
+    FROM employees
+    WHERE salary BETWEEN 4200 AND 6000;
 
 #### IN运算符的使用
 • IN运算符主要对指定的值进行比较查看的时候使用。
 
 • 查询部门编号为10、90或110的雇员信息。
 
-SELECT employee_id, last_name, salary, department_id FROM employees WHERE department_id IN (10, 90, 110);
+    SELECT employee_id, last_name, salary, department_id FROM employees WHERE department_id IN (10, 90, 110);
 
 #### LIKE运算符的使用
 
@@ -103,23 +95,19 @@ SELECT employee_id, last_name, salary, department_id FROM employees WHERE depart
 
 – _可以代替一个字符。
 
+例
 • 查询last_name首字母是S的雇员信息。
 
-SELECT employee_id, last_name, salary FROM employees WHERE last_name LIKE 'S%';
+    SELECT employee_id, last_name, salary FROM employees WHERE last_name LIKE 'S%';
 
 
 • %与_组合使用
 
+例
 • 查询last_name第二个字母是b的雇员信息。
 
-SELECT employee_id, last_name, salary FROM employees WHERE last_name LIKE '_b%';
+    SELECT employee_id, last_name, salary FROM employees WHERE last_name LIKE '_b%';
 
-
-• 使用ESCAPE 标识符来查找带特殊符号的字符号。
-
-• 查询JOB_ID以“FI_”开头的雇员信息。
-
-SELECT employee_id, last_name, job_id, salary FROM employees WHERE job_id LIKE 'FI\_%' ESCAPE '\';
 
 #### IS NULL运算符的使用
 
@@ -127,7 +115,7 @@ SELECT employee_id, last_name, job_id, salary FROM employees WHERE job_id LIKE '
 
 • 未分配部门的雇员信息。
 
-SELECT employee_id, last_name, salary, department_id FROM employees WHERE department_id IS NULL;
+    SELECT employee_id, last_name, salary, department_id FROM employees WHERE department_id IS NULL;
 
 ### 逻辑运算符的使用
 |运算符 |含义|
@@ -136,28 +124,32 @@ SELECT employee_id, last_name, salary, department_id FROM employees WHERE depart
 |OR  |如果组合的条件之一是TRUE,返回TRUE。NULL和 TRUE组合，返回TRUE。|
 |NOT |如果下面的条件是FALSE,返回TRUE。|
 
+例
 • 查询月薪在4200元到6000元公司的雇员。
-SELECT employee_id, last_name, salary FROM employees WHERE salary>=4200 AND salary<=6000;
+
+    SELECT employee_id, last_name, salary FROM employees WHERE salary>=4200 AND salary<=6000;
 
 • 月薪大于10000元，并且在60和90号部门工作的员工。
-SELECT last_name, salary, department_id FROM employees WHERE salary>10000 AND department_id in (60,90);
+
+    SELECT last_name, salary, department_id FROM employees WHERE salary>10000 AND department_id in (60,90);
 
 • 月薪大于10000元，或者在60和90号部门工作的员工。
-SELECT last_name, salary, department_id FROM employees WHERE salary>10000 OR department_id in (60,90);
+
+    SELECT last_name, salary, department_id FROM employees WHERE salary>10000 OR department_id in (60,90);
 
 • 查找职位不是IT_PROG，ST_CLERK,FI_ACCOUNT的员工 信息。
 
-SELECT last_name, job_id, salary FROM employees WHERE job_id NOT IN ('IT_PROG', 'ST_CLERK', 'FI_ACCOUNT');
+    SELECT last_name, job_id, salary FROM employees WHERE job_id NOT IN ('IT_PROG', 'ST_CLERK', 'FI_ACCOUNT');
 
 NOT运算符还可以和BETWEEN…AND、LIKE、IS NULL一起使用。
 
-– ...WHERE department_id NOT IN (60, 90);
-
-– ... WHERE salary NOT BETWEEN 10000 AND 25000;
-
-– ... WHERE last_name NOT LIKE 'D%'
-
-– ... WHERE manager_id IS NOT NULL
+    – ...WHERE department_id NOT IN (60, 90);
+    
+    – ... WHERE salary NOT BETWEEN 10000 AND 25000;
+    
+    – ... WHERE last_name NOT LIKE 'D%'
+    
+    – ... WHERE manager_id IS NOT NULL
 
 ### 运算符的优先级
 • 括号’()’优先于其他操作符。
@@ -172,24 +164,26 @@ NOT运算符还可以和BETWEEN…AND、LIKE、IS NULL一起使用。
 |6   |逻辑与 AND|
 |7   |逻辑或 OR|
 
-
+例:
 查找职位是FI_ACCOUNT或工资超过16000的职位是AD_VP的员 工。
 
-SELECT last_name, job_id, salary, department_id FROM employees WHERE job_id = 'FI_ACCOUNT' OR job_id = 'AD_VP' AND salary > 16000;
+    SELECT last_name, job_id, salary, department_id FROM employees WHERE job_id = 'FI_ACCOUNT' OR job_id = 'AD_VP' AND salary > 16000;
 
 查找工作超过16000并且职位是FI_ACCOUNT或是AD_VP的员工。
 
-SELECT last_name, job_id, salary, department_id FROM employees WHERE (job_id = 'FI_ACCOUNT' OR job_id = 'AD_VP') AND salary > 16000;
+    SELECT last_name, job_id, salary, department_id FROM employees WHERE (job_id = 'FI_ACCOUNT' OR job_id = 'AD_VP') AND salary > 16000;
 
 ### ORDER BY子句
 
 • ORDER BY子句后的语法结构如下：
 
-SELECT *|{[DISTINCT] 列名|表达式 [别名][,...]} FROM 表名 [WHERE 条件] [ORDER BY {列名|表达式|别名} [ASC|DESC],…];
+    SELECT *|{[DISTINCT] 列名|表达式 [别名][,...]} 
+    FROM 表名 [WHERE 条件] 
+    ORDER BY {列名|表达式|别名} [ASC|DESC],…;
 
-查看公司员工信息，按照员工部门降序排列。
+例：查看公司员工信息，按照员工部门降序排列。
 
-SELECT last_name, job_id, salary, department_id FROM employees ORDER BY department_id DESC;
+    SELECT last_name, job_id, salary, department_id FROM employees ORDER BY department_id DESC;
 
 
 • 不同数据类型排序规则(以升序为例)
@@ -203,27 +197,27 @@ SELECT last_name, job_id, salary, department_id FROM employees ORDER BY departme
 – 空值在升序排列中排在最后，在降序排列中排在最开始。
 
 
-• 使用列别名排序，多列排序。 查看员工信息，结果按照年薪升序排列。
+例：使用列别名排序，多列排序。 查看员工信息，结果按照年薪升序排列。
 
-SELECT last_name, job_id, salary*12 annual, department_id FROM employees ORDER BY annual;
+    SELECT last_name, job_id, salary*12 annual, department_id FROM employees ORDER BY annual;
 
-查看员工信息，结果按照job_id升序排列，月薪按照降序排列。
+例•：查看员工信息，结果按照job_id升序排列，月薪按照降序排列。
 
-SELECT last_name, job_id, salary, department_id FROM employees ORDER BY job_id, salary desc;
+    SELECT last_name, job_id, salary, department_id FROM employees ORDER BY job_id, salary desc;
 
 
 • ORDER BY特殊使用 – ORDER BY子句可以出现在SELECT子句中没有出现过的列。
 
 – ORDER BY子句后的列名，可以用数字来代替。这个数字是 SELECT语句后列的顺序号。
 
-查看公司员工信息，按照月薪由高到低排列，而具体的工资数不 显示。
+例：查看公司员工信息，按照月薪由高到低排列，而具体的工资数不 显示。
 
-SELECT last_name, job_id, hire_date FROM employees ORDER BY salary;
+    SELECT last_name, job_id, hire_date FROM employees ORDER BY salary;
 
 
 • 查看员工信息，结果按照按照job_id升序排列，月薪按照降序 排列。
 
-SELECT last_name, job_id, salary, department_id FROM employees ORDER BY 2, 3 desc;
+    SELECT last_name, job_id, salary, department_id FROM employees ORDER BY 2, 3 desc;
 
 
 
