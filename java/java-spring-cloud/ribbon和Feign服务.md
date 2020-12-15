@@ -25,3 +25,24 @@ Web web
 
 2.启动类注解
 @EnableDiscoveryClient
+
+
+
+禁用多个feign客户端：
+@FeignClient(value = "service-hi",configuration = Configuration2.class, fallback = SchedualServiceHiHystric.class)
+@Configuration
+public class Configuration2{
+
+@Bean
+public BasicAuthRequestInterceptor basicAuthRequestInterceptor (){
+	return new BasicAuthRequestInterceptor ("user","123456");
+}
+
+//如果使用 feign.hystrix.enable=false 为全局，为所有的hystrix禁用
+//加上这个
+@Bean
+@Scope("prototype")
+public Feign.Builder feignBuilder(){
+	return Feign.builder();	//Feign.Builder禁用了HysrixFeign。builder()的方法
+}
+}

@@ -6,10 +6,10 @@
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 
-## 简单查询语句
+## Select查询语句
 
 ### 前言 
-    有了数据库和数据，下面我们肯定是要查询数据库，编写第一条查询语句。
+    有了数据库和数据，下面我们肯定是要查询数据库，那么我们就来编写第一条查询语句。
 
 ### 本章要点
     1.SQL语言简介
@@ -21,26 +21,6 @@
     7.连接运算符的使用
     8.DISTINCT关键字的用法
 
-### 案例
-• EMPLOYEES（员工信息表）
-
-    – 主要有employee_id（员工编号)、last_name（姓）、 job_id(职位)、salary（工资）等。
-
-• JOBS（职位信息表）
-
-    – 主要有job_id(职位)、job_title（职位全称）等。
-
-• JOB_GRADES（工资级别表）
-
-    – 主要有grade_level（工资级别）、lowest_salary（最低 工资）、highest_salary（最高工资）等。
-
-• departments(部门信息表)
-
-    – 主要包括department_id（部门编号）、 department_name(部门名称)、location_id（位置编号）等。
-
-• locations（位置信息表）
-
-    – 主要包括location_id(位置编号)、street_adress（地址）、 city（城市）等。
 
 ### SQL语言简介
 • SQL称结构化查询语言 (Structured Query Language)
@@ -83,22 +63,57 @@
 2. “*”号的使用：查询所有列（查找部分列则给出列名即可）
 3. from 表名：from后面接表名，标识从哪张表去操作数据，增删改查SQL都会有这部分结构
 
-例：
-• 查询公司所有部门的信息。
+### 准备表和数据
+* 例：新建student表，SQL如下
+```
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
-    SELECT * FROM departments;
+-- ----------------------------
+-- Table structure for student
+-- ----------------------------
+DROP TABLE IF EXISTS `student`;
+CREATE TABLE `student` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(255) COLLATE utf8mb4_bin DEFAULT '' COMMENT '姓名',
+  `age` int(3) DEFAULT '0' COMMENT '年龄',
+  `c_class` int(4) DEFAULT '0' COMMENT '班级',
+  `c_create_date` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+
+-- ----------------------------
+-- Records of student
+-- ----------------------------
+BEGIN;
+INSERT INTO `student` VALUES (1, '张三', 22, 1, '1999-01-01 00:00:00');
+INSERT INTO `student` VALUES (2, '李四', 26, 1, '2000-01-01 00:00:00');
+INSERT INTO `student` VALUES (3, '王五', 20, 2, '2001-01-01 00:00:00');
+INSERT INTO `student` VALUES (4, '赵六', 20, 2, '2002-01-01 00:00:00');
+INSERT INTO `student` VALUES (5, '孙七', 22, 3, '2003-01-01 00:00:00');
+INSERT INTO `student` VALUES (6, '李八', 28, 3, '2004-01-01 00:00:00');
+INSERT INTO `student` VALUES (7, '阿九', 28, 3, '2005-01-01 00:00:00');
+INSERT INTO `student` VALUES (8, '钱石', 28, NULL, NULL);
+COMMIT;
+
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+### 第一条查询语句
+• 查询所有学生的信息。
+
+    SELECT * FROM student;
     
-• 查询公司所有部门的信息。
+• 查询所有学生的信息（查询全部列和指定列）。
 
-    SELECT department_id, department_name,manager_id,location_id FROM departments;
+    SELECT id, name,age,c_class FROM student;
     
-试比较哪条语句执行效率更高？
+    SELECT id, name FROM student;
+
+比较哪条语句执行效率更高？
     
-    原则上 * 查询会较慢
+    两者差别几乎可忽略，但是在数据传输的网络负担，还有在查询的字段是索引的情况时， * 查询会较慢
 
-### 在查询语句中查找特定的列
-
-    SELECT department_name, location_id FROM departments;
 
 ### SQL语句的书写规则
 
@@ -106,9 +121,9 @@
 
 – 关键字（Keyword） ：SQL语言保留的字符串，在自己的 语法使用。例如，SELECT 和FROM 是关键字。
 
-– 语句（statement）：一条完整的SQL命令。例如， SELECT * FROM departments;是一条语句。
+– 语句（statement）：一条完整的SQL命令。例如， SELECT * FROM student;是一条语句。
 
-– 子句（clause）：部分的SQL语句，通常是由关键字加上 其他语法元素构成。例如，SELECT *是子句，FROM departments也是子句。
+– 子句（clause）：部分的SQL语句，通常是由关键字加上 其他语法元素构成。例如，SELECT *是子句，FROM student也是子句。
 
 • SQL语句规则：
 
@@ -142,11 +157,12 @@
 
 优先级示例：
 
-    SELECT employee_id, last_name, salary, salary+400 FROM employees;
+    SELECT id, name,age+10 FROM student;
     
-    SELECT employee_id, last_name, salary, 400+salary*12 FROM employees;
-    
-    SELECT employee_id, last_name, salary, (400+salary)*12 FROM employees;
+    SELECT id, name,age*12 FROM student;
+
+    SELECT id, name,(400+age)*12 FROM student;
+
 
 ### 空值（NULL）的应用
 
@@ -156,11 +172,6 @@
 
     – 包括空值的任何算术表达式都等于空
     
-    – 包括空值的连接表达式(||)等于与空字符串连接，也就是原 来的字符串
-    
-    SELECT last_name, salary, (400+salary)*12+(400+salary) *12*commission_pct FROM employees;
-    
-
 ### 使用列别名的方法 
 • 列别名基本书写方法有两种方式：
 
@@ -178,27 +189,21 @@
 
 示例：
 
-    SELECT employee_id id, last_name as employee_name, salary "Salary", (400+salary)*12 "Annual Salary" FROM employees;
-
-### 连接运算符的使用
-
-• 采用双竖线（||）来做连接运算符 ，更清楚地表达实际意思。
-
-    SELECT first_name||' '||last_name||'''s phone number is '||phone_number "employee Phone number" FROM employees;
+    SELECT id, name as student_name, (10+age)*12 "Big Age" FROM student;
 
 ### DISTINCT关键字的用法
 
 • DISTINCT取消重复行
 
-    SELECT DISTINCT department_id FROM employees;
+    SELECT DISTINCT c_class FROM student;
     
-    SELECT DISTINCT department_id, job_id FROM employees;
+    SELECT DISTINCT age, c_class FROM student;
 
-### DESC[RIBE]命令和
+### DESC[RIBE]命令
 
 • DESC + 表名 命令：显示表结构
 
-    – DESC employees
+    – DESC student
 
 
 

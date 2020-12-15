@@ -10,7 +10,7 @@
 
 ### 前言 
     有没有觉得前面的查询过于简单，根本不满足我们的日常需求，
-    其实，在查询中我们还可以添加很多查询条件，还可以添加运算符，加上排序，让我们赶紧试试吧
+    其实，在查询中我们还可以添加很多查询条件，还可以添加运算符，加上排序，让我们赶紧试试吧。
 
 ### 要点
     1.where子句
@@ -29,13 +29,11 @@ WHERE子句一般用来限制数据，使用WHERE子句限定返回符合条件�
     FROM 表名 
     WHERE 条件;
 
-• 查询公司月薪高于12000的员工信息。
+• 查询公司年龄大于22的员工信息。
 
-    SELECT employee_id, last_name, salary FROM employees WHERE salary >= 12000;
-
-• 查询部门编号为20的所有员工
-
-    SELECT * FROM emp WHERE deptno= 20;
+    SELECT id, name, age 
+    FROM student 
+    WHERE age >= 22;
 
 ### 比较运算符的使用
 |运算符|含义|
@@ -55,12 +53,14 @@ WHERE子句一般用来限制数据，使用WHERE子句限定返回符合条件�
 
 – 字符类型大小写敏感；
 
-– 日期类型格式敏感，默认格式’yyyy-MM-dd HH:mm:ss’;
+– 日期类型格式敏感，默认格式'yyyy-MM-dd HH:mm:ss';
 
 例:
-• 查询在1999年1月1日以后进入公司的雇员信息。
+• 查询创建时间大于1999年1月1日的用户信息。
 
-	SELECT last_name, hire_date FROM employees WHERE hire_date >= '1999-01-01';
+    SELECT id, name, age 
+    FROM student 
+    WHERE c_create_date >= '1999-01-01';
 
 ### 特殊比较运算符
 |运算符 |含义|
@@ -72,18 +72,20 @@ WHERE子句一般用来限制数据，使用WHERE子句限定返回符合条件�
 
 
 #### BETWEEN…AND…运算符的使用
-• 查询月薪在4200元到6000公司的雇员。
+• 查询年龄在20到22的雇员。
+    SELECT id, name, age
+    FROM student
+    WHERE age BETWEEN 20 AND 22;
 
-    SELECT employee_id, last_name, salary
-    FROM employees
-    WHERE salary BETWEEN 4200 AND 6000;
 
 #### IN运算符的使用
 • IN运算符主要对指定的值进行比较查看的时候使用。
 
-• 查询部门编号为10、90或110的雇员信息。
+• 查询ID为1、3或5的用户信息。
 
-    SELECT employee_id, last_name, salary, department_id FROM employees WHERE department_id IN (10, 90, 110);
+    SELECT id, name, age
+    FROM student
+    WHERE id IN (10, 90, 110);
 
 #### LIKE运算符的使用
 
@@ -96,26 +98,32 @@ WHERE子句一般用来限制数据，使用WHERE子句限定返回符合条件�
 – _可以代替一个字符。
 
 例
-• 查询last_name首字母是S的雇员信息。
+• 查询name首字母是张的用户信息。
 
-    SELECT employee_id, last_name, salary FROM employees WHERE last_name LIKE 'S%';
+    SELECT id, name, age
+    FROM student
+    WHERE name LIKE '张%';
 
 
 • %与_组合使用
 
 例
-• 查询last_name第二个字母是b的雇员信息。
+• 查询name第二个字符为四的用户信息。
 
-    SELECT employee_id, last_name, salary FROM employees WHERE last_name LIKE '_b%';
+    SELECT id, name, age
+    FROM student
+    WHERE name LIKE '_四%';
 
 
 #### IS NULL运算符的使用
 
 • 查询包含空值的记录
 
-• 未分配部门的雇员信息。
+• 查询班级信息为空的用户信息。
 
-    SELECT employee_id, last_name, salary, department_id FROM employees WHERE department_id IS NULL;
+    SELECT id, name, age
+    FROM student
+    WHERE c_class IS NULL;
 
 ### 逻辑运算符的使用
 |运算符 |含义|
@@ -125,31 +133,39 @@ WHERE子句一般用来限制数据，使用WHERE子句限定返回符合条件�
 |NOT |如果下面的条件是FALSE,返回TRUE。|
 
 例
-• 查询月薪在4200元到6000元公司的雇员。
+• 查询年龄在20到22之间的用户信息。
 
-    SELECT employee_id, last_name, salary FROM employees WHERE salary>=4200 AND salary<=6000;
+    SELECT id, name, age
+    FROM student
+    WHERE age>=20 AND age<=22;
 
-• 月薪大于10000元，并且在60和90号部门工作的员工。
+• 年龄在20到22，并且班级在1和2的用户信息。
 
-    SELECT last_name, salary, department_id FROM employees WHERE salary>10000 AND department_id in (60,90);
+    SELECT id, name, age
+    FROM student
+    WHERE age>20 AND c_class in (1,2);
 
-• 月薪大于10000元，或者在60和90号部门工作的员工。
+• 年龄在20到22，或者班级在1和2的用户信息。
 
-    SELECT last_name, salary, department_id FROM employees WHERE salary>10000 OR department_id in (60,90);
+    SELECT id, name, age
+    FROM student
+    WHERE age>20 OR c_class in (1,2);
 
-• 查找职位不是IT_PROG，ST_CLERK,FI_ACCOUNT的员工 信息。
+• 查找班级不在1和2的用户信息。
 
-    SELECT last_name, job_id, salary FROM employees WHERE job_id NOT IN ('IT_PROG', 'ST_CLERK', 'FI_ACCOUNT');
+    SELECT id, name, age
+    FROM student
+    WHERE c_class not in (1,2);
 
 NOT运算符还可以和BETWEEN…AND、LIKE、IS NULL一起使用。
 
-    – ...WHERE department_id NOT IN (60, 90);
+    – ...WHERE id NOT IN (1, 2);
     
-    – ... WHERE salary NOT BETWEEN 10000 AND 25000;
+    – ... WHERE age NOT BETWEEN 20 AND 22;
     
-    – ... WHERE last_name NOT LIKE 'D%'
+    – ... WHERE name NOT LIKE 'D%'
     
-    – ... WHERE manager_id IS NOT NULL
+    – ... WHERE c_class IS NOT NULL
 
 ### 运算符的优先级
 • 括号’()’优先于其他操作符。
@@ -164,14 +180,23 @@ NOT运算符还可以和BETWEEN…AND、LIKE、IS NULL一起使用。
 |6   |逻辑与 AND|
 |7   |逻辑或 OR|
 
+注：
+1、乘除的优先级高于加减；
+2、同一优先级运算符从左向右执行；
+3、括号内的运算先执行。
+
 例:
-查找职位是FI_ACCOUNT或工资超过16000的职位是AD_VP的员 工。
+查找班级编号为1 或 班级为2且年龄大于22的用户信息。（这里or的优先级会低于and的优先级）
 
-    SELECT last_name, job_id, salary, department_id FROM employees WHERE job_id = 'FI_ACCOUNT' OR job_id = 'AD_VP' AND salary > 16000;
+    SELECT id, name, age
+    FROM student
+    WHERE c_class = 1 OR c_class = 2 AND age > 22;
 
-查找工作超过16000并且职位是FI_ACCOUNT或是AD_VP的员工。
+查找年龄大于22 且 班级编号为1或者2的用户信息。（括号内的运算先执行）
 
-    SELECT last_name, job_id, salary, department_id FROM employees WHERE (job_id = 'FI_ACCOUNT' OR job_id = 'AD_VP') AND salary > 16000;
+    SELECT id, name, age
+    FROM student
+    WHERE (c_class = 1 OR c_class = 2) AND age > 22;
 
 ### ORDER BY子句
 
@@ -181,9 +206,11 @@ NOT运算符还可以和BETWEEN…AND、LIKE、IS NULL一起使用。
     FROM 表名 [WHERE 条件] 
     ORDER BY {列名|表达式|别名} [ASC|DESC],…;
 
-例：查看公司员工信息，按照员工部门降序排列。
+例：查看用户信息降序排列。
 
-    SELECT last_name, job_id, salary, department_id FROM employees ORDER BY department_id DESC;
+    SELECT id, name, age
+    FROM student
+    ORDER BY id DESC;
 
 
 • 不同数据类型排序规则(以升序为例)
@@ -196,28 +223,32 @@ NOT运算符还可以和BETWEEN…AND、LIKE、IS NULL一起使用。
 
 – 空值在升序排列中排在最后，在降序排列中排在最开始。
 
+注：MySQL 默认升序
+*特别说明*：mysql在不给定order by条件的时候，得到的数据结果的顺序是跟查询列有关的。
+在查询不同列的时候，可能会使用到不同的索引条件。
+Mysql在使用不同索引的时候，得到的数据顺序是不一样的
 
-例：使用列别名排序，多列排序。 查看员工信息，结果按照年薪升序排列。
+例•：查看用户信息，结果按照班级升序排列，年龄按照降序排列。
 
-    SELECT last_name, job_id, salary*12 annual, department_id FROM employees ORDER BY annual;
-
-例•：查看员工信息，结果按照job_id升序排列，月薪按照降序排列。
-
-    SELECT last_name, job_id, salary, department_id FROM employees ORDER BY job_id, salary desc;
-
+    SELECT id, name, age, c_class
+    FROM student
+    ORDER BY c_class, age desc;
 
 • ORDER BY特殊使用 – ORDER BY子句可以出现在SELECT子句中没有出现过的列。
 
 – ORDER BY子句后的列名，可以用数字来代替。这个数字是 SELECT语句后列的顺序号。
 
-例：查看公司员工信息，按照月薪由高到低排列，而具体的工资数不 显示。
+例：查看用户信息，按照班级从低到高显示，而具体的工资数不 显示。
 
-    SELECT last_name, job_id, hire_date FROM employees ORDER BY salary;
+    SELECT id, name, age
+    FROM student
+    ORDER BY c_class;
 
+• 查看用户信息，结果按照年龄升序排列，班级降序排列。
 
-• 查看员工信息，结果按照按照job_id升序排列，月薪按照降序 排列。
-
-    SELECT last_name, job_id, salary, department_id FROM employees ORDER BY 2, 3 desc;
+    SELECT id, age, c_class
+    FROM student
+    ORDER BY 2, 3 desc;
 
 
 

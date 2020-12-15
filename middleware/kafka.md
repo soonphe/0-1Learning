@@ -288,5 +288,7 @@ bin/kafka-console-producer.sh --broker-list 47.98.121.127:9092 --topic test
 消费消息：
 bin/kafka-console-consumer.sh --bootstrap-server 47.98.121.127:9092 --topic test --from-beginning
 
-
+备注——
+使用kafka自带zookeeper可能会让consumer连接失败
+kafka版本与spring-boot版本过高也会出现bug
 ~~~~

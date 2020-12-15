@@ -15,8 +15,13 @@ Hystrix断路器：阀值（Hystric 是5秒20次）
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-hystrix</artifactId>
 </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+        </dependency>
 
 2.启动类注解
+@EnableHystrixDashboard    //hystrix监控
 @EnableHystrix
 
 3.service注解

@@ -87,6 +87,11 @@ vim		//编辑模式，输入i,I.o,O,a,A,r,R任一字母进入编辑模式
 		// :q!不保存离开
 vi下按u只能撤销一个，vim可以无限撤消
         
+### linux vi文本操作：
+gg	# 进入行首
+dG	# 文件内容将被全部清空
+dd	# 清除一行
+
 ### 传输文件
 scp -r /home/demo root@服务器IP:/root	//将本极demo目录拷贝到服务器IP的/root目录下
 
@@ -138,7 +143,8 @@ ps S 列出程序时，包括已中断的子程序资料。
 ps -t<终端机编号> 指定终端机编号，并列出属于该终端机的程序的状况。
 ps u 以用户为主的格式来显示程序状况。
 ps x 显示所有程序，不以终端机来区分。
-    
+  
+### grep文本搜索  
 查看文件中的字符串或者进程：grep
 grep -a 'nginx' /etc/nginx/nginx.conf	//在nginx.conf文件中查找nginx字符串
 ps -ef | grep mmp-front  //mmp-front是进程关键字

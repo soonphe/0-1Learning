@@ -40,6 +40,9 @@ adb 包含在 Android SDK 平台工具软件包中。您可以使用 SDK 管理�
 su root	切换到root用户
 su shell切换到普通用户
 
+推送资源：
+adb -s BaytrailDB47EC8B push D:\JuzhongWork\Download /storage/sdcard0/
+adb -s 0123456789ABCDEF push D:\JuzhongWork\Download /storage/sdcard0/
 
 安装APK：
 adb install <apkfile> //比如：adb install baidu.apk

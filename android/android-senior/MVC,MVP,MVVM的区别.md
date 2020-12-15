@@ -73,5 +73,3 @@ MVVM模式将Presenter改名为ViewModel，基本上与MVP模式完全一致。
 
 
 
-
-

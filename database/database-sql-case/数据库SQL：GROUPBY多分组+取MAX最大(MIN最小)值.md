@@ -24,7 +24,7 @@ CREATE TABLE `student`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT '' COMMENT '姓名',
   `age` int(3) NULL DEFAULT 0 COMMENT '年龄',
-  `class` int(4) NULL DEFAULT 0 COMMENT '班级',
+  `c_class` int(4) NULL DEFAULT 0 COMMENT '班级',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = MyISAM AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
 
@@ -50,7 +50,7 @@ INSERT INTO `student` VALUES (7, '阿九', 28, 3);
 ### 错误写法
 ````
 SELECT *,MAX(age) FROM student
-SELECT *,MAX(age) FROM student GROUP BY `class`
+SELECT *,MAX(age) FROM student GROUP BY c_class
 ````
 错误分析：
 MAX并不会取到最大值所在行
@@ -59,9 +59,9 @@ MAX并不会取到最大值所在行
 SELECT
     * 
 FROM
-    ( SELECT * FROM student order by age desc,class asc) AS b
+    ( SELECT * FROM student order by age desc,c_class asc) AS b
 GROUP BY
-    `class`;
+    c_class;
 ````
 错误分析：
 分组并不会取排序的第一条结果
@@ -72,25 +72,73 @@ GROUP BY
 SELECT
     * 
 FROM
-    ( SELECT * FROM student order by age desc,class asc limit 99999999) AS b
+    ( SELECT * FROM student order by age desc,c_class asc limit 99999999) AS b
 GROUP BY
-    `class`;
+    c_class;
 ````
 分析：
 limit 99999999是必须要加的，如果不加的话，数据不会先进行排序，通过 explain 查看执行计划，可以看到没有 limit 的时候，少了一个 DERIVED(得到) 操作。
-
-
+  
 ### 第一种方式正确写法——使用having
 ````
 SELECT
     * 
 FROM
-    ( SELECT * FROM student having 1 order by age desc,class asc) AS b
+    ( SELECT * FROM student having 1 order by age desc,c_class asc) AS b
 GROUP BY
-    `class`;
+    c_class;
 ````
 分析：
 通过 explain 查看执行计划，可以看到 使用having 1，也会使用 DERIVED(得到) 操作。
+
+
+### 子查询展开/派生类合并——（这也是为什么不加limit只查询到一张表，加limit才走两张表）
+不加limit的时候，执行日志显示只有一个表的处理，不对呀，应该是两张表，先从from查询出一张表然后再从这张表筛选出一张新表，总共两张表才对。 
+原来，这是mysql的版本在捣鬼，
+在mysql5.6中，如果是这样写确实会出现两张表的处理，执行日志显示出现了一个主表一个Derived表，
+Derived为派生表，也就是说，from里面查询出的是派生表，也可以理解为临时表，先将查询到的记录放到这个临时表，然后再从这个临时表进行分组，分组后的结果放入一张新表，就产生了正确结果。
+
+**那么为什么切换了版本后就好了呢？**
+其实mysql5.7针对于5.6版本做了一个优化，针对mysql本身的优化器增加了一个控制优化器的参数叫 derived_merge ，什么意思呢，“派生类合并”。
+ok，既然已经了解了很多，原来是派生类合并在作怪。
+官方手册：
+
+>优化器可以使用两种策略（也适用于视图引用）处理派生类引用：
+1.将派生类合并到外部查询块中
+2.将派生类实现为内部临时表
+````
+SELECT * FROM
+    ( SELECT * FROM student order by age desc,c_class asc) AS b
+
+等价于
+SELECT * FROM student
+````
+
+同时由于这个机制，子查询中的里面的 order by 应该会跟外部块一起执行，
+也就是说 order by 会跑到外面来（说的形象一点哈），那么为什么结果的排序依旧是乱的：    
+官方使用文档：
+
+> 如果这些条件都为真，则优化器将派生类或视图引用中的ORDER BY子句传播到外部查询块。
+1.外部查询未分组或聚合
+2.外部查询未指定DISTINCT,HAVING或ORDER BY
+3.外部查询将此派生表或视图引用作为FROM子句中的唯一源
+否则，优化器将忽略ORDER BY子句
+
+上面的sql里的外部块由于使用到了分组，那么优化器会忽略掉 order by 子句
+
+### 使合并派生类失效
+其实也有多种办法不需要修改 derived_merge 参数而使合并派生类失效，具体做法可参考官方使用手册， 摘抄手册文：
+
+> 可以通过在子查询中使用任何阻止合并的构造来禁用合并，尽管这些构造对实现的影响并不明确。 防止合并的构造对于派生表和视图引用是相同的：
+   1.聚合函数（ SUM() ， MIN() ， MAX() ， COUNT()等）
+   2.DISTINCT
+   3.GROUP BY
+   4.HAVING
+   5.LIMIT
+   6.UNION或UNION ALL
+   7.选择列表中的子查询
+   8.分配给用户变量
+   9.仅引用文字值（在这种情况下，没有基础表）
 
 ---
 
@@ -101,7 +149,7 @@ SELECT
     * 
 FROM student 
 WHERE age in 
-    (select max(age) Max_age FROM student GROUP BY `class`) 
+    (select max(age) Max_age FROM student GROUP BY c_class) 
 ````
 分析：
 数据量如果很大会存在效率问题，max会扫描全表，in也会扫描全表，
@@ -114,9 +162,9 @@ SELECT
     * 
 FROM student 
 WHERE age in 
-    (select max(age) Max_age FROM student GROUP BY `class`) 
+    (select max(age) Max_age FROM student GROUP BY c_class) 
 GROUP BY 
-    `class`;
+    c_class;
 ````
 
 > 是不是到这里感觉的结果是对的，但是你以为这样就正确了吗？
@@ -130,11 +178,11 @@ select * from (
 			* 
 	FROM student 
 	WHERE age in 
-			(select max(age) Max_age FROM student GROUP BY `class`) 
-	order by age desc,id desc,class asc
+			(select max(age) Max_age FROM student GROUP BY c_class) 
+	order by age desc,id desc,c_class asc
 			) as b
 GROUP BY 
-    `class`;
+    c_class;
 ````
 
 但是使用having或者limit可以实现分组取最新一条数据
@@ -144,7 +192,7 @@ SELECT
 FROM
     ( SELECT * FROM student having 1 order by age desc,id desc) AS b
 GROUP BY
-    `class`;
+    c_class;
 ````
 
 ### 结论

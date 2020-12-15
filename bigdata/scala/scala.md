@@ -175,5 +175,24 @@ res62: Int = 10
 JAVA并发线程的4种风格：
 4种风格：Thread裸线程（用过）、Executor服务（用过）、ForkJoin框架（得靠JVM经验）、Actor模型
 
+前面三种方式运行时，出现问题：无法估计，无法监控，无法解决bug
+
 JDK中没有actor的实现；因此你必须引用一些实现了actor的库。
 Akka actor在内部使用ForkJoin框架来处理工作
+
+Scala默认的actor实现就是akka
+
+5.Akka框架——轻松并发百万actor，把所有的资源抽象成actor，actor最终代表的就是CPU的core
+actor比线程轻，一个线程可以绑定很多的actor
+actor通讯消息：两种形式：！不需要返回值    ？需要返回值
+依赖：
+<dependency>
+    <groupId>com.typesafe.akka</groupId>
+    <artifactId>akka-remote_2.11</artifactId>	//对应scala版本，2.11
+    <version>2.3.11</version>
+</dependency>
+<dependency>
+    <groupId>com.typesafe.akka</groupId>
+    <artifactId>akka-actor_2.11</artifactId>
+    <version>2.3.11</version>
+</dependency>

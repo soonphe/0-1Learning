@@ -22,3 +22,13 @@ nginx配置80端口转发：本地真实服务地址：proxy_pass http://localho
 最终访问线上地址：http://jzedu-recruit-stable.djtest.cn/#/clue/list
 就能通过本机后台cookie验证
 
+
+
+
+
+
+
+
+
+
+
