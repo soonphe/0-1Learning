@@ -78,22 +78,24 @@ CREATE TABLE `student` (
   `name` varchar(255) COLLATE utf8mb4_bin DEFAULT '' COMMENT '姓名',
   `age` int(3) DEFAULT '0' COMMENT '年龄',
   `c_class` int(4) DEFAULT '0' COMMENT '班级',
+  `c_score` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '分数',
   `c_create_date` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
 -- Records of student
 -- ----------------------------
 BEGIN;
-INSERT INTO `student` VALUES (1, '张三', 22, 1, '1999-01-01 00:00:00');
-INSERT INTO `student` VALUES (2, '李四', 26, 1, '2000-01-01 00:00:00');
-INSERT INTO `student` VALUES (3, '王五', 20, 2, '2001-01-01 00:00:00');
-INSERT INTO `student` VALUES (4, '赵六', 20, 2, '2002-01-01 00:00:00');
-INSERT INTO `student` VALUES (5, '孙七', 22, 3, '2003-01-01 00:00:00');
-INSERT INTO `student` VALUES (6, '李八', 28, 3, '2004-01-01 00:00:00');
-INSERT INTO `student` VALUES (7, '阿九', 28, 3, '2005-01-01 00:00:00');
-INSERT INTO `student` VALUES (8, '钱石', 28, NULL, NULL);
+INSERT INTO `student` VALUES (1, '张三', 22, 1, 61, '1999-01-01 00:00:00');
+INSERT INTO `student` VALUES (2, '李四', 26, 1, 65, '2000-01-01 00:00:00');
+INSERT INTO `student` VALUES (3, '王五', 20, 2, 80, '2001-01-01 00:00:00');
+INSERT INTO `student` VALUES (4, '赵六', 20, 2, 80, '2002-01-01 00:00:00');
+INSERT INTO `student` VALUES (5, '孙七', 22, 3, 90, '2003-01-01 00:00:00');
+INSERT INTO `student` VALUES (6, '李八', 28, 3, 90, '2004-01-01 00:00:00');
+INSERT INTO `student` VALUES (7, '阿九', 28, 3, 95, '2005-01-01 00:00:00');
+INSERT INTO `student` VALUES (8, '钱石', 28, 98, NULL, NULL);
+INSERT INTO `student` VALUES (9, '三班', 28, 99, NULL, NULL);
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -47,14 +47,16 @@ INSERT INTO `student` VALUES (7, '阿九', 28, 3);
 * 第二种实现方式
     先查询所有的最大(小)值，然后外面包一层查询+分组（这种也存在问题，一是性能问题，还有同组存在多个最大值相同也有问题）
 
-### 错误写法
+### 错误写法——使用MAX函数
 ````
 SELECT *,MAX(age) FROM student
 SELECT *,MAX(age) FROM student GROUP BY c_class
 ````
 错误分析：
-MAX并不会取到最大值所在行
+MAX并不会取到最大值所在行，*分组并不会取最大值所在行*
 
+
+### 错误写法——使用排序+分组
 ````
 SELECT
     * 
@@ -108,10 +110,10 @@ ok，既然已经了解了很多，原来是派生类合并在作怪。
 2.将派生类实现为内部临时表
 ````
 SELECT * FROM
-    ( SELECT * FROM student order by age desc,c_class asc) AS b
+    ( SELECT * FROM student order by age desc,c_class asc) AS b;
 
 等价于
-SELECT * FROM student
+SELECT * FROM student order by age desc,c_class asc;
 ````
 
 同时由于这个机制，子查询中的里面的 order by 应该会跟外部块一起执行，
@@ -122,9 +124,10 @@ SELECT * FROM student
 1.外部查询未分组或聚合
 2.外部查询未指定DISTINCT,HAVING或ORDER BY
 3.外部查询将此派生表或视图引用作为FROM子句中的唯一源
-否则，优化器将忽略ORDER BY子句
 
-上面的sql里的外部块由于使用到了分组，那么优化器会忽略掉 order by 子句
+>否则，优化器将忽略ORDER BY子句
+
+我们之前的sql里的外部块由于使用到了分组，那么优化器会忽略掉 order by 子句
 
 ### 使合并派生类失效
 其实也有多种办法不需要修改 derived_merge 参数而使合并派生类失效，具体做法可参考官方使用手册， 摘抄手册文：

@@ -6,7 +6,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 
-## 第一个vue项目
+## 认识vue
 
 ### 环境
 node.js环境
