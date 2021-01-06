@@ -15,6 +15,11 @@
 
 原因分析：MySQL5.7版本默认设置了 mysql sql_mode = only_full_group_by 属性，导致报错。
 
+> 下载安装的是最新版的mysql5.7.x版本，默认是开启了 only_full_group_by 模式的，但开启这个模式后，原先的 group by 语句就报错。
+>
+> 一旦开启 only_full_group_by ，只能获取受到其影响的字段信息，无法和其他未受其影响的字段共存，这样，group by 的功能将变得十分狭窄了
+
+
 为了验证是不是数据版本问题, 于是查询版本
 ```
 SELECT VERSION()
@@ -25,11 +30,6 @@ SELECT VERSION()
 
 知道原因就好办, 查询怎么解决.  
 
-> 下载安装的是最新版的mysql5.7.x版本，默认是开启了 only_full_group_by 模式的，但开启这个模式后，原先的 group by 语句就报错，然后又把它移除了。
->
-> 一旦开启 only_full_group_by ，感觉，group by 将变成和 distinct 一样，只能获取受到其影响的字段信息，无法和其他未受其影响的字段共存，这样，group by 的功能将变得十分狭窄了
->
-> only_full_group_by 模式开启比较好。因为在 mysql 中有一个函数： any_value(field) 允许，非分组字段的出现（和关闭 only_full_group_by 模式有相同效果）。
 
 ### 1、查看sql_mode
 SELECT @@sql_mode;

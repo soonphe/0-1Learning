@@ -116,13 +116,9 @@ git log"只是包括了当前分支中的commit记录，而"git reflog"中会记
 ---
 
 ### git设置用户名密码等
-
 git config --list   查看git所有配置项
 git config --global user.name "你的名字或昵称"
 git config --global user.email "你的邮箱"
-
-
-
 
 
 ### Git fetch和git pull的区别：
@@ -188,3 +184,20 @@ Enter file in which to save the key (/c/Users/Liang Guan Quan/.ssh/id_rsa):
 
 * 到 https://github.com/settings/keys 这个地址中去添加一个新的SSH key，然后把你的xx.pub文件下的内容文本都复制到Key文本域中，然后就可以提交了。
 * 添加完成之后 我们用``ssh git@github.com`` 命令来连通一下github，如果你在response里面看到了你github账号名，那么就说明配置成功了。  *let's enjoy github ;)*
+
+
+### git统计代码
+统计每个人的增删行数
+git log --format='%aN' | sort -u | while read name; do echo -en "$name\t"; git log --author="$name" --pretty=tformat: --numstat | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf "added lines: %s, removed lines: %s, total lines: %s\n", add, subs, loc }' -; done
+
+统计个人代码行数（按git用户名）
+git log --author="soonphe" --pretty=tformat: --numstat | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf "added lines: %s, removed lines: %s, total lines: %s\n", add, subs, loc }' -
+
+统计仓库提交者排名前10名
+git log --pretty='%aN' | sort | uniq -c | sort -k1 -n -r | head -n 10
+
+贡献者统计：
+git log --pretty='%aN' | sort -u | wc -l
+
+提交数统计：
+git log --oneline | wc -l
