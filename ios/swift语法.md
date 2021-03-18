@@ -136,7 +136,24 @@ println(a)	//打印a
 var fun= sayHello
 运行函数：
 fun("zhangsan")
-swift函数闭包：在函数内部写函数
+
+### swift函数闭包
+闭包就是能够读取其他函数内部变量的函数，可以理解成定义在一个函数内部的函数。
+简单的说它就是一个代码块，用{}包起来，他可以用在其他函数的内部，将其他函数的变量作为代码块的参数传入代码块中，在Swift中多用于回调。这个跟Object-C中的block是一样的。
+
+例子
+```
+//一般形式
+//有参有反
+let testOne: (String, String) -> String = {(str1, str2) in return str1 + str2}
+print(testOne("one", "two"))
+//无参有反  可以直接省略 "in"
+let testTwo: () -> String = {return "test闭包"}
+//无参无反
+let testThree: () -> Void = {print("test闭包")}
+```
+归纳
+上面的例子中:后面是闭包的类型，而=后面的就是一个代码块，也就是闭包的具体实现，这些个OC中的block基本一样。
 
 
 ### 面向对象：

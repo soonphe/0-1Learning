@@ -5,7 +5,9 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
+## Andorid JetPack
 
-## 计算属性和侦听器
-
-### 计算属性
+androidx.navigation:navgation-fragment-ktx：。。
+androidx.lifecycle-livedata-ktx:。。
+androidx.lifecycle-viewmodel-ktx:。。
+androidx.lifecycle:lifecycle-extensions:。。

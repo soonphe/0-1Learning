@@ -111,8 +111,9 @@
 3. Vector（线程安全）
     * 线程安全
     * 和ArrayList类似,但属于强同步类。
+    * ArrayList、Vector默认初始容量为10
     * 如果你的程序本身是线程安全的(thread-safe,没有在多个线程之间共享同一个集合/对象),那么使用ArrayList是更好的选择。
-    * Vector和ArrayList在更多元素添加进来时会请求更大的空间。Vector每次请求其大小的双倍空间，而ArrayList每次对size增长50%.
+    * 扩容增量：原容量的 1倍，如 Vector的容量为10，一次扩容后是容量为20
 
 #####ArrayList容量是如何变化的
 在源码中：
@@ -138,14 +139,25 @@ private transient Object[] elementData;
 
 ---
 #### Set
-* 是一个泛型接口
-* 继承了接口Collection
+* 是一个泛型接口，继承了接口Collection，元素无序的、不可重复。
 * 子接口：NavigableSet、SortedSet
 * 子类：EnumSet、HashSet、LinkedHashSet、TreeSet、AbstractSet等
-* 不允许重复元素
 * 两个注意点:
     1. Set中的元素的类，必须有一个有效的equals方法。
     2. 对Set的构造方法，传入的Collection对象中重复的元素会只留下一个
+
+HashSet：线程不安全，存取速度快
+　　　　　底层实现是一个HashMap（保存数据），实现Set接口
+　　　　　默认初始容量为16（为何是16，见下方对HashMap的描述）
+　　　　　加载因子为0.75：即当 元素个数 超过 容量长度的0.75倍 时，进行扩容
+　　　　　扩容增量：原容量的 1 倍，如 HashSet的容量为16，一次扩容后是容量为32
+
+
+#### Map
+HashMap：默认初始容量为16
+　　　　　（为何是16：16是2^4，可以提高查询效率，另外，32=16<<1       -->至于详细的原因可另行分析，或分析源代码）
+　　　　　加载因子为0.75：即当 元素个数 超过 容量长度的0.75倍 时，进行扩容
+　　　　　扩容增量：原容量的 1 倍，如 HashSet的容量为16，一次扩容后是容量为32
     
 ---
 #### Queue

@@ -45,6 +45,14 @@ npm install taco --global	yarn global add taco	安装某个全局依赖项目
 npm publish/login/logout	yarn publish/login/logout	发布/登录/登出，一系列NPM Registry操作
 npm run/test	yarn run/test	运行某个命令
 
+NPM包管理命令
+1. 查看
+$ npm list -g --depth 0  // 若需要权限 请加上 sudo 命令
+2. 更新
+$ npm update -g xxx
+3. 删除
+$ npm uninstall -g xxx
+
 
 ### 项目架构图
 .
