@@ -231,6 +231,8 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
 限定index + type + id添加（ID相同会覆盖）：curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
 
 获取索引信息：curl -XGET 'http://localhost:9200/log_index?pretty'
+获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
+删除索引：curl -XDELETE localhost:9200/log_index
 
 添加json文件：
 curl -XPOST 'localhost:9200/log_index/log_type/_bulk?pretty' --data-binary  @accounts.json
