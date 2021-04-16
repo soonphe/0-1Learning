@@ -59,11 +59,16 @@ DISCARD取消事务
 注：没有回滚
 
 ### redis常见架构模式：
-单机，
-主从，
-哨兵sentinel：监控检查主和从服务器是否正常，故障提醒，自动故障迁移
-集群proxy型：
-集群直连型：
+* 单机：单节点
+* 主从：默认配置下，master节点可以进行读和写，slave节点只能进行读操作，写操作被禁止，
+    slave节点挂了不影响其他slave节点的读和master节点的读和写，重新启动后会将数据从master节点同步过来
+    master节点挂了以后，redis就不能对外提供写服务了，因为剩下的slave不能成为master
+* 哨兵sentinel：监控检查主和从服务器是否正常，故障提醒，自动故障迁移
+    缺点：主从切换需要时间，会丢失数据；还是没有解决主节点写的压力；
+* 集群proxy型：
+    缺点：增加了新的 proxy，需要维护其高可用。
+* 集群直连型：Redis-Cluster采用无中心结构，每个节点保存数据和整个集群状态,每个节点都和其他所有节点连接。
+    缺点：1、资源隔离性较差，容易出现相互影响的情况。   2、数据通过异步复制,不保证数据的强一致性
 
 ### Redis分布式锁和异步队列
 * Redis分布式锁：拿setnx(如果key存在返回0)争抢锁，抢到后加一个expire过期时间防止忘记释放
@@ -75,7 +80,7 @@ DISCARD取消事务
 
 ### Redis做消息队列
 调用convertAndSend方法就可以产生队列
-例：        redisTemplate.convertAndSend(messageQueueDto.getTopic(),messageQueueDto.getMessage());
+例：redisTemplate.convertAndSend(messageQueueDto.getTopic(),messageQueueDto.getMessage());
 
 
 

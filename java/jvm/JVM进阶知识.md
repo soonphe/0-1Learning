@@ -166,6 +166,9 @@ Object obj = new Object();
 * CMS(Concurrent Mark Sweep) 收集器： 是一种以获得最短回收停顿时间为目标的收集器，标记清除算法，运作过程：初始标记，并发标记，重新标记，并发清除，收集结束会产生大量空间碎片。
 * G1收集器： 标记整理算法实现，运作流程主要包括以下：初始标记，并发标记，最终标记，筛选标记。不会产生空间碎片，可以精确地控制停顿。
 
+jdk1.7 默认垃圾收集器Parallel Scavenge(新生代)+Parallel Old(老年代)
+jdk1.8 默认垃圾收集器Parallel Scavenge(新生代)+Parallel Old(老年代)
+jdk1.9 默认垃圾收集器G1
 
 #### Minor GC与Full GC分别在什么时候发生？
 * Minor GC：通常是指对新生代的回收。指发生在新生代的垃圾收集动作，因为 Java 对象大多都具备朝生夕灭的特性，所以 Minor GC 非常频繁，一般回收速度也比较快

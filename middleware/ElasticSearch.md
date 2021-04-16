@@ -186,22 +186,59 @@ http://127.0.0.1:9200/_cat/
     其实很多都可以见词知义的，相当于获得查看集群信息的目录
 
 
-### Elasticsearch增加数据
-增加数据（http PUT）：
-````
-curl -XPUT localhost:9200 /user_idx/type_tags/12  -d
-'{"name" : "Mr.YF", "tags" : ["Go","Java","Lua","C++","Tcl","..."]}'
-这里是返回的结果：
-{ "_index" : "user_idx" , "_type" : "type_tags" , "_id" : "12" , "_version" :1, "_shards" :{ "total" :2, "successful" :1, "failed" :0}, "created" : true }
+### Elasticsearch获取索引、删除索引、增加数据
+1、获取索引
+curl -XGET 'http://localhost:9200/{_index}/{_type}/{_id}'
+2、索引添加数据
+curl -XPOST 'http://localhost:9200/{_index}/{_type}/{_id}' -d'{"a":"avalue","b":"bvalue"}'
+3、删除索引
+curl -XDELETE 'http://localhost:9200/{_index}/{_type}/{_id}'
+4、设置mapping
+curl -XPUT http://localhost:9200/{_index}/{_type}/{_id} -d '{
+  "{type}" : {
+	"properties" : {
+	  "date" : {
+		"type" : "long"
+	  },
+	  "name" : {
+		"type" : "string",
+		"index" : "not_analyzed"
+	  },
+	  "status" : {
+		"type" : "integer"
+	  },
+	  "type" : {
+		"type" : "integer"
+	  }
+	}
+  }
+}'
+5、搜索
+curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
+    "query" : {
+        "term" : { "user" : "kimchy" } //查所有 "match_all": {}
+    },
+	"sort" : [{ "age" : {"order" : "asc"}},{ "name" : "desc" } ],
+	"from":0,
+	"size":100
+}
 
-还可以添加json数据：
-curl -XPOST 'localhost:9200/bank/account/_bulk?pretty' --data-binary  @accounts.json
-````
+### 基础操作示例（curl）：
+创建索引：curl -X PUT 'localhost:9200/log_index?pretty'
+
+创建索引并添加数据：
+限定index + type添加：curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type' -d'{"a":"avalue","b":"bvalue"}'
+限定index + type + id添加（ID相同会覆盖）：curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
+
+获取索引信息：curl -XGET 'http://localhost:9200/log_index?pretty'
+
+添加json文件：
+curl -XPOST 'localhost:9200/log_index/log_type/_bulk?pretty' --data-binary  @accounts.json
+
 参数分析：
-
     -d标识要传递的参数
-    bank是索引的名称
-    account是类型的名称
+    log_index是索引index
+    log_type是索引类型type
     索引和类型的名称在文件中如果有定义，可以省略；如果没有则必须要指定
     _bulk是rest的命令，可以批量执行多个操作（操作是在json文件中定义的，原理可以参考之前的翻译）
     pretty是将返回的信息以可读的JSON形式返回。
@@ -209,11 +246,11 @@ curl -XPOST 'localhost:9200/bank/account/_bulk?pretty' --data-binary  @accounts.
 
 ### Elasticsearch查询索引信息
 查询方式：IP:端口/索引
-http://127.0.0.1:9200/logtype-10010?pretty
+http://127.0.0.1:9200/log_index?pretty
 
 ````
 {
-	"logtype-10011": {  //索引
+	"log_index": {  //索引
 		"aliases": {},
 		"mappings": {
 			"doc": {    //类型（表名）
@@ -238,7 +275,7 @@ http://127.0.0.1:9200/logtype-10010?pretty
 				"version": {
 					"created": "6050399"
 				},
-				"provided_name": "logtype-10011"
+				"provided_name": "log_index"
 			}
 		}
 	}
@@ -247,7 +284,7 @@ http://127.0.0.1:9200/logtype-10010?pretty
 
 ### Elasticsearch查询索引下所有数据（请求参数方式（http GET））
 查询方式：IP:端口/索引/_search
-http://127.0.0.1:9200/logtype-10011/_search?pretty
+http://127.0.0.1:9200/log_index/_search?pretty
 
 ````
 {
@@ -264,30 +301,13 @@ http://127.0.0.1:9200/logtype-10011/_search?pretty
     "max_score" : 1.0,  //最大命中分值
     "hits" : [          //数据集合
       {
-        "_index" : "logtype-10011",     //索引信息
+        "_index" : "log_index",     //索引信息
         "_type" : "doc",                //类型（表名）
         "_id" : "0-ydv3UBmFDDms1zn_tc", //数据ID
         "_score" : 1.0,                 //分值
         "_source" : {                   //元数据
-          "platform" : 1,
-          "@timestamp" : "2020-11-13T03:19:37.476Z",
-          "versionCode" : "10",
-          "sendTime" : 1605237577308,
-          "logType" : "10011",
-          "uid" : "CNAmw3b0uziL",
-          "requestId" : "d61af6cb-1d85-4936-a735-733a2af32acb",
-          "name" : "交通微云卡",
-          "packageName" : "com.vfuchongcontrol",
-          "udid" : "867520049610057",
-          "timestamp" : "1605237571577",
-          "@version" : "1",
-          "umid" : "",
-          "appName" : "PLATFORM_CJCYP_ANDROID",
-          "certSha1" : "252E6073B3C34A025019F592396AFC16B0BEFFEF",
-          "ip" : "172.17.32.11",
-          "pid" : "68369fc334a90b1f8978c58a000960a3",
-          "versionName" : "1.3.0",
-          "projectId" : "cheyipai"
+          "a" : "avalue",
+          "b" : "bvalue"
         }
       },
       。。。省略剩余数据
@@ -299,17 +319,17 @@ http://127.0.0.1:9200/logtype-10011/_search?pretty
 
 ### Elasticsearch查询索引下单条数据（请求参数方式（http GET））
 查询方式：IP:端口/索引/类型（表）/ID
-http://127.0.0.1:9200/logtype-10011/doc/nZjV33UBmFDDms1zHk59
+http://127.0.0.1:9200/log_index/log_type/nZjV33UBmFDDms1zHk59
 
 ````
 {
-    "_index":"logtype-10011",  //索引
+    "_index":"log_index",  //索引
     "_type":"doc",              //类型(表)
     "_id":"nZjV33UBmFDDms1zHk59",//数据ID
     "_version":1,
     "found":true,               //是否找到结果
     "_source":{                 //查询到的数据
-        "platform":1,"@timestamp":"2020-11-19T09:28:07.361Z","versionCode":"15700","sendTime":1605778087297,"logType":"10011","uid":"CNFfqy0VdR2v","requestId":"979ac6c4-c6f0-4632-a2d4-85f963fa2faf","name":"短视频","packageName":"com.coloros.yoli","udid":"A00000890A375C","timestamp":"1605778065669","@version":"1","umid":"","appName":"PLATFORM_CJCYP_ANDROID","certSha1":"58E1A75D9A9083EE226AFDEAA7A71997955122FC","ip":"172.17.32.11","pid":"68369fc334a90b1f8978c58a000960a3","versionName":"1.5.7","projectId":"cheyipai"
+        "platform":1,"@timestamp":"2020-11-19T09:28:07.361Z","versionCode":"15700","sendTime":1605778087297,"logType":"10010","uid":"CNFfqy0VdR2v","requestId":"979ac6c4-c6f0-4632-a2d4-85f963fa2faf","name":"短视频","packageName":"com.coloros.yoli","udid":"A00000890A375C","timestamp":"1605778065669","@version":"1","umid":"","appName":"PLATFORM_CJCYP_ANDROID","certSha1":"58E1A75D9A9083EE226AFDEAA7A71997955122FC","ip":"172.17.32.11","pid":"68369fc334a90b1f8978c58a000960a3","versionName":"1.5.7","projectId":"cheyipai"
     }
 }
 ````
@@ -336,7 +356,7 @@ http://127.0.0.1:9200/logtype-10011/doc/nZjV33UBmFDDms1zHk59
 
 ### Elasticsearch查询索引下所有数据（请求体方式）（推荐）
 ````
-curl -H "Content-Type: application/json" -X POST '127.0.0.1:9200/logtype-10011/_search?pretty' -d '
+curl -H "Content-Type: application/json" -X POST '127.0.0.1:9200/log_index/_search?pretty' -d '
 {
   "query": { "match_all": {} }
 }'
