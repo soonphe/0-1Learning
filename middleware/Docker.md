@@ -54,17 +54,16 @@ docker logs 容器名	查询容器日志
 ### 2.Docker 容器常用命令
 
 #### 新建并启动容器：docker run -p 80:80 --name nginx -d nginx:1.17.0
-• -d选项：表示后台运行
-• --name选项：指定运行后容器的名字为nginx,之后可以通过名字来操作容器
 • -p选项：指定端口映射，格式为：hostPort:containerPort
-docker start 重新启动已停止的容器
+• --name选项：指定运行后容器的名字为nginx,之后可以通过名字来操作容器
+• -d选项：表示后台运行
 
 #### 列出容器
 • 列出运行中的容器：docker ps
 • 列出所有容器：docker ps -a
 
 #### 启动、停止容器
-启动容器：docker start $ContainerName(或者$ContainerId)
+启动容器(已存在的容器)：docker start $ContainerName(或者$ContainerId)
 停止容器：
 1. docker stop $ContainerName(或者$ContainerId)（$ContainerName及$ContainerId可以用docker ps命令查询出来）
 2. 比如：docker stop nginx  或者  docker stop c5f5d5125587

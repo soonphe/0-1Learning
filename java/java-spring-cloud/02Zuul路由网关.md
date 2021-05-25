@@ -7,6 +7,7 @@
 
 ## Zuul路由网关
 
+### Zuul路由网关创建
 1.pom配置
 new project(选择
 Cloud Discover——Eureka Discoverry 
@@ -41,6 +42,7 @@ zuul:
     api-d:
       path: /**
       url: http://legacy.example.com
+      
 #zuul的负载均衡
 ribbon:
   eureka:

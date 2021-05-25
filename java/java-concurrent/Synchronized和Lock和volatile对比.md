@@ -120,6 +120,14 @@
 * ThreadLocal是一个线程的局部变量(其实就是一个Map),ThreadLocal会为每个使用该变量的线程提供独立的变量副本，所以每一个线程都可以独立地改变自己的副本，而不会影响其它线程所对应的副本。
 * 这样做其实就是以空间换时间的方式(与synchronized相反)，以耗费内存为代价，单大大减少了线程同步(如synchronized)所带来性能消耗以及减少了线程并发控制的复杂度。
 
+### ThreadLocalT、InheritableThreadLocals和TransmittableThreadLocal区别
+ThreadLocal：父线程的本地变量是无法传递给子线程的
+InheritableThreadLocals：
+    支持父线程的本地变量传递给子线程（线程池中可能失效），因为父线程的TLMap是通过init一个Thread的时候进行赋值给子线程的，而线程池在执行异步任务时可能不再需要创建新的线程了，因此也就不会再传递父线程的TLMap给子线程了
+    线程不安全（任意子线程针对本地变量的修改都会影响到主线程的本地变量（本质上是同一个对象））
+TransmittableThreadLocal：支持父线程的本地变量传递给子线程，解决线程池异步值传递问题（使用replay进行设置父线程里的本地变量给当前子线程，任务执行完毕，会调用restore恢复该子线程原生的本地变量）
+
+
 ---
 ### 内存可见性
 
