@@ -8,6 +8,7 @@
 ## 后端面试资料汇总
 
 ### 要点
+    0.java基础
     1.Spring
     2.springboot
     3.springcloud
@@ -26,6 +27,30 @@
     16.缓存redis
     17.搜索引擎ES
     
+### java基础
+Java中try catch finally的执行顺序
+```
+先执行try中代码发生异常执行catch中代码，最后一定会执行finally中代码
+```
+
+switch是否能作用在byte上，是否能作用在long上，是否能作用在String上？
+```
+switch支持以下类型：
+基本数据类型：int，byte，short，char
+基本数据类型封装类：Integer，Byte，Short，Character
+枚举类型：Enum（JDK 5+开始支持）
+字符串类型：String（JDK 7+ 开始支持）
+
+switch支持使用byte类型，不支持long类型，String支持在java1.7引入
+```
+
+静态内部类、内部类、匿名内部类，为什么内部类会持有外部类的引用？持有的引用是this？还是其它？
+```
+静态内部类：使用static修饰的内部类
+匿名内部类：使用new生成的内部类
+因为内部类的产生依赖于外部类，持有的引用是类名.this。
+```
+
 ### Spring
 Spring类的加载机制
 
@@ -33,7 +58,7 @@ Spring类的加载机制
     jvm的类加载器默认使用的是双亲委派模式。
     三种默认的类加载器Bootstrap ClassLoader、Extension ClassLoader和System ClassLoader（Application ClassLoader）
     每一个中类加载器都确定了从哪一些位置加载文件
-    
+
 Spring IOC加载全过程：
 
     Application加载xml
@@ -101,11 +126,11 @@ zookeeper如何保证数据一致性
     WARO(Write All Read one)机制：当Client请求向某副本写数据时(更新数据)，只有当所有的副本都更新成功之后，这次写操作才算成功，否则视为失败。
     Quorum机制：假设有N个副本，更新操作wi 在W个副本中更新成功之后，才认为此次更新操作wi 成功。称成功提交的更新操作对应的数据为：“成功提交的数据”。对于读操作而言，至少需要读R个副本才能读到此次更新的数据。
     其中，W+R>N ，即W和R有重叠。一般，W+R=N+1
-    
+
 为什么zookeeper使用奇数个节点
     
     避免脑裂时产生竞争
-    
+
 zookeeper选举算法：
 
     从3.4.0版本开始，ZooKeeper废弃了0、1、2这三种Leader选举算法，只保留了TCP版本的FastLeaderElection选举算法。
@@ -120,7 +145,7 @@ zookeeper选举算法：
     9. 统计投票
     10. 更新服务器状态
     以上10个步骤就是FastLeaderElection的核心，其中步骤4-9会经过几轮循环，直到有Leader选举产生。
-    
+
 Eureka和zookeeper有哪些不同
     
     ZooKeeper保证的是CP,Eureka保证的是AP
@@ -164,7 +189,7 @@ hashmap死锁会产生死锁吗，有则如何解决:
     jdk1.7多线程环境下，如果两个线程都发现HashMap需要重新调整大小，那么它们会同时试着去调整大小。
     在调整大小时，HashMap会将Entry对象不断的插入链表的头部。插入头部也主要是为了防止尾部遍历，否则这对key的HashCode相同的Entry每次添加还要定位到尾节点。
     如果条件竞争发送了，可能会出现环形链表，之后当我们get(key)操作时，就有可能发生死循环。
-
+    
     JDK1.8是打乱顺序排一遍(JDK1.8之中，引入了高低位链表（双端链表）,先根据长度进行高低位分段，然后用尾插法)，
     但是如果恰好打乱后的数据某一段顺序和之前一样，还是会出现死锁问题！
 
@@ -174,6 +199,20 @@ ConcurrentHashMap为什么是线程安全的
     并发控制使用Synchronized关键字和CAS（比较并替换Compare-and-swap）操作保证节点插入扩容的线程安全，在添加元素时候，采用synchronized来保证线程安全，然后计算size的时候采用CAS操作进行计算
     ConcurrentHashMap的扩容机制（最少是16，构造过渡节点，扩容2倍的数组，死循环转移节点，给不同的线程设置不同的下表索引进行扩容操作，synchronized同步锁锁住操作的节点）
     在JDK1.8中，ConcurrentHashMap摒弃了1.7分段锁，使用了乐观锁的实现方式。
+
+ArrayList和Vector的主要区别是什么？
+
+```
+ArrayList在Java1.2引入，用于替换Vector
+
+Vector:
+线程同步
+当Vector中的元素超过它的初始大小时，Vector会将它的容量翻倍
+
+ArrayList:
+线程不同步，但性能很好
+当ArrayList中的元素超过它的初始大小时，ArrayList只增加50%的大小
+```
 
 ### 多线程
 线程池核心参数
@@ -243,7 +282,7 @@ spring循环依赖是如何解决的：
     earlySingletonObjects：第二级缓存，里面存放的是提前曝光的单例对象；
     singletonFactories：第三级缓存，里面存放的是要被实例化的对象的对象工厂。
     循环依赖问题的解决也是基于Java的引用传递，当我们获取到对象的引用时，对象的field或者属性是可以延后设置的。即Spring是先将Bean对象实例化之后再设置对象属性的
-
+    
     spring中的循环依赖会有3种情况
     1.构造器循环依赖（不能解决）
         构造器的循环依赖是不可以解决的，spring容器将每一个正在创建的bean标识符放在一个当前创建bean池中，在创建的过程一直在里面，如果在创建的过程中发现已经存在这个池里面了，这时就会抛出异常表示循环依赖了。
@@ -388,3 +427,39 @@ redis读写缓慢，如何问题定位与分析
     8.网卡负载过高
 
 ### ES
+
+```
+Q ) 简单介绍下ES？
+A：ES是一种存储和管理基于文档和半结构化数据的数据库（搜索引擎）。它提供实时搜索（ES最近几个版本才提供实时搜索，以前都是准实时）和分析结构化、半结构化文档、数据和地理空间信息数据。
+
+Q ) 请介绍启动ES服务的步骤？
+A：启动步骤如下
+Windows下进入ES文件夹的bin目录下，点击ElasticSearch.bat开始运行
+打开本地9200端口http://localhost:9200, 就可以使用ES了
+
+Q ) 索引是什么?
+A: ES集群包含多个索引，每个索引包含一种表，表包含多个文档，并且每个文档包含不同的属性。
+
+Q ) 请解释什么是分片(SHARDs)?
+A: 随着索引文件的增加，磁盘容量、处理能力都会变得不够，在这种情况下，将索引数据切分成小段，这就叫分片(SHARDS)。它的出现大大改进了数据查询的效率。
+
+Q ) 什么是副本(REPLICA), 他的作用是什么？
+A: 副本是分片的完整拷贝，副本的作用是增加了查询的吞吐率和在极端负载情况下获得高可用的能力。副本有效的帮助处理用户请求。
+
+Q ) 在ES集群中增加和创建索引的步骤是什么？
+A: 可以在Kibana中配置新的索引，进行Fields Mapping，设置索引别名。也可以通过HTTP请求来创建索引。
+
+Q ) ES支持哪些类型的查询？
+A: 主要分为匹配（文本）查询和基于Term的查询。
+文本查询包括基本匹配，match phrase, multi-match, match phrase prefix, common terms, query-string, simple query string.
+Term查询，比如term exists, type, term set, range, prefix, ids, wildcard, regexp, and fuzzy.
+
+Q ) 倒排索引
+A: 在搜索引擎中，每个文档都有一个对应的文档 ID，文档内容被表示为一系列关键词的集合。例如，文档 1 经过分词，提取了 20 个关键词，每个关键词都会记录它在文档中出现的次数和出现位置。
+那么，倒排索引就是关键词到文档 ID 的映射，每个关键词都对应着一系列的文件，这些文件中都出现了关键词。
+
+
+
+
+```
+
