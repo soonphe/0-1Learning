@@ -98,6 +98,8 @@ Command + B 快速打开光标处的类或方法(Command + 鼠标左键也可以
 Command + ALT + B  找所有的子类  
 Command + SHIFT + B  找变量的类  
 
+Option + Shift + | 打开所有文件最后编辑日期及大小
+
 ### 调试相关
 F2：高亮错误或警告快速定位
 Control + Option + R：Run
