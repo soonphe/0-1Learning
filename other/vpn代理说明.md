@@ -17,8 +17,15 @@
 |psiphon：https://www.psiphon3.com/|	psiphon|		|psiphon|		||
 |lantern：https://github.com/getlantern/lantern|	Github installer S3 installer|		|Github installer S3 installer|	Github installer S3 installer|	32bit installer 64bit installer|
 
+备注：这些都是比较常见的VPN工具，但是都需要订阅地址，可以网上找找
+
 ### 其他VPN代理工具
+ClashX：https://github.com/yichengchen/clashX
+    * 收费、可以试用、需要搭配订阅地址使用
+    * 试用注册地址：https://www.fanqiangvpnnet.xyz/#/login
+佛跳墙：https://github.com/getfotiaoqiang/download
+    * 免费、能用
+LightyearVPN：https://github.com/lightyearvpn/LightyearVPN
+    * 收费、可以试用
 
-
-### 免费订阅地址/账号
 

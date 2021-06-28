@@ -8,6 +8,49 @@
 
 ## ios辅助开发
 
+### homebrew
+homebrew：Mac下包管理
+
+安装homebrew（/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"）
+
+国内地址安装
+苹果电脑 常规安装脚本（推荐 完全体 几分钟安装完成）：
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
+苹果电脑 极速安装脚本（精简版 几秒钟安装完成）：
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)" speed
+苹果电脑 卸载脚本：
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/HomebrewUninstall.sh)"
+
+### homebrew命令
+brew -v ：版本号：
+brew list：列出所有已安装的公式。
+brew list --versions:列出所有已安装的公式和版本。
+brew search xxx ：搜索。例如 brew search mysql
+brew install xxx ：安装。例如：brew install mysql
+brew info xxx：查询。 例如：brew info mysql 主要查看具体的信息及依赖关系当前版本注意事项等
+brew update：更新。 如果想要更新到当前最新的版本要先把当前 brew 更新到最新。这个时候他会先更新自己到最新 接下来的操作才更有意义
+brew outdated：检测新版本。 会列出所有有新版本的程序
+brew upgrade：升级。 升级所有 当然也可以指定升级（brew upgrade xxx指定的升级的程序名）
+brew cleanup：清理。 清理不需要的版本及其安装缓存
+brew uninstall：删除 xxx删除不需要的程序
+brew remove mysql：卸载不需要的程序
+man brew：更多命令详见
+
+使用示例：
+* 安装：
+brew install mysql：安装mysql
+brew install redis：安装redis
+brew install kibana：安装kibana
+* 启动：
+启动 mysql, 并设置为开机启动
+brew services start mysql 
+brew services start redis 
+brew services start kibana (http://localhost:5601/)
+关闭 mysql
+brew services stop mysql 
+重启 mysql
+brew services restart mysql
+
 ### 命令行
 安装oh-my-zsh
 ```
@@ -35,9 +78,6 @@ source ~/.zshrc
 ```
 其他：https://hufangyun.com/2017/zsh-plugin/
 
-### homebrew（Mac下包管理）
-
-安装homebrew（/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"）
 
 
 ### homebrew cask
