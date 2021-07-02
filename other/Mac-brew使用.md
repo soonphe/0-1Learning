@@ -85,6 +85,67 @@ brew list --versions
 * 查找软件安装位置
 which mysql
 
+### brew更换源
+国内镜像地址
+科大: https://mirrors.ustc.edu.cn
+阿里: https://mirrors.aliyun.com/homebrew/
+
+```
+# brew.git镜像源
+git -C "$(brew --repo)" remote set-url origin https://mirrors.ustc.edu.cn/brew.git
+
+# homebrew-core.git镜像源
+git -C "$(brew --repo homebrew/core)" remote set-url origin https://mirrors.ustc.edu.cn/homebrew-core.git
+
+# homebrew-cask.git镜像源
+git -C "$(brew --repo homebrew/cask)" remote set-url origin https://mirrors.ustc.edu.cn/homebrew-cask.git
+
+if [ $SHELL = "/bin/bash" ] # 如果你的是bash
+then 
+    echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles/' >> ~/.bash_profile
+    source ~/.bash_profile
+elif [ $SHELL = "/bin/zsh" ] # 如果用的shell 是zsh 的话
+then
+    echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles/' >> ~/.zshrc
+    source ~/.zshrc
+fi
+
+brew update
+```
+
+如果需要恢复原有镜像源的话（国内镜像源突然不能用了或版本不够新）
+```
+git -C "$(brew --repo)" remote set-url origin https://github.com/Homebrew/brew.git
+
+git -C "$(brew --repo homebrew/core)" remote set-url origin https://github.com/Homebrew/homebrew-core.git
+
+git -C "$(brew --repo homebrew/cask)" remote set-url origin https://github.com/Homebrew/homebrew-cask.git
+
+# 找到 ~/.bash_profile 或者 ~/.zshrc 中的HOMEBREW_BOTTLE_DOMAIN 一行删除
+
+brew update
+```
+
+如果可以了下面的就不用看了
+如果不行的话可以依次尝试以下命令
+```
+brew doctor
+brew update-reset
+brew update
+```
+
+### Homebrew禁用自动更新
+如果在安装插件时，想跳过自动更新，在使用前，设置一下环境变量即可
+```
+export HOMEBREW_NO_AUTO_UPDATE=true
+```
+
+如果不想要每次安装都去设置环境变量，也可以配置在（~/.bash_profile）中，将上面的命令追加在后面即可。
+那下次想要更新brew了怎么办？可以通过命令主动更新：
+```
+brew update
+```
+
 ### 安装文件路径
 安装完以后，可以在终端输出的信息里看到一些配置路径：
 /usr/local/etc/nginx/nginx.conf （配置文件路径）
