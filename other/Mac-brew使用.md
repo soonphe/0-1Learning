@@ -8,7 +8,6 @@
 
 ## homebrew（Mac下包管理工具）
 
-
 ### homebrew安装
 安装homebrew（/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"）
 
@@ -21,7 +20,8 @@
 /bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/HomebrewUninstall.sh)"
 
 ### homebrew命令
-brew -v ：版本号：
+brew config：查看brew配置来源
+brew -v ：版本号
 brew list：列出所有已安装formula（软件包）和cask（应用包）
 brew list --versions:列出所有已安装的formula（软件包）和cask（应用包）及版本。
 brew search xxx ：搜索formula（软件包）和cask（应用包）。例如 brew search mysql
@@ -67,7 +67,6 @@ brew install --cask firefox     //以应用包形式安装
 brew install --cask visual-studio-code
 brew install --cask docker 
 
-
 * 启动：
 启动 mysql, 并设置为开机启动
 brew services start mysql 
@@ -85,6 +84,16 @@ brew list --versions
 
 * 查找软件安装位置
 which mysql
+
+### 安装文件路径
+安装完以后，可以在终端输出的信息里看到一些配置路径：
+/usr/local/etc/nginx/nginx.conf （配置文件路径）
+/usr/local/etc/kibana/kibana.yml
+/usr/local/var/www （服务器默认路径）
+/usr/local/Cellar/nginx/1.19.10 （安装路径）
+
+nginx日志log的目录路径
+/usr/local/var/log/nginx
 
 ### brew 和 brew cask
 brew 是从下载源码解压然后 ./configure && make install ，同时会包含相关依存库。并自动配置好各种环境变量，而且易于卸载。

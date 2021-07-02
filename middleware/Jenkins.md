@@ -5,10 +5,10 @@
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-
 ## Jenkins
-Jenkins构建一个项目的方式有很多，如自由风格、maven项目、流水线等。
-这里主要介绍流水线构建，流水线编写脚本易于配置和迁移，还能和docker联动。
+Jenkins是一个开源软件项目，是基于Java开发的一种持续集成工具，用于监控持续重复的工作，旨在提供一个开放易用的软件平台，使软件项目可以进行持续集成. 
+
+Jenkins构建一个项目的方式有很多，如自由风格、maven项目、流水线等。这里主要介绍流水线构建，流水线编写脚本易于配置和迁移，还能和docker联动。
 
 ### pipeline流水线构建：
 脚本的步骤 ：拉取 代码-> 构建 -> 上传到搭建的⽂文件服务器器⽬目录，⼀一个新的项⽬目主要更更改第⼀步的gitlab 地址url和upload 上传⽬目录remoteDirectory

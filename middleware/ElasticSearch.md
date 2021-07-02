@@ -6,6 +6,19 @@
 ![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 ## ElasticSearch
+Elasticsearch是一个基于Lucene的搜索服务器。它提供了一个分布式多用户能力的全文搜索引擎，基于RESTful web接口。Elasticsearch是用Java语言开发的，并作为Apache许可条款下的开放源码发布，是一种流行的企业级搜索引擎。
+
+### mac版Elasticsearch安装、Kibana安装
+*Mac下载安装步骤：*
+brew search elasticsearch   //搜索es软件
+brew install elasticsearch  //安装es
+brew services start elasticsearch   //启动es
+http://localhost:9200/      //访问
+
+brew search kibana   //搜索kibana软件
+brew install kibana  //安装kibana
+brew services start kibana   //启动kibana
+http://localhost:5601/      //访问
 
 ### Elasticsearch安装、Kibana安装
 
@@ -517,10 +530,6 @@ data:
 ELK即Elasticsearch、Logstash、Kibana,组合起来可以搭建线上日志系统
 
 
-### Kibana
-kibana默认端口5601
-
-使用方式参考文档：https://blog.csdn.net/cb2474600377/article/details/78963247
 
 
 

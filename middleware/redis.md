@@ -6,6 +6,21 @@
 ![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 ## Redis
+Redis（Remote Dictionary Server )，即远程字典服务，是一个开源的使用ANSI C语言编写、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，并提供多种语言的API
+
+### Redis安装
+brew安装：
+brew search redis   //搜索redis软件
+brew install redis  //安装redis
+brew services start redis   //启动redis
+brew services stop redis   //停止redis
+
+docker安装：
+docker search redis   //搜索redis软件
+docker pull redis  //安装redis
+docker run -p 6379:6379 --name redis -d redis   //启动redis容器
+docker ps -a        //列出所有容器
+docker stop redis   //停止redis容器
 
 ### Redis支持的数据类型：String，Hash，List，Set（String无序集合），zset（有序集合，实现方式是跳表+字典）
 常用操作：
