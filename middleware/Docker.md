@@ -17,7 +17,23 @@ Docker 包含三个基本概念，分别是
 镜像是 Docker 运行容器的前提，仓库是存放镜像的场所，可见镜像更是Docker的核心。
 可以使用一个images启动多个容器，镜像启动会启动容器，容器的修改可以更新或者新建一个容器
 
+### docker和docker compose、Docker Swarm、k8s
+Docker：容器化平台、工具
+docker compose：使用 Docker 定义和运行多容器应用程序。使用 YML 文件来配置应用程序需要的所有服务。然后，使用一个命令，就可以从 YML 文件配置中创建并启动所有服务
+Docker Swarm：Docker容器的本机集群解决方案，管理分布在服务器集群中的大量容器
+Kubernetes：编排系统，是Docker等容器平台的容器协调器
+
 ### docker环境安装
+三种方式安装：
+1.安装docker-desktop
+https://www.docker.com/products/docker-desktop
+2.brew安装
+```
+brew search docker
+brew install --cask firefox
+```
+3.手动安装
+```
 1.安装yum-utils：
 yum install -y yum-utils device-mapper-persistent-data lvm2
 
@@ -29,7 +45,7 @@ yum install docker-ce
 
 4.启动docker:
 systemctl start docker
-
+```
 
 ### 1.Docker 镜像常用命令
 service docker start：如果service命令启动不了用下面的
@@ -55,9 +71,28 @@ docker logs 容器名	查询容器日志
 ### 2.Docker 容器常用命令
 
 #### 新建并启动容器：docker run -p 80:80 --name nginx -d nginx:1.17.0
-• -p选项：指定端口映射，格式为：hostPort:containerPort
-• --name选项：指定运行后容器的名字为nginx,之后可以通过名字来操作容器
-• -d选项：表示后台运行
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+OPTIONS说明：
+```
+    -a stdin: 指定标准输入输出内容类型，可选 STDIN/STDOUT/STDERR 三项；
+    -d: 后台运行容器，并返回容器ID；
+    -i: 以交互模式运行容器，通常与 -t 同时使用；
+    -P: 随机端口映射，容器内部端口随机映射到主机的端口
+    -p: 指定端口映射，格式为：主机(宿主)端口:容器端口
+    -t: 为容器重新分配一个伪输入终端，通常与 -i 同时使用；
+    --name="nginx-lb": 为容器指定一个名称；
+    --dns 8.8.8.8: 指定容器使用的DNS服务器，默认和宿主一致；
+    --dns-search example.com: 指定容器DNS搜索域名，默认和宿主一致；
+    -h "mars": 指定容器的hostname；
+    -e username="ritchie": 设置环境变量；
+    --env-file=[]: 从指定文件读入环境变量；
+    --cpuset="0-2" or --cpuset="0,1,2": 绑定容器到指定CPU运行；
+    -m :设置容器使用内存最大值；
+    --net="bridge": 指定容器的网络连接类型，支持 bridge/host/none/container: 四种类型；
+    --link=[]: 添加链接到另一个容器；
+    --expose=[]: 开放一个端口或一组端口；
+    --volume , -v: 绑定一个卷
+```
 
 #### 列出容器
 • 列出运行中的容器：docker ps
@@ -91,6 +126,10 @@ docker run -p 80 -i -t ubuntu /bin/bash		指定容器端口
 docker run -p 8080:80 -i -t ubuntu /bin/bash	指定宿主机和容器端口
 docker run -p 0.0.0.0:80 -i -t ubuntu /bin/bash	指定ip和容器端口
 docker run -p 0.0.0.0:8080:80 -i -t ubuntu /bin/bash	指定ip宿主机端口和容器端口
+
+docker run -it -d -p 127.0.0.1:5000:5000 docker.io/centos:latest /bin/bash  将容器的5000端口映射到指定地址127.0.0.1的5000端口上：
+docker run -it -d -p 127.0.0.1::4000 docker.io/centos:latest /bin/bash  将容器的4000端口映射到127.0.0.1的任意端口上：
+docker run -itd -p 8000:80 docker.io/centos:latest /bin/bash    将容器的80端口映射到宿主机的8000端口上
 
 #### 同步宿主机时间到容器：
 docker cp /etc/localtime $ContainerName(或者$ContainerId):/etc/
