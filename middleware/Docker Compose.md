@@ -81,6 +81,10 @@ links:
   
 ### Docker Compose常用命令
 docker-compose up -d：构建、创建、启动相关容器(# -d表示在后台运行)
+docker-compose -f docker-compose.yml up -d  指定docker-compose.yml文件运行
+docker-compose -f docker-compose.yml stop   停止服务
+docker-compose -f docker-compose.yml down   停止并删除服务
+
 docker-compose stop：停止所有相关容器
 docker-compose ps：列出所有容器信息
 docker-compose down：停止并移除容器
