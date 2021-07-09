@@ -1,0 +1,615 @@
+# 0-1Learning
+
+![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
+![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
+
+## knowledge(知识点整理)
+
+### JDK相关：
+Mac下查看已安装的jdk版本及其安装目录
+查看JDK信息：/usr/libexec/java_home -V
+移除Oracle JDK：sudo rm -fr /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
+查看mysql数据库所有信息：show variables 
+查看mysql字符串相关信息：show variables  like "%char%";
+
+
+### Mapstruct：
+实体属性相同、名称不同转换：
+@Mappings({ @Mapping(source="grade", target="level") })
+属性、常量转换：
+@Mapping(target="ordType",constant="3")
+
+基本属性与枚举互相转换：
+自定义CustomMapper转换类，并在mapper接口中引用
+@Mapper(uses={DateMapper.class,CustomMapper.class})
+// 枚举转基础字段
+publicIntegerasOrderStateInteger(OverTimeOrderStatestate){
+returnstate.getCode();
+}
+// 基础字段转枚举
+Public OverTimeOrderState asEnumState(Integer state){
+for(OverTimeOrderStateoverTimeOrderState:OverTimeOrderState.values()){
+if(overTimeOrderState.getCode().equals(state)){
+returnoverTimeOrderState;
+}
+
+
+### 时间、日期加减：
+Instant.now().minus(50,ChronoUnit.DAYS).toEpochMilli()
+Instant.now().plus(10,ChronoUnit.DAYS).toEpochMilli()
+
+### P6Spy集成：
+文档相关：https://p6spy.readthedocs.io/en/latest/install.html
+1.maven依赖：
+<dependency>
+<groupId>p6spy</groupId>
+<artifactId>p6spy</artifactId>
+<version>3.9.1</version>
+</dependency>
+2.新增配置spy.prroperties
+配置文件添加JDBC驱动
+driverlist=com.mysql.jdbc.Driver
+。。。
+3.修改properties中数据源配置：
+driver-class-name:com.p6spy.engine.spy.P6SpyDriver
+
+
+### QueryDSL集成：
+Querydsl 是一个框架，它可以为多个后端（包括 JPA、MongoDB 和 Java 中的 SQL）构建类型安全的 SQL 类查询。
+文档：https://hub.fastgit.org/querydsl/querydsl
+http://www.querydsl.com/static/querydsl/latest/reference/html/ch02.html#jpa_integration
+查询类型：
+QCustomer customer = QCustomer.customer;
+QCustomer customer = new QCustomer("myCustomer");
+查询：
+QCustomer customer = QCustomer.customer;
+Customer bob = queryFactory.selectFrom(customer)
+  .where(customer.firstName.eq("Bob"))
+  .fetchOne();
+
+实际使用：
+@Generated("com.querydsl.codegen.EntitySerializer")
+Public class QOverTimeFeeModel extends EntityPathBase<OverTimeFeeModel>{
+	Public static final QOverTimeFeeModel overTimeFeeModel = new QOverTimeFeeModel("overTimeFeeModel");
+
+QOverTimeFeeModel qOverTimeFeeModel=QOverTimeFeeModel.overTimeFeeModel;
+
+Return jpaQueryFactory
+.select(Projections.fields(OverTimeFeeModelStationVo.class,
+	qOverTimeFeeModel.id.as("id"),qOverTimeStation.stationNo,qOverTimeStation.stationName,
+	qOverTimeStation.operateState,qOverTimeStation.address,qOverTimeFeeModel.validStatus,
+	qOverTimeFeeModel.feeRuleList))
+.from(qOverTimeFeeModel)
+.leftJoin(qStationFeeModel).on(qOverTimeFeeModel.id.eq(qStationFeeModel.feeModelId))
+.leftJoin(qOverTimeStation)
+.on(qOverTimeStation.stationNo.eq(qStationFeeModel.stationNo))
+.where(predicate)
+.offset((long)(query.getPage()-1)*query.getPageSize())
+.limit(query.getPageSize())
+.fetchResults();
+
+
+### 分页的limit_为什么不要用offset和limit分页？
+为了实现分页，每次收到分页请求时，数据库都需要进行低效的全表扫描。
+解决：其实很简单，利用主键索引就够了！
+Select * from table where id>10 limit 10
+
+### prometheus安装使用：(记录和报警、可视化)
+官网安装包下载：https://prometheus.io/download/
+Prometheus组件： https://github.com/prometheus
+1.下载并解压安装包（也可以使用docker）
+2.promethes.yml配置
+```
+#全局配置  
+global:  
+  scrape_interval:     15s # 设置抓取间隔，默认为1分钟  
+  evaluation_interval: 15s #估算规则的默认周期，每15秒计算一次规则。默认1分钟  
+  # scrape_timeout  #默认抓取超时，默认为10s  
+  
+#Alertmanager相关配置  
+alerting:  
+  alertmanagers:  
+  - static_configs:  
+    - targets:  
+      # - alertmanager:9093  
+  
+#规则文件列表，使用'evaluation_interval' 参数去抓取  
+rule_files:  
+    #- "first_rules.yml"  
+    #- "second_rules.yml"  
+  
+#  抓取配置列表  
+scrape_configs:  
+  - job_name: 'prometheus'  
+    static_configs:  
+    - targets: ['localhost:9090']  
+```
+3、创建prometheus的用户及数据存储目录（不是必须）
+为了安全，使用普通用户来启动prometheus服务。作为一个时序型的数据库产品，prometheus的数据默认会存放在应用所在目录下。
+	• 创建用户，并指定家目录
+[root@prometheus /]# groupadd prometheus
+[root@prometheus /]# useradd -g prometheus -m -d /var/lib/prometheus -s /sbin/nologin prometheus
+	• 创建数据目录
+[root@prometheus ~]# mkdir /export/prometheus/data -p
+	• 修改目录属主
+[root@prometheus /]# chown prometheus.prometheus -R /usr/local/prometheus
+4、启动prometheus
+./prometheus --config.file=prometheus.yml
+# By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
+默认情况下，Prometheus 将其数据库存储在 ./data（标志 --storage.tsdb.path）。
+在localhost:9090
+4.1 创建Systemd服务启动prometheus
+4.2 前台/后台启动
+前台启动
+[root@prometheus ~]# cd /usr/local/prometheus/
+[root@prometheus prometheus]# ./prometheus
+后台启动
+[root@prometheus prometheus]# nohup ./prometheus &
+
+docker启动：
+docker run \
+    -p 9090:9090 \
+    -v /Users/luoxiaosheng/path/to/prometheus.yml:/etc/prometheus/prometheus.yml \
+    prom/prometheus
+
+
+### prometheus报警、规则配置：
+https://awesome-prometheus-alerts.grep.to/
+
+
+### maven引入本地jar：
+        <dependency>
+          <groupId>dingding</groupId>
+          <artifactId>dingding</artifactId>
+          <version>2.8</version>
+          <scope>system</scope>
+          <systemPath>${project.basedir}/lib/taobao-sdk-java.jar</systemPath>
+        </dependency>
+处理打包：
+ <build>
+   <resources>
+    <resource>
+      <directory>lib</directory>
+      <targetPath>/BOOT-INF/lib/</targetPath>
+      <includes>
+        <include>**/*.jar</include>
+      </includes>
+    </resource>
+   </resources>
+ </build>
+
+### maven安装本地jar到本地仓库：
+mvn install:install-file
+-Dfile=C:\Users\zw\Downloads\fastjson-1.2.4.jar
+-DgroupId=com.alibaba
+-DartifactId=fastjson
+-Dversion=1.2.4
+-Dpackaging=jar
+
+### Mac上有3处可以设置环境变量：
+/etc/profile ：系统全局变量，系统启动即加载该文件的配置（不建议添加）
+/etc/bashrc：所有类型的bash shell 都会读取该文件的配置
+~/.bash_profile：配置用户级环境变量，在系统用户文件夹下创建，当用户登录时，该文件会被执行且仅执行一次
+
+### mvn -v提示Permission denied
+权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
+
+### Instant.now().toEpochMilli()和System.currentTimeMillis()用法
+Instant.now()：当前时间戳
+System.nanoTime()：当前时间戳（纳秒）
+Instant.now().toEpochMilli()：当前时间戳毫秒
+System.currentTimeMillis()：当前时间戳毫秒
+
+### Jenkins流水线自动化：
+git: Git
+git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/gx-new-order.git'
+
+Sh: Shell Script
+sh label: '', script: 'mvn clean package'
+
+sshPublisher: Send build artifacts over SHH
+sshPublisher(publishers: [sshPublisherDesc(configName: '192.168.161.227', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: 'tmp', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.war')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+
+Sshagent: SSH Agent
+选择账户或添加账户
+
+### Linux查找文件：
+ find / -name war
+
+
+### 关于金额字段为什么不用decimal类型
+主要两个原因：
+	1. 避免不同语言对浮点数麻烦的计算，一不小心非常容易算错（存整数进行计算的话，计算完再除以精度比较方便）
+	2. 对于多个国家，对小数的精度要求是不同的，用 decimal 没办法方便控制
+
+### @Validated和@Valid区别
+1. 分组
+@Validated：提供分组功能，可以在入参验证时，根据不同的分组采用不同的验证机制。
+@Valid：没有分组功能。
+
+2. 注解
+@Validated：用在类型、方法和方法参数上。但不能用于成员属性（field)。
+@Valid：可以用在方法、构造函数、方法参数和成员属性（field）上。
+
+3. 嵌套验证
+一个待验证的pojo类，其中还包含了待验证的对象，需要在待验证对象上注解@valid，才能验证待验证对象中的成员属性。
+
+### mac使用public_key与private_key登录远程服务器：
+1.在mac下生成public_key与private_key，生成的密钥在~/.ssh/下面
+2.把mac下刚生成的public_key "id_rsa.pub"文件拷贝一份到远端服务器即将需要登录用户家目录下的.ssh/目录下，并命名为authorized_keys.
+3. 最后修改本机mac下得配置文件，~/.ssh/config，格式如下图
+Host test1
+Hostname 192.168.35.125
+Port 22
+User root
+IdentityFile ~/.ssh/id_rsa
+4.直接执行 ssh test1即可达到所记录的远端服务器
+
+用Terminus登录则创建Keys，选择私钥id_rsa即可
+
+碰到问题：‘Permissions 0644 for '/Users/liuml/.ssh/id_rsa_tz' are too open.’
+解决：chmod 600 *
+
+### 解决“Jenkins 主机密钥验证失败”
+1. ssh-keygen命令生成公钥私钥
+2.去--> cat /var/lib/jenkins/.ssh/id_rsa.pub 从 id_rsa.pub 复制密钥（也可以使用scp命令）
+3.文本复制
+ssh登录目标服务器：ssh -l root 192.168.161.168
+touch /root/.ssh/authorized_keys 
+vi .ssh/authorized_keys  粘贴复制的密钥
+
+4.scp复制
+scp复制公钥：scp /root/.ssh/id_rsa.pub root@192.168.1.181:/root/.ssh/authorized_keys
+由于还没有免密码登录的，所以要输入一次B机的root密码。
+
+5.修改权限
+需要特别注意的是：B主机的.ssh文件的所有者要是root，如果不是要改：
+chown -R root:root .ssh
+同时，B主机的authorized_keys文件，要是600权限的，如果不是，也要改：
+chmod 600 authorized_keys
+如果执行权限不够报错：-bash: ./startup.sh: 权限不够
+使用：chmod u+x *
+
+6.手动登录mercurial服务器
+注意：请手动登录，否则 jenkins 会再次报错“主机验证失败”
+ssh -l root 192.168.1.181
+
+
+### mac安装Mysql启动报错（系统为BigSur版本）：
+mysql启动：
+sudo /usr/local/mysql/support-files/mysql.server start
+报错可能是没有权限
+sudo chmod -R a+rwx /usr/local/mysql/data/
+
+### lombok注解：
+@Data注解作用：
+1）生成无参构造方法；
+2）属性的set/get方法；
+3）equals(), hashCode(), toString(), canEqual()方法。
+@Value
+1）有参构造方法；
+2）只添加@Value注解，没有其他限制，那么类属性会被编译成final的，因此只有get方法，而没有set方法。
+
+
+### Mysql解决select * from XX group by xxx;报错问题
+select * from user group by age;
+1. ERROR 1055 (42000): Expression #1 of SELECT list is not in GROUP BY clause 
+2. and contains nonaggregated column 'test.user.user_id' which is not 
+3. functionally dependent on columns in GROUP BY clause; this is 
+4. incompatible with sql_mode=only_full_group_by
+
+解决步骤：
+1.查询mysql 相关mode
+select @@global.sql_mode;
+可以看到模式中包含了ONLY_FULL_GROUP_BY，只要没有这个配置即可。
+我的Mysql版本是5.7.21，默认是带了ONLY_FULL_GROUP_BY模式。
+
+ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,
+ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION 
+
+2.重设模式值
+set @@global.sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+3.重启Mysql即可
+
+### 在线接口数据示例：
+参考：http://omdbapi.com/
+搜索列表：http://omdbapi.com/?apikey=682d8365&s=Longest
+详情：http://omdbapi.com/?apikey=682d8365&i=tt2726560
+
+### 事件驱动：
+Google-Eventbus
+        // EventBus对象创建
+        EventBus eventBus = new EventBus("test");
+        // 注册监听者（监听者@Subscribe 订阅时间）
+        eventBus.register(new OrderEventListener());
+        // 发布消息
+        eventBus.post(new OrderMessage());
+// 异步事件消息处理
+EventBusbus=newAsyncEventBus(threadPoolExecutor);
+
+### for和foreach：
+ArrayList<Object> objects=new ArrayList<>();
+1.第一种
+for (int j=0;j<objects.size();j++){
+2.第二种
+for(Object obj:objects){
+}
+3.第三种
+objects.forEach(o->String.valueOf(o));
+
+### Ajax：
+Ajax：“Asynchronous JavaScript and XML”，翻译过来就是异步JavaScript和XML。
+要创建Ajax，主角是XMLHttpRequest（下简称XHR）对象。
+第一步：创建XHR对象
+var xhr = new XMLHttpRequest();
+第二步：向服务器发送请求
+方法：open(method,url,async) 和 send(string)
+open()方法传入三参数
+	• method：请求的类型（GET/POST）
+	• url：文件在服务器上的位置
+	• async：布尔值，true表示异步，false表示同步（可选，默认为true）
+1 xhr.open("GET","demo.asp?t=" + Math.random(),true);
+2 xhr.send();
+第三步：服务器响应
+XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形式的响应数据和XML形式的响应数据
+还有三个关于响应状态的属性也经常用到：
+	• readyState：存有XMLHttpRequest的状态。XHR对象会经历5种不同的状态
+		○ 0：请求未初始化（new完后）；
+		○ 1：服务器连接已建立（对象已创建并初始化，尚未调用send方法）；
+		○ 2：请求已接收；
+		○ 3：请求处理中；
+		○ 4：请求已完成，响应就绪；
+	• status：（HTTP状态码很多，请自行了解，举例常见的）
+		○ 200：请求成功
+		○ 404：未找到页面
+	• onreadystatechange：存储函数（或函数名），每当readyState属性改变时，就会调用该函数。
+1 xhr.onreadystatechange = function () {
+2     if (xhr.readyState == 4 && xhr.status == 200) {
+3     console.log(xhr.responseText);
+4 };
+
+
+### ES为什么不能做主数据库：
+es没有事务，而且是近实时。成本也比数据库高，几乎靠吃内存提高性能。最逆天的是，mapping不能改。
+ES团队不推荐完全采用ES作为主要存储，缺乏访问控制还有一些数据丢失和污染的问题
+
+
+### spring StateMachine状态机：
+1 引入依赖
+<!--spring statemachine-->
+<dependency>
+<groupId>org.springframework.statemachine</groupId>
+<artifactId>spring-statemachine-core</artifactId>
+<version>2.0.1.RELEASE</version>
+</dependency>
+2 创建订单状态枚举类和状态转换枚举类
+/**
+* 订单状态
+*/
+public enum OrderStatus {
+// 待支付，待发货，待收货，订单结束
+WAIT_PAYMENT, WAIT_DELIVER, WAIT_RECEIVE, FINISH;
+}
+3 添加配置
+
+4 添加订单状态监听器/拦截器
+
+
+### 阿里云ONS接入：
+参考文档：https://help.aliyun.com/document_detail/44711.html?spm=a2c4g.11186623.6.599.372a35e8LQkvOK
+1.引入依赖
+<dependency>
+<groupId>com.aliyun.openservices</groupId>
+<artifactId>ons-client</artifactId>
+<version>1.8.4.Final</version>
+</dependency>
+2.MQ配置
+mq:
+  rocketmq:
+	v2-access-key:62f49160c57b4f158a8ab3ebd2ff66cc
+	v2-secret-key:J8H3v+Go55DIimy6gbKu3Bbnc0U=
+	ons-addr:http://172.169.101.121:8080/rocketmq/nsaddr4broker-internal
+	v2enabled:true
+	productId:PID_order_dev
+	
+
+public static final String TOPIC = "您刚创建的Topic";
+public static final String GROUP_ID = "您刚创建的Group ID";
+public static final String ORDER_TOPIC = "您刚创建的用于收发顺序消息的Topic";
+public static final String ORDER_GROUP_ID = "您刚创建的用于收发顺序消息的Group ID";
+public static final String ACCESS_KEY = "您的阿里云账号的AccessKey ID";
+public static final String SECRET_KEY = "您的阿里云账号的AccessKey Secret";
+public static final String TAG = "您自定义的消息Tag属性";
+public static final String NAMESRV_ADDR = "您刚创建的消息队列RocketMQ版实例的TCP接入点，可在消息队列RocketMQ版控制台的实例详情页面获取TCP协议客户端接入点";     
+3.发送消息
+说明：
+1.发送/接收 普通消息
+2.发送/接收 事务消息
+3.发送/接收 顺序消息
+@Autowired
+privateProducerBeanproducerBean;
+
+MessagesendMessage=newMessage();
+OverTimeFeeModelCreateMsgoverTimeOrderBody=getOverTimeFeeModelCreateMsgBody(event.getStationFeeModel());
+sendMessage.setBody(JSON.toJSONBytes(overTimeOrderBody));
+sendMessage.setTopic(overTimeFeeModelCreatedProperties.getTopic());
+sendMessage.setTag(overTimeFeeModelCreatedProperties.getExpressionCreate());
+producerBean.send(sendMessage);
+4.消费消息
+Public class ReceiptPayOverTimeOrderListener implements MessageListener{
+@Override
+Public Action consume(Message message,ConsumeContext consumeContext){
+
+
+### IDEA引入maven项目：
+1.New——Module from Existing Source
+2.如果没有显示为maven，模块的pom.xml上点击Add as maven project
+
+
+### springboot引入redission：
+1.依赖
+<dependency>
+   <groupId>org.redisson</groupId>
+   <artifactId>redisson</artifactId>
+   <version>3.16.0</version>
+</dependency>  
+2.配置文件
+redisson:
+	nodes:
+		-192.168.161.68:7001
+		-192.168.161.68:7002
+		-192.168.161.68:7003
+		-192.168.161.68:7004
+		-192.168.161.68:7005
+		-192.168.161.68:7006
+	password:evcsr2020%1dSP
+	mode:cluster
+
+3.使用
+onfig config = new Config();
+config.useClusterServers()
+       // use "rediss://" for SSL connection
+      .addNodeAddress("redis://127.0.0.1:7181");
+// or read config from file
+config = Config.fromYAML(new File("config-file.yaml")); 
+//创建RedissonClient 对象
+RedissonClient redisson = Redisson.create(config);
+//获取分布式锁
+RLock lock = redisson.getLock("myLock");
+//加锁
+lock.lock(RedisKeyConstants.getAuthKeyTimeOut(),TimeUnit.SECONDS);
+
+### springboot引入nacos：
+1.依赖
+<dependency>
+<groupId>com.alibaba.boot</groupId>
+<artifactId>nacos-config-spring-boot-starter</artifactId>
+<version>0.2.7</version>
+</dependency>
+2.定义服务地址
+nacos.config.server-addr=127.0.0.1:8848
+3.使用@NacosPropertySource 加载资源
+@SpringBootApplication @NacosPropertySource(dataId = "example", autoRefreshed = true) 
+public class NacosConfigApplication { 
+public static void main(String[] args) { 
+SpringApplication.run(NacosConfigApplication.class, args); } }
+4.使用@NacosValue 指定属性值
+@NacosValue(value = "${useLocalCache:false}", autoRefreshed = true) private boolean useLocalCache;
+
+
+### openresty搭建高性能web应用、网关：
+官网地址：http://openresty.org/cn/
+
+
+### soul网关（shenyu）：
+dromara官网地址：https://dromara.org/
+soul官网地址：https://github.com/apache/incubator-shenyu
+官网地址：https://shenyu.apache.org/
+
+
+### skywalking接入：
+javaagent参数集成skywalking的agent服务功能，简而言之就是启动项目时一同启动skywalking-agent.jar这个服务
+
+监控服务端启动：
+https://github.com/apache/skywalking
+下载、bin目录启动、http://localhost:8080/访问
+
+客户端接入方式：
+1.系统配置方式
+使用 -D参数设置应用名称，skywalking.agent.service_name是属性，=后面是值；skywalking.collector.backend_service对应的是收集服务的地址
+java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar
+-Dskywalking.agent.service_name=app-service 
+-Dskywalking.collector.backend_service=127.0.0.1:11800
+-jar app-service.jar &
+
+2.探针方式
+在skywalking-agent.jar后直接追加 =agent.service_name=应用名称 
+java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=app-service -jar app-service.jar &
+
+3.插件使用
+默认情况agent是不支持对spring-cloud-gateway的监控的，需要插件的支持。我们要将optional-plugins下的插件apm-spring-cloud-gateway-2.x-plugin-6.5.0.jar拷贝到plugins下，使agent可以加载到该插件，其他一些需要额外插件支持的中间件和框架也是同理操作。
+
+
+### Nexus接入：
+下载地址：https://www.sonatype.com/products/repository-oss-download
+https://download.sonatype.com/nexus/3/latest-mac.tgz
+1.构建
+git fetch --tags
+git checkout -b release-3.29.2-02 origin/release-3.29.2-02 --
+./mvnw clean install
+2.解压运行
+unzip -d target assemblies/nexus-base-template/target/nexus-base-template-*.zip
+./target/nexus-base-template-*/bin/nexus console
+
+
+### jira搭建：
+官网地址：https://www.atlassian.com/
+1.下载安装
+atlassian-jira-software-7.3.8-x64_2.bin
+[root@jira ~]# chmod +x atlassian-jira-software-7.3.8-x64_2.bin  #添加执行权限
+[root@jira ~]# ./atlassian-jira-software-7.3.8-x64_2.bin   #安装
+安装jira时配置指定数据库，jira支持多种数据库
+2.破解jira
+jira7.3 
+├── atlassian-extras-3.2.jar ：和license相关
+└── mysql-connector-java-5.1.39-bin.jar：jira连接mysql数据库相关的jar包
+把破解包里的文件复制到/opt/atlassian/jira/atlassian-jira/WEB-INF/lib/目录下
+[root@jira ~]# \cp -f ~/jira7.3/* /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/ 
+3.开启jira服务
+[root@jira ~]# /opt/atlassian/jira/bin/start-jira.sh 
+访问8080端口 http://192.168.13.142:8080/
+
+
+### springboot使用eventbus：
+1.依赖
+<dependency>
+<groupId>com.google.guava</groupId>
+<artifactId>guava</artifactId>
+</dependency>
+2.event配置
+@Configuration
+publicclassEventBusConfig{
+
+@Bean
+publicEventBuseventBus(AsyncEventListenereventListener){
+Builderbuilder=newBuilder().namingPattern("event-bus-threads");
+ThreadPoolExecutorthreadPoolExecutor=newThreadPoolExecutor(10,10,60L,
+TimeUnit.SECONDS,
+newArrayBlockingQueue<>(100),builder.build());
+EventBusbus=newAsyncEventBus(threadPoolExecutor);
+bus.register(eventListener);
+returnbus;
+}
+}
+
+
+
+
+### 责任链实现：
+1.FilterChain责任链接口（方法：preAuth前置鉴权，fireNext下一个鉴权）
+2.DefaultFilterChain implements FilterChain{
+//下一个filterChain引用
+Private FilterChain next;
+//filter鉴权（只有一个doAuth方法）
+Private PreAuthFilter filter;
+
+Public DefaultFilterChain(FilterChain chain,PreAuthFilter filter){
+    this.next=chain;
+    this.filter=filter;
+}
+preAuth方法调用filter的doAuth鉴权、传递next引用，鉴权完毕调用下一个fireNext
+fireNext方法调用next的preAuth
+}
+3.责任链初始化
+FilterChain filterChain7=new DefaultFilterChain(null, orderExtensionAuthFilter)
+FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuthFilter)
+…
+
+
+
+
+
+
