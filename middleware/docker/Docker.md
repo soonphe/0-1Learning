@@ -1,9 +1,9 @@
 # 0-1Learning
 
-![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
-![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
-![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
+![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 ## Docker
 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的镜像中，然后发布到任何流行的 Linux或Windows 机器上，也可以实现虚拟化。容器是完全使用沙箱机制，相互之间不会有任何接口。
@@ -22,6 +22,10 @@ Docker：容器化平台、工具
 docker compose：使用 Docker 定义和运行多容器应用程序。使用 YML 文件来配置应用程序需要的所有服务。然后，使用一个命令，就可以从 YML 文件配置中创建并启动所有服务
 Docker Swarm：Docker容器的本机集群解决方案，管理分布在服务器集群中的大量容器
 Kubernetes：编排系统，是Docker等容器平台的容器协调器
+
+Docker desktop启动Kubernetes：
+相关文档：https://blog.csdn.net/chen801090/article/details/107108301
+Docker Preferences中Kubernetes设置中使用Enable Kubernetes
 
 ### docker环境安装
 三种方式安装：
@@ -53,9 +57,18 @@ service docker start：如果service命令启动不了用下面的
 关闭Docker服务：systemctl stop docker
 查看Docker版本：docker version
 
-搜索镜像：docker search java
-下载镜像：docker pull java:8(docker pull nginx:1.17.0)
-列出镜像：docker images
+搜索镜像：docker search java（查看版本需要去官网：https://hub.docker.com/u/library）
+下载镜像：docker pull images
+```
+docker pull java:8
+docker pull mysql:5.7
+docker pull redis:6.2.4
+docker pull nginx:1.21.1
+docker pull logstash:7.8.0
+docker pull elasticsearch:7.8.0
+docker pull kibana:7.8.0
+docker pull prom/prometheus
+```
 删除镜像
 • 指定名称删除镜像：docker rmi java:8
 • 指定名称删除镜像（强制）：docker rmi -f java:8
@@ -172,7 +185,5 @@ docker build -t runoob/centos:6.7 .
 -t ：指定要创建的目标镜像名
 . ：Dockerfile 文件所在目录，可以指定Dockerfile 的绝对路径
 
-### 镜像和容器的介绍：
-https://www.cnblogs.com/light-train-union/p/11934309.html
 
 

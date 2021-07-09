@@ -541,6 +541,37 @@ uniq [-cdu][-f<栏位>][-s<字符位置>][-w<字符位置>][--help][--version][�
 uniq testfile 
 ```
 
+### nc(netcat)网络工具
+nc的作用
+（1）实现任意TCP/UDP端口的侦听，nc可以作为server以TCP或UDP方式侦听指定端口
+（2）端口的扫描，nc可以作为client发起TCP或UDP连接
+（3）机器之间传输文件
+（4）机器之间网络测速   
+参数：
+```
+    -l 用于指定nc将处于侦听模式。指定该参数，则意味着nc被当作server，侦听并接受连接，而非向其它地址发起连接。
+    -p <port> 暂未用到（老版本的nc可能需要在端口号前加-p参数，下面测试环境是centos6.6，nc版本是nc-1.84，未用到-p参数）
+    -s 指定发送数据的源IP地址，适用于多网卡机 
+    -u 指定nc使用UDP协议，默认为TCP
+    -v 输出交互或出错信息，新手调试时尤为有用
+    -w 超时秒数，后面跟数字 
+    -z 表示zero，表示扫描时不发送任何数据
+```
+
+### curl网络工具
+请求网页：curl "www.baidu.com"
+提交header和表单：curl -H "name: value" -d "birthyear=1905&press=OK" www.hotmail. com/when/junk.cgi
+上传文件：curl -F upload=@localfilename -F press=OK URL
+
+curl下载：
+```
+#使用内置option：-o(小写)
+# curl -o dodo1.jpg http:www.linux.com/dodo1.JPG
+#使用内置option：-O（大写)
+# curl -O http://www.linux.com/dodo1.JPG
+```
+
+
 ### shell脚本
 shell		//脚本
 		//执行：1.直接执行 2.source执行 3.bash执行
