@@ -22,6 +22,9 @@ ssh-keygen -t dsa -P '' -f /root/.ssh/id_dsa
 ssh-keygen -t rsa -C "your.email@example.com" -b 4096
 
 说明： RSA 与 DSA 都是非对称加密算法
+用途：DSA 只能用于数字签名，而无法用于加密（某些扩展可以支持加密）；RSA 即可作为数字签名，也可以作为加密算法。不过作为加密使用的 RSA 有着随密钥长度增加，性能急剧下降的问题。
+ECC（Elliptic Curves Cryptography）：椭圆曲线算法。相同密钥长度下，安全性能更高。计算量小，处理速度快，在私钥的处理速度上（解密和签名），ECC远 比RSA、DSA快得多。存储空间占用小 ECC的密钥尺寸和系统参数与RSA、DSA相比要小得多， 所以占用的存储空间小得多。
+
 ```
 这里解释一下命令的含义(注意区分大小写):
 ssh-keygen代表生成密钥;-t表示生成密钥的类型;-P提供密语；-f指定生成的文件.
