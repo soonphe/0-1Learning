@@ -10,52 +10,71 @@
 
 ### JDK相关：
 Mac下查看已安装的jdk版本及其安装目录
+```
 查看JDK信息：/usr/libexec/java_home -V
 移除Oracle JDK：sudo rm -fr /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
 查看mysql数据库所有信息：show variables 
 查看mysql字符串相关信息：show variables  like "%char%";
-
+```
 
 ### Mapstruct：
+```
 实体属性相同、名称不同转换：
 @Mappings({ @Mapping(source="grade", target="level") })
 属性、常量转换：
 @Mapping(target="ordType",constant="3")
-
+```
 基本属性与枚举互相转换：
+```
 自定义CustomMapper转换类，并在mapper接口中引用
 @Mapper(uses={DateMapper.class,CustomMapper.class})
-// 枚举转基础字段
-publicIntegerasOrderStateInteger(OverTimeOrderStatestate){
-returnstate.getCode();
-}
-// 基础字段转枚举
-Public OverTimeOrderState asEnumState(Integer state){
-for(OverTimeOrderStateoverTimeOrderState:OverTimeOrderState.values()){
-if(overTimeOrderState.getCode().equals(state)){
-returnoverTimeOrderState;
+public interface OverTimeOrderMapper {
+    ...
 }
 
+//自定义mapper转换类
+public class CustomMapper {
+    // 枚举转基础字段
+    public Integer asOrderStateInteger(OverTimeOrderState state){
+        return state.getCode();
+    }
+    // 基础字段转枚举
+    public OverTimeOrderState asEnumState(Integer state){
+        for(OverTimeOrderStateoverTimeOrderState:OverTimeOrderState.values()){
+            if(overTimeOrderState.getCode().equals(state)){
+                return overTimeOrderState;
+            }
+        }
+    }
+}
+```
 
 ### 时间、日期加减：
+```
 Instant.now().minus(50,ChronoUnit.DAYS).toEpochMilli()
 Instant.now().plus(10,ChronoUnit.DAYS).toEpochMilli()
+```
 
 ### P6Spy集成：
 文档相关：https://p6spy.readthedocs.io/en/latest/install.html
 1.maven依赖：
+```
 <dependency>
 <groupId>p6spy</groupId>
 <artifactId>p6spy</artifactId>
 <version>3.9.1</version>
 </dependency>
+```
 2.新增配置spy.prroperties
 配置文件添加JDBC驱动
+```
 driverlist=com.mysql.jdbc.Driver
 。。。
+```
 3.修改properties中数据源配置：
+```
 driver-class-name:com.p6spy.engine.spy.P6SpyDriver
-
+```
 
 ### QueryDSL集成：
 Querydsl 是一个框架，它可以为多个后端（包括 JPA、MongoDB 和 Java 中的 SQL）构建类型安全的 SQL 类查询。
@@ -92,10 +111,12 @@ Return jpaQueryFactory
 .fetchResults();
 
 
-### 分页的limit_为什么不要用offset和limit分页？
+### 分页为什么不要用offset和limit分页？
 为了实现分页，每次收到分页请求时，数据库都需要进行低效的全表扫描。
-解决：其实很简单，利用主键索引就够了！
+解决：其实很简单，如果有主键，利用主键索引就够了！
 Select * from table where id>10 limit 10
+
+那如果我们的表没有主键，比如是具有多对多关系的表，那么就只能使用传统的 OFFSET/LIMIT 方式，但这样做存在潜在的慢查询问题。完全可以在需要分页的表中使用自动递增的主键，即使只是为了分页。
 
 ### prometheus安装使用：(记录和报警、可视化)
 官网安装包下载：https://prometheus.io/download/
@@ -169,6 +190,7 @@ https://awesome-prometheus-alerts.grep.to/
           <systemPath>${project.basedir}/lib/taobao-sdk-java.jar</systemPath>
         </dependency>
 处理打包：
+```
  <build>
    <resources>
     <resource>
@@ -180,6 +202,7 @@ https://awesome-prometheus-alerts.grep.to/
     </resource>
    </resources>
  </build>
+```
 
 ### maven安装本地jar到本地仓库：
 mvn install:install-file
@@ -319,18 +342,8 @@ set @@global.sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FO
 搜索列表：http://omdbapi.com/?apikey=682d8365&s=Longest
 详情：http://omdbapi.com/?apikey=682d8365&i=tt2726560
 
-### 事件驱动：
-Google-Eventbus
-        // EventBus对象创建
-        EventBus eventBus = new EventBus("test");
-        // 注册监听者（监听者@Subscribe 订阅时间）
-        eventBus.register(new OrderEventListener());
-        // 发布消息
-        eventBus.post(new OrderMessage());
-// 异步事件消息处理
-EventBusbus=newAsyncEventBus(threadPoolExecutor);
-
 ### for和foreach：
+```
 ArrayList<Object> objects=new ArrayList<>();
 1.第一种
 for (int j=0;j<objects.size();j++){
@@ -339,6 +352,7 @@ for(Object obj:objects){
 }
 3.第三种
 objects.forEach(o->String.valueOf(o));
+```
 
 ### Ajax：
 Ajax：“Asynchronous JavaScript and XML”，翻译过来就是异步JavaScript和XML。
@@ -379,13 +393,15 @@ ES团队不推荐完全采用ES作为主要存储，缺乏访问控制还有一�
 
 ### spring StateMachine状态机：
 1 引入依赖
-<!--spring statemachine-->
+```
 <dependency>
 <groupId>org.springframework.statemachine</groupId>
 <artifactId>spring-statemachine-core</artifactId>
 <version>2.0.1.RELEASE</version>
 </dependency>
+```
 2 创建订单状态枚举类和状态转换枚举类
+```
 /**
 * 订单状态
 */
@@ -393,6 +409,7 @@ public enum OrderStatus {
 // 待支付，待发货，待收货，订单结束
 WAIT_PAYMENT, WAIT_DELIVER, WAIT_RECEIVE, FINISH;
 }
+```
 3 添加配置
 
 4 添加订单状态监听器/拦截器
@@ -401,12 +418,15 @@ WAIT_PAYMENT, WAIT_DELIVER, WAIT_RECEIVE, FINISH;
 ### 阿里云ONS接入：
 参考文档：https://help.aliyun.com/document_detail/44711.html?spm=a2c4g.11186623.6.599.372a35e8LQkvOK
 1.引入依赖
+```
 <dependency>
 <groupId>com.aliyun.openservices</groupId>
 <artifactId>ons-client</artifactId>
 <version>1.8.4.Final</version>
 </dependency>
+```
 2.MQ配置
+```
 mq:
   rocketmq:
 	v2-access-key:62f49160c57b4f158a8ab3ebd2ff66cc
@@ -414,8 +434,9 @@ mq:
 	ons-addr:http://172.169.101.121:8080/rocketmq/nsaddr4broker-internal
 	v2enabled:true
 	productId:PID_order_dev
-	
-
+```
+配置文件：
+```
 public static final String TOPIC = "您刚创建的Topic";
 public static final String GROUP_ID = "您刚创建的Group ID";
 public static final String ORDER_TOPIC = "您刚创建的用于收发顺序消息的Topic";
@@ -424,11 +445,13 @@ public static final String ACCESS_KEY = "您的阿里云账号的AccessKey ID";
 public static final String SECRET_KEY = "您的阿里云账号的AccessKey Secret";
 public static final String TAG = "您自定义的消息Tag属性";
 public static final String NAMESRV_ADDR = "您刚创建的消息队列RocketMQ版实例的TCP接入点，可在消息队列RocketMQ版控制台的实例详情页面获取TCP协议客户端接入点";     
+```
 3.发送消息
 说明：
 1.发送/接收 普通消息
 2.发送/接收 事务消息
 3.发送/接收 顺序消息
+```
 @Autowired
 privateProducerBeanproducerBean;
 
@@ -438,11 +461,50 @@ sendMessage.setBody(JSON.toJSONBytes(overTimeOrderBody));
 sendMessage.setTopic(overTimeFeeModelCreatedProperties.getTopic());
 sendMessage.setTag(overTimeFeeModelCreatedProperties.getExpressionCreate());
 producerBean.send(sendMessage);
+```
 4.消费消息
+```
+@Component
+@Slf4j
+@AllArgsConstructor
 Public class ReceiptPayOverTimeOrderListener implements MessageListener{
-@Override
-Public Action consume(Message message,ConsumeContext consumeContext){
+  
+  //实现consume方法
+  @Override
+  public Action consume(Message message, ConsumeContext consumeContext) {
+    log.info("===监听支付成功mq消息  订单状态修改成功!");
+    return Action.CommitMessage;
+  }
+}
 
+
+@Configuration
+@RequiredArgsConstructor
+@Profile(value = {"prod"})
+@EnableConfigurationProperties(value = {ReceiptPayOrderProperties.class, DrawTheGunConsumerProperties.class})
+public class OverTimeConsumerV3 {
+  //自动注入的mq配置
+  private final MqProperties mqProperties;
+  //mq监听器
+  private final ReceiptPayOverTimeOrderListener receiptPayOverTimeOrderListener;
+
+  //绑定订阅和监听
+  @Bean(initMethod = "start", destroyMethod = "shutdown")
+  public ConsumerBean buildOrderSyncConsumer() {
+    ConsumerBean consumerBean = new ConsumerBean();
+    Properties properties = getMqProperties();
+    properties.setProperty(PropertyKeyConst.GROUP_ID, mqProperties.getGroupId());
+    properties.setProperty(PropertyKeyConst.ConsumerId, mqProperties.getGroupId());
+    consumerBean.setProperties(properties);
+    Map<Subscription, MessageListener> subscriptionTable = new HashMap<>(16);
+    Subscription subscription = new Subscription();
+    subscription.setTopic(receiptPayOrderProperties.getTopic());
+    subscription.setExpression(receiptPayOrderProperties.getExpression());
+    subscriptionTable.put(subscription, receiptPayOverTimeOrderListener);
+    consumerBean.setSubscriptionTable(subscriptionTable);
+    return consumerBean;
+  }
+```
 
 ### IDEA引入maven项目：
 1.New——Module from Existing Source
@@ -451,12 +513,15 @@ Public Action consume(Message message,ConsumeContext consumeContext){
 
 ### springboot引入redission：
 1.依赖
+```
 <dependency>
    <groupId>org.redisson</groupId>
    <artifactId>redisson</artifactId>
    <version>3.16.0</version>
 </dependency>  
+```
 2.配置文件
+```
 redisson:
 	nodes:
 		-192.168.161.68:7001
@@ -467,9 +532,10 @@ redisson:
 		-192.168.161.68:7006
 	password:evcsr2020%1dSP
 	mode:cluster
-
+```
 3.使用
-onfig config = new Config();
+```
+Config config = new Config();
 config.useClusterServers()
        // use "rediss://" for SSL connection
       .addNodeAddress("redis://127.0.0.1:7181");
@@ -481,24 +547,32 @@ RedissonClient redisson = Redisson.create(config);
 RLock lock = redisson.getLock("myLock");
 //加锁
 lock.lock(RedisKeyConstants.getAuthKeyTimeOut(),TimeUnit.SECONDS);
+```
 
 ### springboot引入nacos：
 1.依赖
+```
 <dependency>
-<groupId>com.alibaba.boot</groupId>
-<artifactId>nacos-config-spring-boot-starter</artifactId>
-<version>0.2.7</version>
+    <groupId>com.alibaba.boot</groupId>
+    <artifactId>nacos-config-spring-boot-starter</artifactId>
+    <version>0.2.7</version>
 </dependency>
+```
 2.定义服务地址
+```
 nacos.config.server-addr=127.0.0.1:8848
+```
 3.使用@NacosPropertySource 加载资源
+```
 @SpringBootApplication @NacosPropertySource(dataId = "example", autoRefreshed = true) 
 public class NacosConfigApplication { 
 public static void main(String[] args) { 
 SpringApplication.run(NacosConfigApplication.class, args); } }
+```
 4.使用@NacosValue 指定属性值
+```
 @NacosValue(value = "${useLocalCache:false}", autoRefreshed = true) private boolean useLocalCache;
-
+```
 
 ### openresty搭建高性能web应用、网关：
 官网地址：http://openresty.org/cn/
@@ -518,18 +592,21 @@ https://github.com/apache/skywalking
 下载、bin目录启动、http://localhost:8080/访问
 
 客户端接入方式：
-1.系统配置方式
+1. 系统配置方式
 使用 -D参数设置应用名称，skywalking.agent.service_name是属性，=后面是值；skywalking.collector.backend_service对应的是收集服务的地址
+```
 java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar
 -Dskywalking.agent.service_name=app-service 
 -Dskywalking.collector.backend_service=127.0.0.1:11800
 -jar app-service.jar &
+```
 
-2.探针方式
+2. 探针方式
 在skywalking-agent.jar后直接追加 =agent.service_name=应用名称 
+```
 java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=app-service -jar app-service.jar &
-
-3.插件使用
+```
+3. 插件使用
 默认情况agent是不支持对spring-cloud-gateway的监控的，需要插件的支持。我们要将optional-plugins下的插件apm-spring-cloud-gateway-2.x-plugin-6.5.0.jar拷贝到plugins下，使agent可以加载到该插件，其他一些需要额外插件支持的中间件和框架也是同理操作。
 
 
@@ -537,76 +614,277 @@ java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.serv
 下载地址：https://www.sonatype.com/products/repository-oss-download
 https://download.sonatype.com/nexus/3/latest-mac.tgz
 1.构建
+```
 git fetch --tags
 git checkout -b release-3.29.2-02 origin/release-3.29.2-02 --
 ./mvnw clean install
+```
 2.解压运行
+```
 unzip -d target assemblies/nexus-base-template/target/nexus-base-template-*.zip
 ./target/nexus-base-template-*/bin/nexus console
-
+```
 
 ### jira搭建：
 官网地址：https://www.atlassian.com/
 1.下载安装
+```
 atlassian-jira-software-7.3.8-x64_2.bin
 [root@jira ~]# chmod +x atlassian-jira-software-7.3.8-x64_2.bin  #添加执行权限
 [root@jira ~]# ./atlassian-jira-software-7.3.8-x64_2.bin   #安装
+```
 安装jira时配置指定数据库，jira支持多种数据库
 2.破解jira
+```
 jira7.3 
 ├── atlassian-extras-3.2.jar ：和license相关
 └── mysql-connector-java-5.1.39-bin.jar：jira连接mysql数据库相关的jar包
 把破解包里的文件复制到/opt/atlassian/jira/atlassian-jira/WEB-INF/lib/目录下
 [root@jira ~]# \cp -f ~/jira7.3/* /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/ 
+```
 3.开启jira服务
+```
 [root@jira ~]# /opt/atlassian/jira/bin/start-jira.sh 
+```
 访问8080端口 http://192.168.13.142:8080/
 
 
 ### springboot使用eventbus：
-1.依赖
-<dependency>
-<groupId>com.google.guava</groupId>
-<artifactId>guava</artifactId>
-</dependency>
-2.event配置
-@Configuration
-publicclassEventBusConfig{
-
-@Bean
-publicEventBuseventBus(AsyncEventListenereventListener){
-Builderbuilder=newBuilder().namingPattern("event-bus-threads");
-ThreadPoolExecutorthreadPoolExecutor=newThreadPoolExecutor(10,10,60L,
-TimeUnit.SECONDS,
-newArrayBlockingQueue<>(100),builder.build());
+事件驱动：
+```
+Google-Eventbus
+        // EventBus对象创建
+        EventBus eventBus = new EventBus("test");
+        // 注册监听者（监听者@Subscribe 订阅时间）
+        eventBus.register(new OrderEventListener());
+        // 发布消息
+        eventBus.post(new OrderMessage());
+// 异步事件消息处理
 EventBusbus=newAsyncEventBus(threadPoolExecutor);
-bus.register(eventListener);
-returnbus;
-}
-}
+```
 
+1.依赖
+```
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>28.1-jre</version>
+</dependency>
+```
+2.EventBusConfig
+```
+/**
+ * 事件监听配置
+ * 
+ * @author soonphe
+ * @since 1.0
+ */
+@Configuration
+public class EventBusConfig {
 
+  /**
+   * eventbus注册异步监听
+   * @param eventListener
+   * @return
+   */
+  @Bean
+  public EventBus eventBus(AsyncEventListener eventListener) {
+    Builder builder = new Builder().namingPattern("event-bus-threads");
+    ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 60L,
+        TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(100), builder.build());
+    //同步
+    //EventBus eventBus = new EventBus();
+    //异步
+    EventBus bus = new AsyncEventBus(threadPoolExecutor);
+    bus.register(eventListener);
+    return bus;
+  }
+}
+```
+3.事件监听类
+```
+@Slf4j
+@Component
+@AllArgsConstructor
+public class AsyncEventListener {
+
+/**
+   * 监听操作日志时间
+   * @param event
+   */
+  @Subscribe
+  public void saveOperationRecordEvent(SaveOverTimeOperationRecordEvent event) {
+    OverTimeOperationRecordDto operationRecordDto = OverTimeOperationRecordMapper.INSTANCE.eventToDto(event);
+    try {
+      Long record = operationService.createOverTimeOperationRecord(operationRecordDto);
+      log.info("---event  新增操作记录成功! 记录id为{}", record);
+    } catch (Exception e) {
+      log.error("---event  新增操作记录表出现异常,异常信息为", e);
+    }
+  }
+}
+```
+4.事件bean
+```
+@Getter
+@Builder
+public class SaveOverTimeOperationRecordEvent extends OverTimeOperationRecord {
+
+  private Long operator;
+  private String operatorAccount;
+  private Integer operatorType;
+  private Long operationTableId;
+  private Integer operatorChannel;
+
+}
+```
+5.注入eventbus，post测试发送事件
+```
+  @Autowired
+  private EventBus eventBus;
+
+  eventBus.post(overTimeFeeModelDeleteEvent);
+```
+备注：还可以定义一层handle处理eventbus的注册和注销操作
+```java
+@Component
+@Slf4j
+public class EventHandler {
+
+    @Autowired
+    private EventBus eventBus;
+
+    @Autowired
+    private EventListener eventListener;
+
+    @PostConstruct
+    public void init() {
+        eventBus.register(eventListener);
+    }
+
+    @PreDestroy
+    public void destroy() {
+        eventBus.unregister(eventListener);
+    }
+
+    public void eventPost(){
+        eventBus.post("test");
+        log.info("post event");
+    }
+}
+```
 
 
 ### 责任链实现：
 1.FilterChain责任链接口（方法：preAuth前置鉴权，fireNext下一个鉴权）
-2.DefaultFilterChain implements FilterChain{
-//下一个filterChain引用
-Private FilterChain next;
-//filter鉴权（只有一个doAuth方法）
-Private PreAuthFilter filter;
+```java
+//第一种形式
+public interface OrderFilterChain<T extends OrderContext> {
+  void handle(T var1);
 
-Public DefaultFilterChain(FilterChain chain,PreAuthFilter filter){
-    this.next=chain;
-    this.filter=filter;
+  void fireNext(T var1);
 }
-preAuth方法调用filter的doAuth鉴权、传递next引用，鉴权完毕调用下一个fireNext
-fireNext方法调用next的preAuth
+//第二种形式
+public interface FilterChain {
+
+   /**
+    * 前置鉴权
+    * @param request
+    */
+   void preAuth(StandardPreAuthModel request);
+
+   /**
+    * 开启下一个鉴权
+    * @param request
+    */
+   void fireNext(StandardPreAuthModel request);
 }
+```
+2.实现责任链接口
+```java
+//第一种形式
+public class DefaultFilterChain<T extends OrderContext> implements OrderFilterChain<T> {
+  private OrderFilterChain<T> next;
+  private OrderFilter<T> filter;
+
+  public DefaultFilterChain(OrderFilterChain chain, OrderFilter filter) {
+    this.next = chain;
+    this.filter = filter;
+  }
+
+  public void handle(T context) {
+    this.filter.doFilter(context, this);
+  }
+
+  public void fireNext(T ctx) {
+    OrderFilterChain nextChain = this.next;
+    if (Objects.nonNull(nextChain)) {
+      nextChain.handle(ctx);
+    }
+
+  }
+}
+//第二种形式
+public class DefaultFilterChain implements FilterChain {
+
+  //下一个filterChain引用
+  private FilterChain next;
+  //filter鉴权（只有一个doAuth方法）
+  private PreAuthFilter filter;
+
+  public DefaultFilterChain(FilterChain chain, PreAuthFilter filter) {
+    this.next = chain;
+    this.filter = filter;
+  }
+
+  //调用filter的doAuth鉴权、传递next引用，鉴权完毕调用下一个fireNext
+  @Override
+  public void preAuth(StandardPreAuthModel request) {
+    filter.doAuth(request, this);
+  }
+
+  //调用next的preAuth
+  @Override
+  public void fireNext(StandardPreAuthModel request) {
+    FilterChain nextChain = this.next;
+    if (Objects.nonNull(nextChain)) {
+      nextChain.preAuth(request);
+    }
+  }
+}
+```
 3.责任链初始化
-FilterChain filterChain7=new DefaultFilterChain(null, orderExtensionAuthFilter)
-FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuthFilter)
-…
+```java
+//第一种形式
+public class FilterChainPipeline<T extends OrderFilter> {
+  private DefaultFilterChain last;
+
+  public FilterChainPipeline() {
+  }
+
+  public DefaultFilterChain getFilterChain() {
+    return this.last;
+  }
+
+  public FilterChainPipeline addFilter(T filter) {
+    DefaultFilterChain newChain = new DefaultFilterChain(this.last, filter);
+    this.last = newChain;
+    return this;
+  }
+
+  public FilterChainPipeline addFilter(String desc, T filter) {
+    DefaultFilterChain newChain = new DefaultFilterChain(this.last, filter);
+    this.last = newChain;
+    return this;
+  }
+}
+
+//第二种形式
+FilterChain filterChain7=new DefaultFilterChain(null, orderExtensionAuthFilter);
+FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuthFilter);
+
+```
 
 
 

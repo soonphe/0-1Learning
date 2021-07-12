@@ -5,10 +5,16 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-## spring注解
+## Java常用注解
+
+## 依赖注入方式
+    依赖注入的方式：  
+    1.constructor-arg：通过构造函数注入。   
+    2.property：通过setxx方法注入。
+---
 
 ### 常用注解说明:
-在一个稍大的项目中，通常会有上百个组件，如果这些组件采用xml的bean定义来配置，显然会增加配置文件的体积，查找以及维护起来也不太方便。
+如果组件采用xml的bean定义来配置，显然会增加配置文件的体积，查找以及维护起来也不太方便。
 Spring2.5为我们引入了组件自动扫描机制，他可以在类路径底下寻找标注了@Component,@Service,@Controller,@Repository注解的类，并把这些类纳入进spring容器中管理
 
 * @Configuration：用@Configuration注解该类，等价 与XML中配置beans；用@Bean标注方法等价于XML中配置bean。
@@ -50,37 +56,45 @@ spring-boot支持mybatis组件的一个注解，通过此注解指定mybatis接�
 例如：本来应该到success.jsp页面的，则其显示success.
 ~~~~
 
-### <bean>中的依赖注入
-    依赖注入的方式：  
-    1.constructor-arg：通过构造函数注入。   
-    2.property：通过setxx方法注入。
 
----
 
 ### springboot注解
-
-#### @SpringBootApplication复合注解
+@SpringBootApplication复合注解
+```
 1. @SpringBootConfiguration Extends Configuration：标注当前类为配置类
 2. @EnableAutoConfiguration ：自动配置看注解，Spring会根据你添加的jat包来配置项目的默认设置
 3. @ComponentScan：扫描当前包及其子包下被@Component，@Controller，@Service，@Repository
 注：@Controller @Service @Repository是@Component的子注解
-自动装配原理：
-将类路径下META-INF/spring.factories里面配置的所有EnableAutoConfiguration的值加入溶氧仪
+自动装配原理：将META-INF/spring.factories里面配置的所有EnableAutoConfiguration的值加入溶氧仪
+```
 
+### 类注解
 
-
-### 其他注解
+### 属性注解
 * @DatetimeFormat是将String转换成Date，一般前台给后台传值时用
 * @JsonFormat(pattern="yyyy-MM-dd", timezone = "GMT+8")  将Date转换成String  一般后台传值给前台时
 
+### 方法注解
+@PostConstruct：@PostConstruct该注解被用来修饰一个非静态的void（）方法。被@PostConstruct修饰的方法会在服务器加载Servlet的时候运行，并且只会被服务器执行一次。PostConstruct在构造函数之后执行，init（）方法之前执行。
+@PreDestroy：被@PreDestroy修饰的方法会在服务器卸载Servlet的时候运行，并且只会被服务器调用一次，类似于Servlet的destroy()方法。被@PreDestroy修饰的方法会在destroy()方法之后运行，在Servlet被彻底卸载之前。
+```
+    @PostConstruct
+    public void init() {
+        eventBus.register(eventListener);
+    }
 
-
-
+    @PreDestroy
+    public void destroy() {
+        eventBus.unregister(eventListener);
+    }
+```
 
 * 全局捕获异常
+```
 @ControllerAdvice
 public class GlobalDefaultExceptionHandler{
 
+    //异常处理类型
 	@ExceptionHandler(Exception.class）
 	@ResponseBody
 	public String defaultExceptionHandler(HttpServletRequest req,Exception e){
@@ -91,3 +105,19 @@ public class GlobalDefaultExceptionHandler{
 	}
 	
 }
+```
+
+### lombok注解
+@Data 注解在类上；生成无参构造方法，属性的set/get方法，还提供了equals、canEqual、hashCode、toString 方法
+@Setter ：注解在属性上；为属性提供 setting 方法
+@Getter ：注解在属性上；为属性提供 getting 方法
+@Log4j ：注解在类上；为类提供一个 属性名为log 的 log4j 日志对象
+@NoArgsConstructor ：注解在类上；为类提供一个无参的构造方法
+@AllArgsConstructor ：注解在类上；为类提供一个全参的构造方法
+@Cleanup : 可以关闭流
+@Builder ： 被注解的类加个构造者模式
+@Synchronized ： 加个同步锁
+@SneakyThrows : 等同于try/catch 捕获异常
+@NonNull : 如果给参数加个这个注解 参数为null会抛出空指针异常
+@Value : 和@Data类似，区别在于生成有参构造方法，所有成员变量默认定义为private final修饰，只有get方法，没有set方法。
+

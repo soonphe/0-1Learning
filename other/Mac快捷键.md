@@ -32,6 +32,7 @@ Command + Control + Q   锁屏快捷键
 Command + Option + esc  打开强制退出窗口
 Command + Shift + N：在“访达”中创建一个新文件夹。
 
+Command + Shift + .: 显示/隐藏 隐藏文件、文件夹
 Command + Shift + 5: 自定义截图
 Command + Shift + 4: 截取所选屏幕到桌面
 Command + Shift + 3: 截取整个屏幕到桌面
@@ -44,6 +45,12 @@ control = Ctrl
 command = win键
 option = Alt
 shift = shift`
+
+### mac设置显示隐藏文件
+* 显示隐藏文件夹
+> defaults write com.apple.finder AppleShowAllFiles -boolean true ; killall Finder
+* 还原默认设置
+> defaults write com.apple.finder AppleShowAllFiles -boolean false ; killall Finder
 
 
 

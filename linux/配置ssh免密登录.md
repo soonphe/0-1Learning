@@ -7,26 +7,50 @@
 
 ## 配置ssh免密登录
 
-1.检查是否安装 ssh -version
+### 1.检查是否安装 ssh -version
 	ssh localhost
 
-2.在用户目录，使用ls -a查看隐藏文件 .ssh
+### 2.在用户目录，使用ls -a查看隐藏文件 
+```
+cd ~/.ssh
+ls -a
+```
 
-3.创建key
+### 3.不存在则需要创建key
+```
 ssh-keygen -t dsa -P '' -f /root/.ssh/id_dsa
+ssh-keygen -t rsa -C "your.email@example.com" -b 4096
 
+说明： RSA 与 DSA 都是非对称加密算法
+```
 这里解释一下命令的含义(注意区分大小写):
 ssh-keygen代表生成密钥;-t表示生成密钥的类型;-P提供密语；-f指定生成的文件.
+
+>接下来，系统将提示您输入用于保存 SSH 密钥对的文件路径。
+如果您还没有 SSH 密钥对，请按 Enter 使用建议的路径。使用建议的路径通常会允许您的 SSH 客户端自动使用 SSH 密钥对，而无需额外配置。
+如果你已经有了一个建议的文件路径的SSH密钥对，则需要输入什么主机此SSH密钥对将在您使用一个新的文件路径和申报.ssh/config文件中，看到工作与非默认的SSH密钥对路径
+进行更多信息。
+输入文件路径后，系统将提示您输入密码以保护 SSH 密钥对。最佳做法是为 SSH 密钥对使用密码，但这不是必需的，您可以通过按 Enter 跳过创建密码。
+注意：
+ 如果要更改 SSH 密钥对的密码，可以使用
+ ssh-keygen -p <keyname>.
+
 这个命令执行完毕后会在.ssh文件夹下生成两个文件，
 分别是id_dsa、id_dsa.pub,这是SSH的一对私钥和公钥，就像是钥匙和锁。
-下一步将id_dsa.pub追加到授权的key中,键入一下命令：
 
-cat /root/.ssh/id_dsa.pub >> /root/.ssh/authorized_keys
-此时，免密码登录本机就配置完成了，下面再次输入ssh localhost进行验证，出现下图所示信息代表配置成功了
-~~~~
-ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
+### 4.将公钥 SSH 密钥添加到 GitLab或目标服务器
+Gitlab：
+>如果您手动复制了您的公共 SSH 密钥，请确保您复制了ssh-rsa以您的电子邮件开头和结尾的整个密钥。
+或者，您可以通过运行ssh -T git@example.com（替换example.com为您的 GitLab 域）并验证您是否收到Welcome to GitLab消息来测试您的设置。
+
+目标服务器：
+将id_dsa.pub追加到授权key中：
+```
 cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
 chmod 0600 ~/.ssh/authorized_keys
-~~~~
+```
 
-ssh localhost（即可显示登录成功）
+### 5.ssh登录
+```
+ssh 目标IP
+```
