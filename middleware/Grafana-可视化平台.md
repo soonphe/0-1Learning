@@ -15,6 +15,8 @@ brew services start grafana
 安装路径：/usr/local/Cellar/grafana/version
 
 ###  Linux安装 (CentOS, Fedora, OpenSuse, Red Hat)基于RPM
+参考文档：https://grafana.com/docs/grafana/latest/
+
 1. 下载和安装
 您可以从 YUM 存储库安装 Grafana，使用 YUM 手动安装，使用 RPM 手动安装，或通过下载二进制 .tar.gz 文件。
 
@@ -105,19 +107,14 @@ sudo /sbin/chkconfig --add grafana-server
 5. 单击屏幕右上角的保存图标以保存仪表板。
 6. 添加描述性名称，然后单击“保存”。
 
-
-### 行政 + 管理用户 + 权限
-
-
 ### 数据源
 1. 将光标移动到侧面菜单上的齿轮图标，该图标将显示配置选项。
 2. 单击 Data Sources 数据源。数据源页面打开，显示先前为 Grafana 实例配置的数据源列表。
 3. 单击添加数据源以查看所有支持的数据源的列表
    ```
-   Prometheus
    Mysql
    ElasticSearch
-   influxDB
+   Prometheus
    ...
    ```
 4. 通过在搜索对话框中输入名称来搜索特定数据源。或者，您可以滚动浏览按时间序列、日志记录、跟踪和其他类别分组的受支持数据源。
@@ -157,9 +154,6 @@ CREATE USER 'grafanaReader' IDENTIFIED BY 'password';
 ```
 
 ### ElasticSearch数据源
-
-
-### Prometheus
 |名称| 描述|
 |---|---|
 |Name	|数据源名称。这是您在面板和查询中引用数据源的方式.|
@@ -187,6 +181,61 @@ Time field
 ```
 
 Min time interval时间间隔  $__interval and $__interval_ms 
+
+Logs
+有两个参数，消息字段名称和级别字段名称，可以选择从数据源设置页面进行配置，以确定在浏览器中可视化日志时哪些字段将用于日志消息和日志级别。
+
+例如，如果您使用 Filebeat 的默认设置将日志传送到 Elasticsearch，则以下配置应该有效：
+
+* 消息字段名称：message
+* 级别字段名称：fields.level
+
+Data links数据链接
+数据链接从指定字段创建链接，可在浏览器的日志视图中访问该链接。
+
+每个数据链路配置包括：
+* Field - 数据链接使用的字段名称。
+* URL/query - 如果链接是外部链接，则输入完整的链接 URL。如果链接是内部链接，则此输入用作对目标数据源的查询。在这两种情况下，您都可以使用 ${__value.raw } 宏从字段中插入值。
+* Internal link - 选择链接是内部链接还是外部链接。在内部链接的情况下，数据源选择器允许您选择目标数据源。仅支持跟踪数据源。
+
+
+### Prometheus数据源
+
+### Prometheus 配置
+|名称| 描述|
+|---|---|
+|Name	|The data source name. This is how you refer to the data source in panels and queries.|
+|Default	|Default data source that is pre-selected for new panels.|
+|Url	|The URL of your Prometheus server, for example, http://prometheus.example.org:9090.|
+|Access	|Server (default) = URL needs to be accessible from the Grafana backend/server, Browser = URL needs to be accessible from the browser.|
+|Basic Auth	|Enable basic authentication to the Prometheus data source.|
+|User	|User name for basic authentication.|
+|Password	|Password for basic authentication.|
+|Scrape interval	|Set this to the typical scrape and evaluation interval configured in Prometheus. Defaults to 15s.|
+|HTTP method	|Use either POST or GET HTTP method to query your data source. POST is the recommended and pre-selected method as it allows bigger queries. Change this to GET if you have a Prometheus version older than 2.1 or if POST requests are restricted in your network.|
+|Disable metrics lookup	|Checking this option will disable the metrics chooser and metric/label support in the query field’s autocomplete. This helps if you have performance issues with bigger Prometheus instances.|
+|Custom Query Parameters	|Add custom parameters to the Prometheus query URL. For example timeout, partial_response, dedup, or max_source_resolution. Multiple parameters should be concatenated together with an ‘&’.|
+|Label name	|Add the name of the field in the label object.|
+|URL	|If the link is external, then enter the full link URL. You can interpolate the value from the field with ${__value.raw } macro.|
+|Internal link	|Select if the link is internal or external. In the case of an internal link, a data source selector allows you to select the target data source. Supports tracing data sources only.|
+
+
+### Prometheus 查询编辑器
+|名称| 描述|
+|---|---|
+|Query expression	|Prometheus query expression, check out the Prometheus documentation.|
+|Legend format	|Controls the name of the time series, using name or pattern. For example {{hostname}} is replaced with the label value for the label hostname.|
+|Min step	|An additional lower limit for the step parameter of Prometheus range queries and for the $__interval and $__rate_interval variables. The limit is absolute, it cannot modified by the Resolution setting.|
+|Resolution	|1/1 sets both the $__interval variable and the step parameter of Prometheus range queries such that each pixel corresponds to one data point. For better performance, lower resolutions can be picked. 1/2 only retrieves a data point for every other pixel, and 1/10 retrieves one data point per 10 pixels. Note that both Min time interval and Min step limit the final value of $__interval and step.|
+|Metric lookup	|Search for metric names in this input field.|
+|Format as	|Switch between Table, Time series, or Heatmap. Table will only work in the Table panel. Heatmap is suitable for displaying metrics of the Histogram type on a Heatmap panel. Under the hood, it converts cumulative histograms to regular ones and sorts series by the bucket bound.|
+|Instant	|Perform an “instant” query, to return only the latest value that Prometheus has scraped for the requested time series. Instant queries return results much faster than normal range queries. Use them to look up label sets.|
+|Min time interval	|This value multiplied by the denominator from the Resolution setting sets a lower limit to both the $__interval variable and the step parameter of Prometheus range queries. Defaults to Scrape interval as set in the data source options.|
+|Exemplars	|Run and show exemplars in the graph.|
+
+
+### 管理用户 + 权限
+略
 
 
 
