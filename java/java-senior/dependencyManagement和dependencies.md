@@ -7,6 +7,12 @@
 
 ## dependencyManagement和dependencies
 
+### 一方库、二方库、三方库说明：
+
+一方库：本工程中的各模块的相互依赖
+二方库：公司内部的依赖库，一般指公司内部的其他项目发布的jar包
+三方库：公司之外的开源库， 比如apache、ibm、google等发布的依赖
+
 ### dependencyManagement：
 为了项目的正确运行，必须让所有的子模块使用依赖项的统一版本，必须确保应用的各个项目的依赖项和版本一致，才能保证测试的和发布的是相同的结果。
 在我们项目顶层的pom文件中，我们会看到dependencyManagement元素。
