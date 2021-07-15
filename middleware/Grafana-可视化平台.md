@@ -12,6 +12,8 @@ brew search grafana
 brew install grafana
 brew services start grafana
 
+启动后打开地址：http://localhost:3000/
+用户名密码：admin admin
 安装路径：/usr/local/Cellar/grafana/version
 
 ###  Linux安装 (CentOS, Fedora, OpenSuse, Red Hat)基于RPM
@@ -93,7 +95,6 @@ sudo /sbin/chkconfig --add grafana-server
 ```
 
 ### 登录
-
 1. 打开 Web 浏览器并转到 http://localhost:3000/。 Grafana 侦听的默认 HTTP 端口是 3000，除非您配置了其他端口。
 2. 在登录页面，输入 admin 作为用户名和密码。
 3. 单击登录。如果登录成功，您将看到更改密码的提示。
@@ -101,16 +102,16 @@ sudo /sbin/chkconfig --add grafana-server
 
 ### 创建仪表板
 1. 单击侧面菜单上的 + 图标。
-2. 在仪表板上，单击添加空面板。
-3. 在新建仪表板/编辑面板视图中，转到查询选项卡。
-4. 通过从数据源选择器中选择 -- Grafana -- 来配置您的查询。这将生成随机游走仪表板。
-5. 单击屏幕右上角的保存图标以保存仪表板。
-6. 添加描述性名称，然后单击“保存”。
+2. 在仪表板上，单击 *Add an empty panel* 。
+3. 在新建仪表板/编辑面板视图中，转到 *Query* 选项卡。
+4. 通过从数据源选择器中选择 -- Grafana/或你自己添加的数据源 -- 来配置您的查询。这将生成 *Random Walk* 仪表板。
+5. 单击屏幕右上角的 *Save* 图标以保存仪表板。
+6. 添加描述性名称，然后单击 *Save* 保存。
 
-### 数据源
-1. 将光标移动到侧面菜单上的齿轮图标，该图标将显示配置选项。
-2. 单击 Data Sources 数据源。数据源页面打开，显示先前为 Grafana 实例配置的数据源列表。
-3. 单击添加数据源以查看所有支持的数据源的列表
+### 添加数据源
+1. 将光标移动到侧面菜单上的齿轮图标，该图标将显示 *Configuration* 选项。
+2. 单击 *Data Sources* 数据源。数据源页面打开，显示先前为 Grafana 实例配置的数据源列表。
+3. 单击 *Add Data Sources* 以查看所有支持的数据源的列表
    ```
    Mysql
    ElasticSearch
@@ -118,9 +119,11 @@ sudo /sbin/chkconfig --add grafana-server
    ...
    ```
 4. 通过在搜索对话框中输入名称来搜索特定数据源。或者，您可以滚动浏览按时间序列、日志记录、跟踪和其他类别分组的受支持数据源。
-5. 将光标移到要添加的数据源上。 单击选择。数据源配置页面打开, 按照特定于该数据源的说明配置数据源
+5. 将光标移到要添加的数据源上。 单击 *Select*。数据源配置页面打开, 按照特定于该数据源的说明配置数据源
 
-### mysql数据源
+### mysql数据源配置
+1. 数据源选项
+
 |名称| 描述|
 |---|---|
 |Name |数据源名称。这就是您在面板和查询中引用数据源的方式。|
@@ -134,7 +137,10 @@ sudo /sbin/chkconfig --add grafana-server
 |Max idle |空闲连接池中的最大连接数，默认为 2 (Grafana v5.4+)。|
 |Max lifetime |连接可以重用的最长时间（以秒为单位），默认为 14400/4 小时。这应该始终低于 MySQL (Grafana v5.4+) 中配置的 wait_timeout。|
 
-Min time interval时间间隔  $__interval and $__interval_ms 
+2. Min time interval时间间隔  
+$__interval 和 $__interval_ms 变量的下限。
+建议设置为写入频率，例如如果您的数据每分钟写入一次，则为1m。也可以在数据源选项下的仪表板面板中覆盖/配置此选项。
+请务必注意，此值需要格式化为数字后跟有效时间标识符，例如1m（1 分钟）或 30s（30 秒）。支持以下时间标识符：
 ```
 Identifier	Description
 y	year
@@ -147,10 +153,101 @@ s	second
 ms	millisecond
 ```
 
-数据库用户权限（重要！）
+3. 数据库用户权限（重要！）
 ```
 CREATE USER 'grafanaReader' IDENTIFIED BY 'password';
- GRANT SELECT ON mydatabase.mytable TO 'grafanaReader';
+GRANT SELECT ON mydatabase.mytable TO 'grafanaReader';
+```
+*如果要授予对更多数据库和表的访问权限，可以使用通配符 ( ) 代替数据库或表。
+
+
+4. 向数据库中添加数据
+建表语句：
+```
+-- ----------------------------
+-- Table structure for mytable
+-- ----------------------------
+DROP TABLE IF EXISTS `mytable`;
+CREATE TABLE `mytable` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+  `time` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+SET FOREIGN_KEY_CHECKS = 1;
+```
+insert语句
+```
+INSERT INTO `grafana_test`.`mytable` (`id`, `name`, `time`) VALUES (null, rand()*10000, rand()*100000+1626340861);
+INSERT INTO `grafana_test`.`mytable` (`id`, `name`, `time`) VALUES (null, rand()*10000, rand()*100000+1626340861);
+INSERT INTO `grafana_test`.`mytable` (`id`, `name`, `time`) VALUES (null, rand()*10000, rand()*100000+1626340861);
+...
+```
+
+5. 查询编辑器
+>Only available in Grafana v5.4+.
+
+您可以在面板编辑模式的指标选项卡中找到 MySQL 查询编辑器。您可以通过单击面板标题进入编辑模式，然后进行编辑。
+查询编辑器有一个名为的链接Generated SQL，在执行查询后，在面板编辑模式下显示。单击它，它将展开并显示已执行的原始内插 SQL 字符串。
+
+* 选择表、时间列和度量列（FROM）
+FROM mytable ：选择表
+Time column time： 选择时间列
+Metric column none：选择指标列
+
+* 列和聚合函数 (SELECT)
+Column: id  选择要查询的列
+Aggregate:  avg 设置对应的聚合函数
+Alias: id  设置别名
+
+* 过滤数据（WHERE）
+WHERE  Macro: $__unixEpochFilter  默认最近6小时
+
+* 分组（GROUP BY）
+time ($__interval, none)  默认按时间分组
+
+* 填隙
+当你按时间分组时，Grafana 可以填充缺失值。time 函数接受两个参数。第一个参数是您想要分组的时间窗口，第二个参数是您希望 Grafana 填充缺失项的值。
+
+
+6. 文本编辑器模式 (RAW)
+您可以通过单击汉堡包图标并选择Switch editor mode或单击Edit SQL查询下方来切换到原始查询编辑器模式。
+>如果您使用原始查询编辑器，请确保您的查询至少具有ORDER BY time返回时间范围的过滤器。 
+
+示例
+```
+SELECT
+  $__unixEpochGroupAlias(time,$__interval),
+  avg(id) AS "id",
+  avg(name) AS "name"
+FROM mytable
+WHERE
+  $__unixEpochFilter(time)
+GROUP BY 1
+ORDER BY $__unixEpochGroup(time,$__interval)
+```
+为了简化语法并允许动态部分，如日期范围过滤器，查询可以包含宏。
+```
+宏示例	描述
+$__time(dateColumn)	将替换为表达式以转换为 UNIX 时间戳并将列重命名为time_sec. 例如，UNIX_TIMESTAMP(dateColumn) 为 time_sec
+$__timeEpoch(dateColumn)	将替换为表达式以转换为 UNIX 时间戳并将列重命名为time_sec. 例如，UNIX_TIMESTAMP(dateColumn) 为 time_sec
+$__timeFilter(dateColumn)	将被使用指定列名称的时间范围过滤器替换。例如，dateColumn BETWEEN FROM_UNIXTIME(1494410783) AND FROM_UNIXTIME(1494410983)
+$__timeFrom()	将替换为当前活动时间选择的开始。例如，FROM_UNIXTIME(1494410783)
+$__timeTo()	将替换为当前活动时间选择的结尾。例如，FROM_UNIXTIME(1494410983)
+$__timeGroup(dateColumn,'5m')	将被 GROUP BY 子句中可用的表达式替换。例如，*cast(cast(UNIX_TIMESTAMP(dateColumn)/(300) as signed) 300 as signed)，
+$__timeGroup(dateColumn,'5m', 0)	与上面相同，但有一个填充参数，因此该系列中的缺失点将由 grafana 添加，0 将用作值。
+$__timeGroup(dateColumn,'5m', NULL)	与上述相同，但 NULL 将用作缺失点的值。
+$__timeGroup(dateColumn,'5m', previous)	与上述相同，但如果尚未看到任何值，则该系列中的前一个值将用作填充值，将使用 NULL（仅在 Grafana 5.3+ 中可用）。
+$__timeGroupAlias(dateColumn,'5m')	将被替换为与 $__timeGroup 相同但添加了列别名（仅在 Grafana 5.3+ 中可用）。
+$__unixEpochFilter(dateColumn)	将被使用指定列名的时间范围过滤器替换，时间表示为 Unix 时间戳。例如，dateColumn > 1494410783 AND dateColumn < 1494497183
+$__unixEpochFrom()	将被当前活动时间选择的开始替换为 Unix 时间戳。例如，1494410783
+$__unixEpochTo()	将被当前活动时间选择的结尾替换为 Unix 时间戳。例如，1494497183
+$__unixEpochNanoFilter(dateColumn)	将被使用指定列名的时间范围过滤器替换，时间表示为纳秒时间戳。例如，dateColumn > 1494410783152415214 AND dateColumn < 1494497183142514872
+$__unixEpochNanoFrom()	将被当前活动时间选择的开始替换为纳秒时间戳。例如，1494410783152415214
+$__unixEpochNanoTo()	将被当前活动时间选择的末尾替换为纳秒时间戳。例如，1494497183142514872
+$__unixEpochGroup(dateColumn,'5m', [fillmode])	与 $__timeGroup 相同，但时间存储为 Unix 时间戳（仅在 Grafana 5.3+ 中可用）。
+$__unixEpochGroupAlias(dateColumn,'5m', [fillmode])	与上面相同，但还添加了列别名（仅在 Grafana 5.3+ 中可用）。
 ```
 
 ### ElasticSearch数据源
