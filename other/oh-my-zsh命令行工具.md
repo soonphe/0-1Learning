@@ -7,8 +7,23 @@
 
 
 ## oh-my-zsh（更强大的命令行工具）
+github地址：https://github.com/ohmyzsh/ohmyzsh
+
+### 先决条件
+* 类 Unix 操作系统：macOS、Linux、BSD。在 Windows 上：WSL2 是首选，但 cygwin 或 msys 也主要工作。
+* 应该安装 Zsh（v4.3.9 或更新版本很好，但我们更喜欢 5.0.8 和更新版本）。如果未预先安装（运行 zsh --version 以确认），请在此处查看以下 wiki 说明：安装 ZSH
+* 应该安装 curl 或 wget
+* 应该安装 git（推荐 v2.4.11 或更高版本）
 
 ### 安装oh-my-zsh
+基本安装
+Oh My Zsh 是通过在终端中运行以下命令之一来安装的。您可以使用 curl、wget 或其他类似工具通过命令行安装它。
+
+|Method	|Command|
+|---|---|
+|curl	|sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"|
+|wget	|sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"|
+|fetch	|sh -c "$(fetch -o - https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"|
 
 ```
 $ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -23,7 +38,60 @@ chsh -s /bin/zsh
 chsh -s /bin/bash
 ```
 
+### 使用 Oh My Zsh
+插件
+Oh My Zsh 附带了大量插件供您使用。您可以查看[插件目录](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins)和/或 [wiki](https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins) 以查看当前可用的内容。
+
+启用插件
+在 .zshrc 文件中启用它们。您将在 $HOME 目录中找到 zshrc 文件。用你最喜欢的文本编辑器打开它，你会看到一个列出你想要加载的所有插件的地方。
+```
+vi ~/.zshrc
+```
+例如，这可能看起来像这样：
+```
+plugins=(
+  git
+  bundler
+  dotenv
+  osx
+  rake
+  rbenv
+  ruby
+)
+```
+>请注意，插件由空格（空格、制表符、新行...）分隔。不要在它们之间使用逗号，否则会中断。
+
+主题：
+默认主题：ZSH_THEME="robbyrussell"
+
+要使用不同的主题，只需更改值以匹配所需主题的名称。例如：
+```
+ZSH_THEME="agnoster" # (this is one of the fancy ones)
+# see https://github.com/ohmyzsh/ohmyzsh/wiki/Themes#agnoster
+```
+
+获取更新
+```
+DISABLE_UPDATE_PROMPT=true
+```
+要禁用自动升级
+```
+DISABLE_AUTO_UPDATE=true
+```
+手动更新
+```
+omz update
+```
+
+其他配置
+```
+HIST_STAMPS="yyyy-mm-dd"：history 命令查看历史输入命令的时间展示格式
+ZSH_THEME="random"：随机主题
+alias go="git-open"：别名
+```
+
 ### 安装zsh插件：
+
 默认插件：
 git：git 命令缩写。默认已开启。
     例：git add --all ===> gaa
@@ -48,11 +116,6 @@ source ~/.zshrc
 
 其他参考：https://hufangyun.com/2017/zsh-plugin/
 
-
-### 其他配置
-HIST_STAMPS="yyyy-mm-dd"：history 命令查看历史输入命令的时间展示格式
-ZSH_THEME="random"：随机主题
-alias go="git-open"：别名
 
 ### 配置参考
 ```

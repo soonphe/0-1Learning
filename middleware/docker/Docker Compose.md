@@ -161,15 +161,16 @@ networks:
     driver: bridge
 
 ```
+指定文件执行：docker-compose -f docker-compose-elk.yml up -d
 
-logstach：
+### logstach使用说明：
 官网地址：https://www.elastic.co/guide/en/logstash-versioned-plugins/current/index.html
-特别说明：这里的logstach需要配置pipline的配置项
-input选择输入方式，output选择services中配置的elasticsearch即可
+特别说明：logstach需要配置pipline的配置项
+    * input选择输入方式，
+    * output选择services中配置的elasticsearch即可
 参考文档：https://blog.csdn.net/qq330983778/article/details/105644835/
 
-位置：/logstash/pipeline/logstash-nginx.config
-文件：nginx.config
+pipline配置文件位置：/logstash/pipeline/logstash-nginx.config/nginx.config
 ```
 input {
   # 从控制台中输入来源
@@ -211,9 +212,8 @@ output {
   }
 }
 ```
-日志文件：
-位置：/Users/luoxiaosheng/docker-compose/logstash/nginx.log
-文件：nginx.log文件
+
+日志文件位置：/Users/luoxiaosheng/docker-compose/logstash/nginx.log/nginx.log文件
 ```
 [{
 	"id": 1,
@@ -227,16 +227,9 @@ output {
 	"class": 1
 }]
 ```
-发送文件命令：
-```
-cat /Users/luoxiaosheng/docker-compose/logstash/nginx.log//nginx.log   | nc -c 127.0.0.1 5000
-```
-找不到nc（netcat）命令：yum install -y nc
 
-logstach发送数据：
+logstach发送文件命令：
 ```
-#使用 BSD netcat (Debian, Ubuntu, MacOS 系统, ...) 
-$ cat /path/to/logfile.log | nc -q0 本地主机 5000
-#使用 GNU netcat (CentOS, Fedora, MacOS Homebrew, ...) 
-$ cat /path/to/logfile.log | nc -c 本地主机 5000
+cat /Users/luoxiaosheng/docker-compose/logstash/nginx.log/nginx.log   | nc -c 127.0.0.1 5000
 ```
+找不到nc（netcat）命令解决：yum install -y nc

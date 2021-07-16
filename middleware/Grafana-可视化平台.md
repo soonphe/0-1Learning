@@ -251,6 +251,8 @@ $__unixEpochGroupAlias(dateColumn,'5m', [fillmode])	与上面相同，但还添�
 ```
 
 ### ElasticSearch数据源
+1. 数据源选项
+
 |名称| 描述|
 |---|---|
 |Name	|数据源名称。这是您在面板和查询中引用数据源的方式.|
@@ -263,6 +265,8 @@ $__unixEpochGroupAlias(dateColumn,'5m', [fillmode])	与上面相同，但还添�
 所有请求都将从浏览器发送到 Grafana 后端/服务器，后者又会将请求转发到数据源，从而绕过可能的跨源资源共享 (CORS) 要求。如果选择此访问模式，则需要可以从 grafana 后端/服务器访问该 URL。
 
 * Browser (Direct) access：浏览器（直接）访问
+>警告：浏览器（直接）访问已被弃用，并将在未来版本中删除。
+
 所有请求都将从浏览器直接发送到数据源，并且可能受跨源资源共享 (CORS) 要求的约束。如果选择此访问模式，则需要可以从浏览器访问该 URL。
 
 如果您选择浏览器访问，您必须更新您的 Elasticsearch 配置以允许其他域从浏览器访问 Elasticsearch。您可以通过在 elasticsearch.yml 配置文件中指定这两个选项来完成此操作。
@@ -277,9 +281,13 @@ Index name
 Time field 
 ```
 
-Min time interval时间间隔  $__interval and $__interval_ms 
+弹性搜索版本
+从版本选择下拉列表中选择 Elasticsearch 数据源的版本。不同版本的查询编辑器中提供了不同的查询组合和功能。可用Elasticsearch版本2.x，5.x，5.6+，6.0+，7.0+和7.7+。选择与您的数据源版本最匹配的选项。
 
-Logs
+Min time interval最小时间间隔
+时间间隔  $__interval and $__interval_ms 
+
+Logs日志
 有两个参数，消息字段名称和级别字段名称，可以选择从数据源设置页面进行配置，以确定在浏览器中可视化日志时哪些字段将用于日志消息和日志级别。
 
 例如，如果您使用 Filebeat 的默认设置将日志传送到 Elasticsearch，则以下配置应该有效：
@@ -295,6 +303,34 @@ Data links数据链接
 * URL/query - 如果链接是外部链接，则输入完整的链接 URL。如果链接是内部链接，则此输入用作对目标数据源的查询。在这两种情况下，您都可以使用 ${__value.raw } 宏从字段中插入值。
 * Internal link - 选择链接是内部链接还是外部链接。在内部链接的情况下，数据源选择器允许您选择目标数据源。仅支持跟踪数据源。
 
+
+在仪表盘中指标查询编辑器
+![](../static/middleware/grafana-elastic2.png)
+在Elasticsearch 查询编辑器允许您选择多个指标并按多个术语或过滤器分组。
+使用右侧的加号和减号图标添加/删除指标或分组依据子句。
+某些度量和分组依据子句具有选项，单击选项文本可展开行以查看和编辑度量或分组依据选项。
+
+管道指标
+一些指标聚合称为流水线聚合，例如，移动平均和导数。Elasticsearch 管道指标需要基于另一个指标。使用指标旁边的眼睛图标隐藏指标，使其不显示在图表中。这对于仅在查询中用于管道指标的指标很有用。
+
+查询变量
+Elasticsearch 数据源支持两种类型的查询，您可以在查询变量的查询字段中使用。查询是使用自定义 JSON 字符串编写的。
+询问	描述
+{"find": "fields", "type": "keyword"}	返回具有索引类型的字段名称列表keyword。
+{"find": "terms", "field": "@hostname", "size": 1000}	使用术语聚合返回字段的值列表。查询将使用当前仪表板时间范围作为查询的时间范围。
+{"find": "terms", "field": "@hostname", "query": '<lucene query>'}	使用术语聚合和指定的 lucene 查询过滤器返回字段的值列表。查询将使用当前仪表板时间范围作为查询的时间范围。
+
+在查询中使用变量
+有两种语法：
+```
+$<varname> 示例：@hostname:$hostname
+[[varname]] 示例：@hostname:[[hostname]]
+```
+
+配置示例：
+![](../static/middleware/grafana-elastic.png)
+向elastic中添加一些数据
+![](../static/middleware/grafana-elastic2.png)
 
 ### Prometheus数据源
 
@@ -330,9 +366,6 @@ Data links数据链接
 |Min time interval	|This value multiplied by the denominator from the Resolution setting sets a lower limit to both the $__interval variable and the step parameter of Prometheus range queries. Defaults to Scrape interval as set in the data source options.|
 |Exemplars	|Run and show exemplars in the graph.|
 
-
-### 管理用户 + 权限
-略
 
 
 
