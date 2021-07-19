@@ -9,81 +9,82 @@
 Nginx (engine x) 是一个高性能的HTTP和反向代理web服务器，同时也提供了IMAP/POP3/SMTP服务。
 
 ### brew方式安装
-brew search nginx   //搜索软件包
-brew install nginx  //安装软件包
-brew services start nginx   //启动nginx 
-brew services stop nginx   //关闭nginx服务
-nginx -v   // 查看nginx版本
-nginx -s reload     //重新加载nginx
-nginx -s stop       //停止nginx
+- brew search nginx   //搜索软件包
+- brew install nginx  //安装软件包
+- brew services start nginx   //启动nginx 
+- brew services stop nginx   //关闭nginx服务
+- nginx -v   // 查看nginx版本
+- nginx -s reload     //重新加载nginx
+- nginx -s stop       //停止nginx
 
 ### docker方式安装
-docker search nginx //搜索
-docker pull nginx:1.17.0    //拉取镜像
-docker run -p 80:80 --name nginx -d nginx:1.17.0    //启动容器
+- docker search nginx //搜索
+- docker pull nginx:1.17.0    //拉取镜像
+- docker run -p 80:80 --name nginx -d nginx:1.17.0    //启动容器
 
 ### 压缩包方式安装
-官网下载地址：nginx.org/download
-下载 nginx 的压缩包文件到根目录，官网下载地址：nginx.org/download/nginx-x.xx.xx.tar.gz
+- 官网下载地址：nginx.org/download（官网下载地址：nginx.org/download/nginx-x.xx.xx.tar.gz）
+- wget下载：wget nginx.org/download/nginx-1.17.2.tar.gz
+
+- yum安装nginx所需插件
 ```
 yum update #更新系统软件
-cd /
-wget nginx.org/download/nginx-1.17.2.tar.gz
+yum -y xxx：加上参数-y，就会自动选择y，不需要你再手动选择 Is this OK[y/d/N]
+
+1、安装gcc（gcc是linux下的编译器）
+查看gcc版本：gcc -v 
+yum -y install gcc
+或
+yum -y install gcc-c++ 
+
+2、pcre、pcre-devel安装（pcre是一个perl库，包括perl兼容的正则表达式库，让nginx支持rewrite）
+yum install -y pcre pcre-devel
+
+3、zlib安装（zlib库提供了很多种压缩和解压缩方式nginx使用zlib对http包的内容进行gzip）
+yum install -y zlib zlib-devel
+
+4、安装openssl（openssl是web安全通信的基石）
+yum install -y openssl openssl-devel
 ```
 
-解压 tar.gz 压缩包文件，进去 nginx-1.17.2
+- Linux中Nginx安装与配置详解
 ```
-tar -xzvf nginx-1.17.2.tar.gz
-cd nginx-1.17.2
-```
-
-进入文件夹后进行配置检查
-```
-./configure
-```
-
-通过安装前的配置检查，发现有报错。检查中发现一些依赖库没有找到，这时候需要先安装 nginx 的一些依赖库
-```
-yum -y install pcre* #安装使nginx支持rewrite
-yum -y install gcc-c++
-yum -y install zlib*
-yum -y install openssl openssl-devel
-```
-
-再次进行检查操作 ./configure 没发现报错显示，接下来进行编译并安装的操作
-```
-// 检查模块支持
-  ./configure  --prefix=/usr/local/nginx  --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_addition_module --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_auth_request_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_slice_module --with-http_stub_status_module --with-mail --with-mail_ssl_module --with-stream --with-stream_ssl_module --with-stream_realip_module --with-stream_ssl_preread_module --with-threads --user=www --group=www
-
-```
- 这里得特别注意下，你以后需要用到的功能模块是否存在，不然以后添加新的包会比较麻烦。
-
-编译并安装
-```
-make && make install
+    1. 下载
+    2. 解压
+    # cd /usr/local/nginx
+    # tar zxvf nginx-1.14.0.tar.gz
+    3. 进入目录
+    # cd nginx-1.14.0
+    4. 配置
+    # ./configure
+    5. 编译
+    # make
+    6. 安装
+    #  make install
+    7. 检查是否安装成功
+    # cd  /usr/local/nginx/sbin
+    # ./nginx -t 
+    结果显示：
+    nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+    nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful。
 ```
 
-查看 nginx 安装后在的目录，可以看到已经安装到 /usr/local/nginx 目录了
-```
-whereis nginx
-$nginx: /usr/local/nginx
-```
-
-启动 nginx 服务
-```
-cd /usr/local/nginx/sbin/
-./nginx
-```
 
 ### 常用命令
 常用命令
 ```
-nginx -s reload  # 向主进程发送信号，重新加载配置文件，热重启
-nginx -s reopen  # 重启 Nginx
-nginx -s stop    # 快速关闭
-nginx -s quit    # 等待工作进程处理完成后关闭
-nginx -T         # 查看当前 Nginx 最终的配置
-nginx -t -c <配置路径>  # 检查配置是否有问题，如果已经在配置目录，则不需要 -c
+cd /usr/local/nginx/sbin/
+./nginx 
+./nginx -s reload  # 向主进程发送信号，重新加载配置文件，热重启
+./nginx -s reopen  # 重启 Nginx
+./nginx -s stop    # 快速关闭
+./nginx -s quit    # 等待工作进程处理完成后关闭
+./nginx -T         # 查看当前 Nginx 最终的配置
+./nginx -t -c <配置路径>  # 检查配置是否有问题，如果已经在配置目录，则不需要 -c
+```
+查询nginx进程：
+```
+ps aux|grep nginx
 ```
 
 ### Nginx 配置
@@ -143,31 +144,31 @@ $server_port        服务器的端口号
 ### 配置文件参考 
 ```
 user  root;
-worker_processes  4;
+worker_processes  4;    #工作进程：数目。根据硬件调整，通常等于cpu数量或者2倍cpu数量。
 
 error_log  logs/error.log;
 #error_log  logs/error.log  notice;
 #error_log  logs/error.log  info;
 
-pid        logs/nginx.pid;
+pid        logs/nginx.pid;  # nginx进程pid存放路径
 
 
 events {
-    worker_connections  1024;
+    worker_connections  1024;   # 工作进程的最大连接数量
 }
 
-# Load dynamic modules, stream configure
-#include /usr/share/nginx/modules/*.conf;
 
 http {
 
-    include       mime.types;
+    include       mime.types;   #指定mime类型，由mime.type来定义
     default_type  application/octet-stream;
 
+    # 日志格式设置
     log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_x_forwarded_for"';
 
+    # 文件大小配置
     server_names_hash_bucket_size 128;
     client_header_buffer_size 32k;
     large_client_header_buffers 4 32k;
@@ -179,40 +180,67 @@ http {
 
     access_log  logs/access.log  main;
 
-    sendfile        on;
-    #tcp_nopush     on;
+    sendfile        on; #指定nginx是否调用sendfile函数来输出文件，对于普通应用，必须设置on。如果用来进行下载等应用磁盘io重负载应用，可设着off，
+    #tcp_nopush     on; #此选项允许或禁止使用socket的TCP_CORK的选项，此选项仅在sendfile的时候使用
 
-    #keepalive_timeout  0;
+    #keepalive_timeout  0;  #keepalive超时时间
     keepalive_timeout  65;
 
-    gzip  on;
+    #gzip  on;   #开启gzip压缩服务
 
     #引入配置1
     include conf/conf.d/*.conf;
 	#引入配置2
 	include /etc/nginx/default.d/*.conf;
+
+    #配置负载均衡（映射规则）
+    upstream www.932edu.com {
+        ip_hash;
+        server 47.93.193.146:8080 weight=2;
+        server 47.94.108.123:8080 weight=1;
+    }
     
     server {
-        listen       80;
-        server_name  localhost;
-        #charset koi8-r;
+        listen       80;    #配置监听端口号
+        #配置访问域名，域名可以有多个，用空格隔开
+        #server_name  localhost; 
+        #配置基于名称的虚拟主机
+        server_name  www.932edu.net 932edu.net;
+        if ($host != 'www.932edu.net'){
+            rewrite ^/(.*)$ http://www.932edu.net/$1 permanent;
+        }
+
+        #charset koi8-r;    #字符集设置
 
         #access_log  logs/host.access.log  main;
-
+        # 跳转规则，配置为 = ，可精确匹配加快访问速度
         location / {
             root         /usr/share/nginx/html;
             index  index.html index.htm;
         }
-
+        # 静态文件配置
         location ~ /uploadtuyue.*\.(gif|jpg|jpeg|png|js|css|woff|woff2|ttf|mp4|mp3|apk|txt)$ {
             expires 7d;
             root /usr/local/;    
         }
-
+        # 匹配路径
         location /tuyue {
             proxy_pass http://localhost:8080/tuyue/;
         }
-
+        # 配置转发代理跳转规则
+        location /lwgk/ {
+            #root   html;
+            #index  index.html index.htm;
+            proxy_pass   http://www.932edu.net/lwgk/;        #充当代理服务器，转发请求
+            proxy_redirect off;                #对发送给客户端的URL进行修改，默认default
+            proxy_set_header Host $host:$server_port;
+            proxy_set_header X-Real-IP $remote_addr;        #获取真实ip
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;        #获取代理者的真实ip
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Allow-Headers X-Requested-With;
+            add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
+                        client_max_body_size    100M;
+        }
 
         #error_page  404              /404.html;
 
@@ -286,3 +314,45 @@ http {
 
 }
 ```
+
+### nginx配置二级模块
+```
+server
+   {
+     listen       80;
+     server_name  ~^(.+)?\.domain\.com$;
+     index index.html;
+     if ($host = domain.com){
+         rewrite ^ http://www.domain.com permanent;
+     }
+     root  /data/wwwsite/domain.com/$1/;
+   }
+/*站点目录结构*/
+/data/wwwsite/domain.com/www/
+/data/wwwsite/domain.com/nginx/
+```
+ 
+这样访问
+www.domain.com时root目录为/data/wwwsite/domain.com/www/，
+nginx.domain.com时为/data/wwwsite/domain.com/nginx/，以此类推
+ 
+ 
+### 代理文件配置
+```
+# proxy.conf
+proxy_redirect          off;
+proxy_set_header        Host $host;
+proxy_set_header        X-Real-IP $remote_addr;  #获取真实ip
+#proxy_set_header       X-Forwarded-For   $proxy_add_x_forwarded_for; #获取代理者的真实ip
+client_max_body_size    10m;
+client_body_buffer_size 128k;
+proxy_connect_timeout   90;
+proxy_send_timeout      90;
+proxy_read_timeout      90;
+proxy_buffer_size       4k;
+proxy_buffers           4 32k;
+proxy_busy_buffers_size 64k;
+proxy_temp_file_write_size 64k;
+```
+
+

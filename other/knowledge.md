@@ -118,69 +118,6 @@ Select * from table where id>10 limit 10
 
 那如果我们的表没有主键，比如是具有多对多关系的表，那么就只能使用传统的 OFFSET/LIMIT 方式，但这样做存在潜在的慢查询问题。完全可以在需要分页的表中使用自动递增的主键，即使只是为了分页。
 
-### prometheus安装使用：(记录和报警、可视化)
-官网安装包下载：https://prometheus.io/download/
-Prometheus组件： https://github.com/prometheus
-1.下载并解压安装包（也可以使用docker）
-2.promethes.yml配置
-```
-#全局配置  
-global:  
-  scrape_interval:     15s # 设置抓取间隔，默认为1分钟  
-  evaluation_interval: 15s #估算规则的默认周期，每15秒计算一次规则。默认1分钟  
-  # scrape_timeout  #默认抓取超时，默认为10s  
-  
-#Alertmanager相关配置  
-alerting:  
-  alertmanagers:  
-  - static_configs:  
-    - targets:  
-      # - alertmanager:9093  
-  
-#规则文件列表，使用'evaluation_interval' 参数去抓取  
-rule_files:  
-    #- "first_rules.yml"  
-    #- "second_rules.yml"  
-  
-#  抓取配置列表  
-scrape_configs:  
-  - job_name: 'prometheus'  
-    static_configs:  
-    - targets: ['localhost:9090']  
-```
-3、创建prometheus的用户及数据存储目录（不是必须）
-为了安全，使用普通用户来启动prometheus服务。作为一个时序型的数据库产品，prometheus的数据默认会存放在应用所在目录下。
-	• 创建用户，并指定家目录
-[root@prometheus /]# groupadd prometheus
-[root@prometheus /]# useradd -g prometheus -m -d /var/lib/prometheus -s /sbin/nologin prometheus
-	• 创建数据目录
-[root@prometheus ~]# mkdir /export/prometheus/data -p
-	• 修改目录属主
-[root@prometheus /]# chown prometheus.prometheus -R /usr/local/prometheus
-4、启动prometheus
-./prometheus --config.file=prometheus.yml
-# By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
-默认情况下，Prometheus 将其数据库存储在 ./data（标志 --storage.tsdb.path）。
-在localhost:9090
-4.1 创建Systemd服务启动prometheus
-4.2 前台/后台启动
-前台启动
-[root@prometheus ~]# cd /usr/local/prometheus/
-[root@prometheus prometheus]# ./prometheus
-后台启动
-[root@prometheus prometheus]# nohup ./prometheus &
-
-docker启动：
-docker run \
-    -p 9090:9090 \
-    -v /Users/luoxiaosheng/path/to/prometheus.yml:/etc/prometheus/prometheus.yml \
-    prom/prometheus
-
-
-### prometheus报警、规则配置：
-https://awesome-prometheus-alerts.grep.to/
-
-
 ### maven引入本地jar：
         <dependency>
           <groupId>dingding</groupId>
@@ -778,7 +715,7 @@ public class EventHandler {
 
 ### 责任链实现：
 1.FilterChain责任链接口（方法：preAuth前置鉴权，fireNext下一个鉴权）
-```java
+```
 //第一种形式
 public interface OrderFilterChain<T extends OrderContext> {
   void handle(T var1);
@@ -855,7 +792,7 @@ public class DefaultFilterChain implements FilterChain {
 }
 ```
 3.责任链初始化
-```java
+```
 //第一种形式
 public class FilterChainPipeline<T extends OrderFilter> {
   private DefaultFilterChain last;

@@ -721,6 +721,39 @@ stdout_logfile=/var/log/jenkins.log
 systemctl enable supervisorctl  //加入开机自启动
 ```
 
+### linux配置本地yum源
+1. 添加本地repo命令
+```
+vi /etc/yum.repos.d/CentOS-Base.repo
+```
+2. 保存配置
+```
+Centos7 yum源配置 
+[Centos7_v3]
+name=Centos7.x
+enable=1
+baseurl=http://80.80.98.207/Centos7.x
+gpgcheck=0
+```
+3.删除其他repo
+```
+  692  2021-07-19 14:40:45  root rm -rf CentOS-CR.repo
+  693  2021-07-19 14:40:57  root rm -rf CentOS-Debuginfo.repo 
+  694  2021-07-19 14:41:10  root rm -rf CentOS-fasttrack.repo 
+  695  2021-07-19 14:41:22  root rm -rf CentOS-Media.repo 
+  696  2021-07-19 14:41:28  root rm -rf CentOS-Sources.repo 
+  697  2021-07-19 14:41:34  root rm -rf CentOS-Vault.repo 
+```
+3. 清除缓存
+```
+yum clean all
+yum makecache
+```
+4. 查看是否成功
+```
+yum list 
+```
+
 
 
  
