@@ -824,6 +824,31 @@ FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuth
 ```
 
 
+### underscore和jquery区别
+underscore和jquery（jquey主要用于页面交互，封装了很多操作dom的方法，以及ajax，
+underscore则可以理解为一个js的函数库，其中主要封装了一些常用的js方法）
+
+### OkHttp基础请求方式：
+```
+public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+OkHttpClient client = new OkHttpClient();
+String post(String url, String json) throws IOException {  
+    RequestBody body = RequestBody.create(JSON, json);  
+    Request request = new Request.Builder()      
+                        .url(url)      
+                        .post(body)      
+                        .build();  
+    try (Response response = client.newCall(request).execute()) {    
+        return response.body().string();  
+    }
+}
+```
+
+
+
+
+
+
 
 
 

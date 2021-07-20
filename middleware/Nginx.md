@@ -12,7 +12,7 @@ Nginx (engine x) 是一个高性能的HTTP和反向代理web服务器，同时�
 - brew search nginx   //搜索软件包
 - brew install nginx  //安装软件包
 - brew services start nginx   //启动nginx 
-- brew services stop nginx   //关闭nginx服务
+- brew services stop nginx   //关闭nginx
 - nginx -v   // 查看nginx版本
 - nginx -s reload     //重新加载nginx
 - nginx -s stop       //停止nginx

@@ -68,6 +68,7 @@ docker pull logstash:7.8.0
 docker pull elasticsearch:7.8.0
 docker pull kibana:7.8.0
 docker pull prom/prometheus
+docker pull xuxueli/xxl-job-admin
 ```
 删除镜像
 • 指定名称删除镜像：docker rmi java:8
