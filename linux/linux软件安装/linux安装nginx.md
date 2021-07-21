@@ -8,22 +8,22 @@
 ## linux安装nginx
 
 ### 安装所需插件
-1、安装gcc（gcc是linux下的编译器）
+1. gcc（gcc是linux下的编译器）
 查看gcc版本：gcc -v 
 yum -y install gcc
 或
 yum install gcc-c++ 
 
-2、pcre、pcre-devel安装（pcre是一个perl库，包括perl兼容的正则表达式库，让nginx支持rewrite）
+2. pcre、pcre-devel安装（pcre是一个perl库，包括perl兼容的正则表达式库，让nginx支持rewrite）
 yum install -y pcre pcre-devel
 
-3、zlib安装（zlib库提供了很多种压缩和解压缩方式nginx使用zlib对http包的内容进行gzip）
+3. zlib安装（zlib库提供了很多种压缩和解压缩方式nginx使用zlib对http包的内容进行gzip）
 yum install -y zlib zlib-devel
 
-4、安装openssl（openssl是web安全通信的基石）
+4. 安装openssl（openssl是web安全通信的基石）
 yum install -y openssl openssl-devel
 
-5、手动安装教程示例：
+5. 手动安装教程示例：
 ```
     1）下载
     2）上传

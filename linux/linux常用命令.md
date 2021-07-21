@@ -374,6 +374,17 @@ top -o -pid：pid排序
 ```
 
 free -m：查看服务器内存使用情况
+free -h：GBytes，MBytes，KBytes自行显示列出所有文件系统
+```
+    Mem 行(第二行)是内存的使用情况。
+    Swap 行(第三行)是交换空间的使用情况。
+    total 列显示系统总的可用物理内存和交换空间大小。
+    used 列显示已经被使用的物理内存和交换空间。
+    free 列显示还有多少物理内存和交换空间可用使用。
+    shared 列显示被共享使用的物理内存大小。
+    buff/cache 列显示被 buffer 和 cache 使用的物理内存大小。
+    available 列显示还可以被应用程序使用的物理内存大小。
+```
 
 df(disk free)	//显示磁盘的相关信息
 		//-a：列出所有文件系统
@@ -735,21 +746,21 @@ enable=1
 baseurl=http://80.80.98.207/Centos7.x
 gpgcheck=0
 ```
-3.删除其他repo
+3. 删除其他repo
 ```
   692  2021-07-19 14:40:45  root rm -rf CentOS-CR.repo
-  693  2021-07-19 14:40:57  root rm -rf CentOS-Debuginfo.repo 
-  694  2021-07-19 14:41:10  root rm -rf CentOS-fasttrack.repo 
-  695  2021-07-19 14:41:22  root rm -rf CentOS-Media.repo 
-  696  2021-07-19 14:41:28  root rm -rf CentOS-Sources.repo 
+  693  2021-07-19 14:40:57  root rm -rf CentOS-Debuginfo.repo
+  695  2021-07-19 14:41:22  root rm -rf CentOS-Media.repo  
   697  2021-07-19 14:41:34  root rm -rf CentOS-Vault.repo 
+  694  2021-07-19 14:41:10  root rm -rf CentOS-fasttrack.repo 
+  696  2021-07-19 14:41:28  root rm -rf CentOS-Sources.repo 
 ```
-3. 清除缓存
+4. 清除缓存
 ```
 yum clean all
 yum makecache
 ```
-4. 查看是否成功
+5. 查看是否成功
 ```
 yum list 
 ```

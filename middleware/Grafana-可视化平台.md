@@ -33,19 +33,7 @@ Grafana Enterprise (Beta)	grafana-enterprise	https://packages.grafana.com/enterp
 
 选择是否要安装 Grafana 的开源版或企业版，并将您选择的版本中的信息输入到 grafana.repo 中。如果您想安装 Grafana 的 Beta 版，您需要将 URL 替换为上表中的 Beta URL。
 
-企业版
-```
-[grafana]
-name=grafana
-baseurl=https://packages.grafana.com/enterprise/rpm
-repo_gpgcheck=1
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.grafana.com/gpg.key
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-```
-
+手动添加 /etc/yum.repos.d/grafana.repo文件：
 开源版
 ```
 [grafana]
@@ -62,8 +50,17 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 安装
 ```
 sudo yum install grafana
-# or
-sudo yum install grafana-enterprise
+```
+
+手动下载安装
+```
+//二进制安装
+wget https://dl.grafana.com/oss/release/grafana-8.0.6.linux-amd64.tar.gz
+tar -zxvf grafana-8.0.6.linux-amd64.tar.gz
+
+//rpm下载安装
+wget https://dl.grafana.com/oss/release/grafana-8.0.6-1.x86_64.rpm
+sudo yum install grafana-8.0.6-1.x86_64.rpm
 ```
 
 2. 启动服务器
@@ -107,6 +104,21 @@ sudo /sbin/chkconfig --add grafana-server
 4. 通过从数据源选择器中选择 -- Grafana/或你自己添加的数据源 -- 来配置您的查询。这将生成 *Random Walk* 仪表板。
 5. 单击屏幕右上角的 *Save* 图标以保存仪表板。
 6. 添加描述性名称，然后单击 *Save* 保存。
+
+
+### grafana 默认的dashboards
+- redis ⾯面板：https://grafana.com/grafana/dashboards/11692
+- Es ⾯面板：https://grafana.com/grafana/dashboards/3236
+- mysql ⾯面板：https://grafana.com/grafana/dashboards/11323
+- rocketmq ⾯面板：https://grafana.com/grafana/dashboards/10477
+- Druid ⾯面板：https://grafana.com/grafana/dashboards/11157
+- JVM ⾯面板：https://grafana.com/grafana/dashboards/4701
+
+操作步骤：
+    1. 去网站，点击对应的 *Copy ID to Clipboard*
+    2. 去grafana面板，点击 *+* 号，点击 *import* 
+    3. 从这里上传复制的ID，仪表板 URL，仪表板 JSON 文件、 或仪表板 JSON 文本直接粘贴到文本区域。
+
 
 ### 添加数据源
 1. 将光标移动到侧面菜单上的齿轮图标，该图标将显示 *Configuration* 选项。
@@ -333,25 +345,24 @@ $<varname> 示例：@hostname:$hostname
 ![](../static/middleware/grafana-elastic2.png)
 
 ### Prometheus数据源
+数据源选项
 
-### Prometheus 配置
 |名称| 描述|
 |---|---|
-|Name	|The data source name. This is how you refer to the data source in panels and queries.|
-|Default	|Default data source that is pre-selected for new panels.|
-|Url	|The URL of your Prometheus server, for example, http://prometheus.example.org:9090.|
-|Access	|Server (default) = URL needs to be accessible from the Grafana backend/server, Browser = URL needs to be accessible from the browser.|
-|Basic Auth	|Enable basic authentication to the Prometheus data source.|
-|User	|User name for basic authentication.|
-|Password	|Password for basic authentication.|
-|Scrape interval	|Set this to the typical scrape and evaluation interval configured in Prometheus. Defaults to 15s.|
-|HTTP method	|Use either POST or GET HTTP method to query your data source. POST is the recommended and pre-selected method as it allows bigger queries. Change this to GET if you have a Prometheus version older than 2.1 or if POST requests are restricted in your network.|
-|Disable metrics lookup	|Checking this option will disable the metrics chooser and metric/label support in the query field’s autocomplete. This helps if you have performance issues with bigger Prometheus instances.|
-|Custom Query Parameters	|Add custom parameters to the Prometheus query URL. For example timeout, partial_response, dedup, or max_source_resolution. Multiple parameters should be concatenated together with an ‘&’.|
-|Label name	|Add the name of the field in the label object.|
-|URL	|If the link is external, then enter the full link URL. You can interpolate the value from the field with ${__value.raw } macro.|
-|Internal link	|Select if the link is internal or external. In the case of an internal link, a data source selector allows you to select the target data source. Supports tracing data sources only.|
-
+|Name	|数据源名称。这就是您在面板和查询中引用数据源的方式。|
+|Default	|默认数据源意味着它将为新面板预先选择。|
+|Url	|您的 Prometheus 服务器的 URL，例如http://prometheus.example.org:9090.|
+|Access	|服务器（默认）= URL 需要可以从 Grafana 后端/服务器访问，浏览器 = URL 需要可以从浏览器访问。|
+|Basic Auth	|启用对 Prometheus 数据源的基本身份验证。|
+|User	|用于基本身份验证的用户名。|
+|Password	|用于基本身份验证的密码。|
+|Scrape interval	|将此设置为 Prometheus 中配置的典型抓取和评估间隔。默认为 15 秒。|
+|HTTP method	|使用 POST 或 GET HTTP 方法来查询您的数据源。POST 是推荐的和预先选择的方法，因为它允许更大的查询。如果您的 Prometheus 版本低于 2.1 或者 POST 请求在您的网络中受到限制，请将其更改为 GET。|
+|Disable metrics lookup	|选中此选项将禁用查询字段自动完成中的指标选择器和指标/标签支持。如果较大的 Prometheus 实例出现性能问题，这会有所帮助。|
+|Custom Query Parameters	|将自定义参数添加到 Prometheus 查询 URL。例如timeout，partial_response、dedup、 或max_source_resolution。多个参数应该用“&”连接在一起。|
+|Label name	|在标签对象中添加字段的名称。|
+|URL	|如果链接是外部链接，则输入完整的链接 URL。您可以使用${__value.raw }宏从字段中插入值。|
+|Internal link	|选择链接是内部链接还是外部链接。对于内部链接，数据源选择器允许您选择目标数据源。仅支持跟踪数据源。|
 
 ### Prometheus 查询编辑器
 |名称| 描述|
@@ -365,6 +376,9 @@ $<varname> 示例：@hostname:$hostname
 |Instant	|Perform an “instant” query, to return only the latest value that Prometheus has scraped for the requested time series. Instant queries return results much faster than normal range queries. Use them to look up label sets.|
 |Min time interval	|This value multiplied by the denominator from the Resolution setting sets a lower limit to both the $__interval variable and the step parameter of Prometheus range queries. Defaults to Scrape interval as set in the data source options.|
 |Exemplars	|Run and show exemplars in the graph.|
+
+
+
 
 
 

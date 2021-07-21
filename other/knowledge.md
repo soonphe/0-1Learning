@@ -844,8 +844,22 @@ String post(String url, String json) throws IOException { 
 }
 ```
 
+### package.json中 ^ 和 ~ 的区别
+指定版本号
+(1)普通版本号: 表示安装此版本,比如"classnames": "2.2.5"，表示安装2.2.5的版本
+(2)表示安装大版本的最小最新子版本: ~版本,比如 "babel-plugin-import": "~1.1.0",表示安装1.1.x的最新版本（不低于1.1.0），但是不安装1.2.x，也就是说安装时不改变大版本号和次要版本号
+(3)表示安装大版本的最高中版本: ^版本,比如 "antd": "^3.1.4",，表示安装3.1.4及以上的版本，但是不安装4.0.0，也就是说安装时不改变大版本号。
 
+### devDependencies和dependencies区别
+devDependencies用于本地环境开发时候。
+dependencies用户发布环境
 
+### npm install 安装报错解决思路：
+1、删除  package-lock.json文件
+2、npm cache clean --force
+3、npm config rm proxy    npm config rm https-proxy
+最后试试更换源：
+npm set registry https://registry.npmjs.org/
 
 
 

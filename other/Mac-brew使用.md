@@ -24,8 +24,10 @@ brew config：查看brew配置来源
 brew -v ：版本号
 brew list：列出所有已安装formula（软件包）和cask（应用包）
 brew list --versions:列出所有已安装的formula（软件包）和cask（应用包）及版本。
+brew services list：查看服务运行情况
 brew search xxx ：搜索formula（软件包）和cask（应用包）。例如 brew search mysql
 brew install xxx ：安装。例如：brew install mysql
+brew install xxx@x.x ：安装指定版本。例如：brew install mysql@5.7
 brew info xxx：查询。 例如：brew info mysql 主要查看具体的信息及依赖关系当前版本注意事项等
 brew update：更新。 如果想要更新到当前最新的版本要先把当前 brew 更新到最新。这个时候他会先更新自己到最新 接下来的操作才更有意义
 brew outdated：检测新版本。 会列出所有有新版本的程序

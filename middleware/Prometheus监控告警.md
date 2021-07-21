@@ -202,3 +202,17 @@ More than 60% of MySQL connections are in running state on {{ $labels.instance }
       summary: MySQL high threads running (instance {{ $labels.instance }})
       description: "More than 60% of MySQL connections are in running state on {{ $labels.instance }}\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 ```
+
+
+### Prometheus ——exporter
+exporter 导出系统中已经存在的指标。然后上传到Prometheus ，地址 https://prometheus.io/docs/instrumenting/exporters/
+- mysql exporter 地址:https://github.com/prometheus/mysqld_exporter
+- es exporter 地址：https://github.com/justwatchcom/elasticsearch_exporter
+- rocketmq 地址：https://github.com/apache/rocketmq-exporter
+- redis exporter 地址：https://github.com/oliver006/redis_exporter
+
+>各种exporter 需要在服务器器上安装，按照安装⽂文档操作即可。
+
+
+
+
