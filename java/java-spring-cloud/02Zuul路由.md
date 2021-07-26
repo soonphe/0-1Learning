@@ -6,6 +6,10 @@
 ![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 ## Zuul路由网关
+zuul 是netflix开源的一个API Gateway 服务器, 本质上是一个web servlet应用。
+Zuul 在云平台上提供动态路由，监控，弹性，安全等边缘服务的框架。Zuul 相当于是设备和 Netflix 流应用的 Web 网站后端所有请求的前门。
+zuul的例子可以参考 netflix 在github上的 simple webapp，可以按照netflix 在github wiki 上文档说明来进行使用。
+
 
 ### Zuul路由网关创建
 1.pom配置

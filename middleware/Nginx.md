@@ -227,6 +227,14 @@ http {
         location /tuyue {
             proxy_pass http://localhost:8080/tuyue/;
         }
+        # 匹配路径
+        location /jenkins {
+            proxy_pass http://10.10.18.36:8080/;
+            proxy_set_header Host $proxy_host; # 修改转发请求头，让8080端口的应用可以受到真实的请求
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
         # 配置转发代理跳转规则
         location /lwgk/ {
             #root   html;
@@ -239,7 +247,7 @@ http {
             add_header Access-Control-Allow-Origin *;
             add_header Access-Control-Allow-Headers X-Requested-With;
             add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
-                        client_max_body_size    100M;
+            client_max_body_size    100M;
         }
 
         #error_page  404              /404.html;
@@ -335,6 +343,40 @@ server
 这样访问
 www.domain.com时root目录为/data/wwwsite/domain.com/www/，
 nginx.domain.com时为/data/wwwsite/domain.com/nginx/，以此类推
+
+### nginx配置二级域名
+```
+    server {
+        listen          80;
+        server_name     www.codeliu.com;
+    
+        location / {
+            root    /usr/lib/apache-tomcat-8.5.33/webapps/CodeliuDemo;
+            index   index.html index.htm;
+        }
+    }
+    
+    
+    server {
+        listen          80;
+        server_name     test1.codeliu.com;
+    
+        location / {
+            root   /usr/lib/apache-tomcat-8.5.33/webapps/Test1Demo;
+            index  index.html index.htm;
+        }
+    }
+    
+    server {
+        listen          80;
+        server_name     test2.codeliu.com;
+    
+        location / {
+            root    /usr/lib/apache-tomcat-8.5.33/webapps/Test2Demo;
+            index   index.html index.htm;
+        }
+    }
+```
  
  
 ### 代理文件配置

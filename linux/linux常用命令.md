@@ -97,6 +97,14 @@ mode : 权限设定字串，格式如下 :
 示例：
 chmod -R a+rwx /usr/local/mysql/data/ ：为所有用户添加可读、可写、可执行权限
 chmod u+x *：为文件所有者添加执行权限
+
+修改文件拥有者
+chown [-R] 账号名称      文件/目录
+chown [-R] 账号名称:组群  文件/目录
+
+例：
+chown admin:groupa file     //修改fil的拥有者为admin，并且所属组为groupa
+chown -R admin fileDir    //同时文件夹下改变其下所有文件拥有者
 ```
 
 ### 查看文件及内容（head、tail、cat、nl、grep、less、more）

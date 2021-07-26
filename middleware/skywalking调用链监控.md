@@ -99,7 +99,10 @@ service_name的配置可以在启动项中进行动态的配置。
 
 监控dubbo服务端、消费端：
 java -jar -javaagent:$AGENT_PATH/skywalking-agent.jar -Dskywalking.agent.application_code=dubbo-provider -Dskywalking.collector.servers=localhost:10800 dubbo-provider.jar
-java -jar -javaagent:$AGENT_PATH/skywalking-agent.jar -Dskywalking.agent.application_code=dubbo-consumer -Dskywalking.collector.servers=localhost:10800 dubbo-consumer/target/dubbo-consumer.jar 
+java -jar -javaagent:/home/admin/skywalking/agent/skywalking-agent.jar  -Dskywalking.collector.servers=192.168.161.168:10800 -Dskywalking.agent.service_name=xx
+-javaagent:/home/admin/skywalking/agent/skywalking-agent.jar  -Dskywalking.collector.servers=192.168.161.168:11800 -Dskywalking.agent.service_name=invoice-centersrv
+collector.backend_service
+
 ```
 tomcat添加示例
 ```
