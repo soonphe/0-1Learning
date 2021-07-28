@@ -54,6 +54,15 @@ ls -al 目录	//-a：列出所有文件（含属性与隐藏文件）
 		//-s：打印文件大小
 		//-t：按时间对文件排序
 ls -al --full-time 目录	//呈现文件的修改时间
+
+ln -s 源文件 目标文件。 //添加软连接，为某一个文件在另外一个位置建立一个同不的链接
+ln -s /usr/local/mysql/bin/mysql /usr/bin        //创建mysql软链接
+ln -s /root/.nvm/versions/node/v10.10.0/bin/npm /usr/local/bin/npm  //常见npm软链接
+
+echo 字符串的输出
+echo string
+echo $JAVA_HOME #获取java环境变量
+echo $PATH      #后去环境变量path的值
 ```
 
 文件操作相关：

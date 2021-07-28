@@ -12,6 +12,7 @@
 git add . 或者git add 文件名称  ：将文件添加到待提交区（暂存区），即此时更新为WorkSpace保存到Stage中。
 git commit 提交 
 git commit -m 提交 m后接对更新说明  此时更新已经从Stage保存到了Local Repo中。
+git commit -am "提交说明" //提交时加上参数：-a ，表示新增。
 git diff"是个很有用，而且会经常用到的命令，用于显示WorkSpace中的文件和暂存区文件的差异
 git checkout --<file>..."来撤销WorkSpace中的更新。执行test.txt中的文本会变成两行"abc"。
 git reset HEAD <file>..将更新移出到WorkSpace中。

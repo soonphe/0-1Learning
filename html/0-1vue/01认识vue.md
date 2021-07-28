@@ -7,8 +7,6 @@
 
 
 ## 认识vue
-
-### 环境
 备注：学习之前最好具备HTML、CSS 和 JavaScript 的基础知识。
 
 ### VUE安装
@@ -30,24 +28,6 @@ NPM 能很好地和诸如 webpack 或 Browserify 模块打包器配合使用。
 ```
 # 最新稳定版
 $ npm install vue
-```
-
-再补充一点node和npm的关系：
-node.js是javascript的一种运行环境，是对Google V8引擎进行的封装，是一个服务器端的javascript的解释器。
-nodejs中含有npm，比如说你安装好nodejs，你打开cmd输入npm -v会发现npm的版本号，说明npm已经安装好。
-
-npm和yarn命令：
-```
-NPM	YARN	说明
-npm init	yarn init	初始化某个项目
-npm install/link	yarn install/link	默认的安装依赖操作
-npm install taco —save	yarn add taco	安装某个依赖，并且默认保存到package.
-npm uninstall taco —save	yarn remove taco	移除某个依赖项目
-npm install taco —save-dev	yarn add taco —dev	安装某个开发时依赖项目
-npm update taco —save	yarn upgrade taco	更新某个依赖项目
-npm install taco --global	yarn global add taco	安装某个全局依赖项目
-npm publish/login/logout	yarn publish/login/logout	发布/登录/登出，一系列NPM Registry操作
-npm run/test	yarn run/test	运行某个命令
 ```
 
 ### VUE实例
@@ -136,37 +116,37 @@ CLI 插件是向你的 Vue 项目提供可选功能的 npm 包，例如 Babel/Ty
 
 ### Vue项目结构
 使用vue-cli创建的项目结构会比较复杂
-.
-|-- build                            // 项目构建(webpack)相关代码
-|   |-- build.js                     // 生产环境构建代码
-|   |-- check-version.js             // 检查node、npm等版本
-|   |-- dev-client.js                // 热重载相关
-|   |-- dev-server.js                // 构建本地服务器
-|   |-- utils.js                     // 构建工具相关
-|   |-- webpack.base.conf.js         // webpack基础配置
-|   |-- webpack.dev.conf.js          // webpack开发环境配置
-|   |-- webpack.prod.conf.js         // webpack生产环境配置
-|-- config                           // 项目开发环境配置
-|   |-- dev.env.js                   // 开发环境变量
-|   |-- index.js                     // 项目一些配置变量
-|   |-- prod.env.js                  // 生产环境变量
-|   |-- test.env.js                  // 测试环境变量
-|-- dist：                           // 生产环境webpack编译打包输出目录，同样按照view、styles、js组织
-|-- node_modules：                   // 所以使用的nodeJs模块
-|-- src                              // 源码目录
-|   |-- components                     // vue公共组件
-|   |-- store                          // vuex的状态管理
-|   |-- App.vue                        // 页面入口文件
-|   |-- main.js                        // 程序入口文件，加载各种公共组件
-|-- static                           // 静态文件，比如一些图片，json数据等
-|   |-- data                           // 群聊分析得到的数据用于数据可视化
-|-- .babelrc                         // ES6语法编译配置
-|-- .editorconfig                    // 定义代码格式
-|-- .gitignore                       // git上传需要忽略的文件格式
-|-- README.md                        // 项目说明
-|-- favicon.ico 
-|-- index.html                       // 入口页面
-|-- package.json                     // 项目基本信息
+```
+0-1Learning
+├── build -- 算法
+    └── build.js -- 项目构建相关代码
+├── mock -- mock接口模块
+├── node_modules -- 使用的nodeJs模块
+├── dist -- 编译打包输出目录
+├── public -- 
+    ├── favicon.ico -- 页面图标
+    └── index.html -- 入口页面
+├── src -- 核心
+    ├── api -- 页面图标
+    ├── assets -- 页面图标
+    ├── components -- 页面图标
+    ├── layout -- 布局相关
+    ├── router -- 路由相关
+    ├── store -- vuex
+    ├── styles -- 页面图标
+    ├── utils -- 通用模块
+    └── views -- 页面相关
+├── static --  静态文件
+├── .editorconfig -- 定义代码格式
+├── .env.development --  开发环境变量
+├── .env.production -- 生产环境变量
+├── .env.staging -- 测试环境变量
+├── babel.config.js -- ES6语法编译配置
+├── .gitignore  -- git上传需要忽略的文件格式
+├── package.json -- 项目依赖
+├── README.md -- 项目说明
+└── vue.config.js -- 项目配置
+```
 
 
 ### Vue项目依赖
@@ -200,6 +180,7 @@ CLI 插件是向你的 Vue 项目提供可选功能的 npm 包，例如 Babel/Ty
 </style>
 ```
 
+
 ### 运行和打包
 vue打包
 vue-cli-service build 会在 dist/ 目录产生一个可用于生产环境的包，带有 JS/CSS/HTML 的压缩，和为更好的缓存而做的自动的 vendor chunk splitting。
@@ -207,8 +188,6 @@ vue-cli-service build 会在 dist/ 目录产生一个可用于生产环境的包
 
 如何部署
 将打包出来的资源，基于Vue-Cli的一般是dist目录下有static目录和index.html文件，可以直接将这两个文件扔到服务端，但有时候，我们会直接将dist文件扔到服务端
-
-
 
 
 
