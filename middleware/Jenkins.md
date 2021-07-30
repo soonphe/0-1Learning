@@ -10,11 +10,24 @@ Jenkins是一个开源软件项目，是基于Java开发的一种持续集成工
 
 ### 安装部署
 基于Docker安装Jenkins环境
+```
 docker search jenkins
 docker pull jenkins
-docker run -p 8080:8080 -p 50000:50000 -v jenkins_data:/var/jenkins_home jenkinsci/blueocean
+# 启动jenkins
+docker run \
+--name jenkins \
+-d \
+-p 8080:8080 \
+-p 50000:50000 \
+-v jenkins-data:/var/jenkins_home \
+-v /opt/edas/jdk/jdk1.8.0_65:/opt/edas/jdk/jdk1.8.0_65 \
+-v /opt/maven-3.6.3:/opt/maven-3.6.3 \
+-v /root/.nvm/versions/node/v10.10.0:/node
+jenkins
+
 docker exec -it jenkins_v /bin/bash #进入jenkins容器
 systemctl restart  docker    #重启容器
+```
 
 1. 访问http://localhost:8080 jenkins地址
 2. 从 Jenkins 控制台日志输出中，复制自动生成的字母数字密码（在 2 组星号之间）。
