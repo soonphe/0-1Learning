@@ -930,6 +930,8 @@ Maven package 打包指令，其就做了一件事：
 1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
 
 
+### IDEA、WebStorm项目无法被识别为Git项目
+VCS - Enable Version Control Intergration
 
-
+### 
 

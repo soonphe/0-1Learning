@@ -34,7 +34,7 @@ https://www.docker.com/products/docker-desktop
 2.brew安装
 ```
 brew search docker
-brew install --cask firefox
+brew install docker
 ```
 3.手动安装
 ```
@@ -51,14 +51,14 @@ yum install docker-ce
 systemctl start docker
 ```
 
-### 1.Docker 镜像常用命令
+### Docker 常用命令
 service docker start：如果service命令启动不了用下面的
-启动docker：systemctl start docker
-关闭Docker服务：systemctl stop docker
-查看Docker版本：docker version
+systemctl start docker  启动docker
+systemctl stop docker   关闭Docker服务
 
-搜索镜像：docker search java（查看版本需要去官网：https://hub.docker.com/u/library）
-下载镜像：docker pull images
+docker version          查看Docker版本
+docker search java      搜索镜像（查看版本需要去官网：https://hub.docker.com/u/library）
+docker pull images      下载镜像
 ```
 docker pull java:8
 docker pull mysql:5.7
@@ -69,20 +69,38 @@ docker pull elasticsearch:7.8.0
 docker pull kibana:7.8.0
 docker pull prom/prometheus
 docker pull xuxueli/xxl-job-admin
+docker pull jenkins
+docker pull node
+docker pull minio
+docker pull alpine  #一个基于 Alpine Linux 的最小 Docker 镜像，包索引完整，大小只有 5 MB！
 ```
-删除镜像
-• 指定名称删除镜像：docker rmi java:8
-• 指定名称删除镜像（强制）：docker rmi -f java:8
-• 强制删除所有镜像：docker rmi -f $(docker images)
+docker rmi java:8       • 指定名称删除镜像
+docker rmi -f java:8    • 指定名称删除镜像（强制）
+docker rmi -f $(docker images)  • 强制删除所有镜像
 
-docker ps -a或-l：无参数则是查询当前正在运行的容器  -a列出所有容器	-l列出最新创建的容器
-docker logs 容器名	查询容器日志
--f 跟踪日志的变化
--t 在返回的结果上加上时间戳
---tail 结尾处多少数量，默认all所有
-查询容器内进程:docker top 
+docker ps           • 列出运行中的容器
+docker ps -a或-l     -a列出所有容器	-l列出最新创建的容器
 
-### 2.Docker 容器常用命令
+docker start $ContainerName(或者$ContainerId) 启动容器(已存在的容器)
+docker stop $ContainerName(或者$ContainerId)  停止容器
+docker kill $ContainerName(或者$ContainerId)  强制停止容器
+docker start $ContainerName(或者$ContainerId) 启动已停止的容器：
+docker attach 44fc0f0582d9                   进入容器(缺点:只要这个连接终止，或者使用了exit命令，容器就会退出后台运行)
+docker rm $ContainerName(或者$ContainerId)    删除指定容器
+docker rm -f $(docker ps -a -q)              强制删除所有容器
+docker logs $ContainerName(或者$ContainerId)  查看容器的日志(-f 跟踪日志的变化 -t 在返回的结果上加上时间戳 --tail 结尾处多少数量，默认all所有)
+docker top nginx    查询容器内进程
+docker stats $ContainerName(或者$ContainerId) 查看指定容器情况docker使用cpu、内存、网络、io情况，-a查询所有
+
+docker inspect --format '{{ .NetworkSettings.IPAddress }}' $ContainerName(或者$ContainerId) 查看容器的IP地址
+docker inspect container_name | grep Mounts -A 20   #查看容器挂载目录
+docker inspect container_id | grep Mounts -A 20
+docker inspect -f "{{.Mounts}}" nginx
+
+docker info | grep "Docker Root Dir"        • 查看Docker镜像的存放位置：
+
+docker cp /etc/localtime $ContainerName(或者$ContainerId):/etc/   同步宿主机时间到容器
+
 
 #### 新建并启动容器：docker run -p 80:80 --name nginx -d nginx:1.17.0
 docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
@@ -108,34 +126,6 @@ OPTIONS说明：
     --volume , -v: 绑定一个卷
 ```
 
-#### 列出容器
-• 列出运行中的容器：docker ps
-• 列出所有容器：docker ps -a
-
-#### 启动、停止容器
-启动容器(已存在的容器)：docker start $ContainerName(或者$ContainerId)
-停止容器：
-1. docker stop $ContainerName(或者$ContainerId)（$ContainerName及$ContainerId可以用docker ps命令查询出来）
-2. 比如：docker stop nginx  或者  docker stop c5f5d5125587
-强制停止容器：docker kill $ContainerName(或者$ContainerId)
-启动已停止的容器：docker start $ContainerName(或者$ContainerId)
-
-#### 进入容器
-sudo docker attach 44fc0f0582d9  
-但是它有一个缺点，只要这个连接终止，或者使用了exit命令，容器就会退出后台运行
-
-• 先查询出容器的pid：
-docker inspect --format "{{.State.Pid}}" $ContainerName(或者$ContainerId)
-• 根据容器的pid进入容器：
-nsenter --target "$pid" --mount --uts --ipc --net --pid
-
-#### 删除容器
-• 删除指定容器：docker rm $ContainerName(或者$ContainerId)
-• 强制删除所有容器：docker rm -f $(docker ps -a -q)
-查看容器的日志：docker logs $ContainerName(或者$ContainerId)
-查看容器的IP地址：docker inspect --format '{{ .NetworkSettings.IPAddress }}' $ContainerName(或者$ContainerId)
-
-#### 设置容器端口映射：
 docker run -p 80 -i -t ubuntu /bin/bash		指定容器端口
 docker run -p 8080:80 -i -t ubuntu /bin/bash	指定宿主机和容器端口
 docker run -p 0.0.0.0:80 -i -t ubuntu /bin/bash	指定ip和容器端口
@@ -145,22 +135,10 @@ docker run -it -d -p 127.0.0.1:5000:5000 docker.io/centos:latest /bin/bash  将�
 docker run -it -d -p 127.0.0.1::4000 docker.io/centos:latest /bin/bash  将容器的4000端口映射到127.0.0.1的任意端口上：
 docker run -itd -p 8000:80 docker.io/centos:latest /bin/bash    将容器的80端口映射到宿主机的8000端口上
 
-#### 同步宿主机时间到容器：
-docker cp /etc/localtime $ContainerName(或者$ContainerId):/etc/
-
-#### 在宿主机查看docker使用cpu、内存、网络、io情况
-• 查看指定容器情况：docker stats $ContainerName(或者$ContainerId)
-• 查看所有容器情况：docker stats -a
 
 #### 进入Docker容器内部的bash：
 docker exec -it $ContainerName /bin/bash
 
-#### 修改Docker镜像的存放位置
-• 查看Docker镜像的存放位置：
-docker info | grep "Docker Root Dir"
-• 关闭Docker服务：systemctl stop docker
-• 移动目录到目标路径：mv /var/lib/docker /mydata/docker：
-建立软连接：ln -s /mydata/docker /var/lib/docker
 
 ### 构建镜像
 我们使用命令 docker build ， 从零开始来创建一个新的镜像。
@@ -186,5 +164,29 @@ docker build -t runoob/centos:6.7 .
 -t ：指定要创建的目标镜像名
 . ：Dockerfile 文件所在目录，可以指定Dockerfile 的绝对路径
 
+### docker修改挂载目录
+- 方式一重新创建容器：
+```
+docker ps  -a
+docker commit 5a3422adeead newimagename
+docker run -ti -v "$PWD/dir1":/dir1 -v "$PWD/dir2":/dir2 newimagename /bin/bash
+```
+
+- 方式二更改配置文件：
+```
+systemctl stop docker.service（关键，修改之前必须停止docker服务）
+vim /var/lib/docker/containers/container-ID/config.v2.json
+修改文件 MountPoints 的目录位置
+systemctl start docker.service
+docker start <container-name/ID>
+```
+
+- 方式三export容器为镜像，然后import为新镜像：
+```
+docker container export -o ./myimage.docker 容器ID
+docker import ./myimage.docker newimagename
+docker run -ti -v "$PWD/dir1":/dir1 -v "$PWD/dir2":/dir2 newimagename /bin/bash
+然后停止旧容器，并使用这个新容器，如果由于某种原因需要新容器使用旧名称，请在删除旧容器后使用docker rename。
+```
 
 
