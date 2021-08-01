@@ -933,5 +933,25 @@ Maven package 打包指令，其就做了一件事：
 ### IDEA、WebStorm项目无法被识别为Git项目
 VCS - Enable Version Control Intergration
 
-### 
+### mac下-bash: mysql: command not found问题 
+vim ~/.bash_profile 
+
+加入export PATH=$PATH:/usr/local/mysql/bin  保存后关闭
+source ~/.bash_profile 执行修改
+
+### node环境更新
+```
+sudo npm install -g n 
+
+# 最新版本
+n lastest
+# 稳定版本
+n stable
+# 安装指定版本
+n 10.12.0
+```
+npm 更新
+```
+npm install -g npm 
+```
 

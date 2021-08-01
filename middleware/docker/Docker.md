@@ -97,12 +97,12 @@ docker inspect container_name | grep Mounts -A 20   #查看容器挂载目录
 docker inspect container_id | grep Mounts -A 20
 docker inspect -f "{{.Mounts}}" nginx
 
-docker info | grep "Docker Root Dir"        • 查看Docker镜像的存放位置：
-
+docker info | grep "Docker Root Dir"        • 查看Docker镜像的存放位置
 docker cp /etc/localtime $ContainerName(或者$ContainerId):/etc/   同步宿主机时间到容器
+docker exec -it $ContainerName /bin/bash  进入Docker容器内部的bash
 
 
-#### 新建并启动容器：docker run -p 80:80 --name nginx -d nginx:1.17.0
+### 新建并启动容器：docker run -p 80:80 --name nginx -d nginx:1.17.0
 docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 OPTIONS说明：
 ```
@@ -136,8 +136,28 @@ docker run -it -d -p 127.0.0.1::4000 docker.io/centos:latest /bin/bash  将容�
 docker run -itd -p 8000:80 docker.io/centos:latest /bin/bash    将容器的80端口映射到宿主机的8000端口上
 
 
-#### 进入Docker容器内部的bash：
-docker exec -it $ContainerName /bin/bash
+### docker设置国内镜像地址
+常见docker国内镜像地址：
+http://registry.docker-cn.com
+http://hub-mirror.c.163.com
+http://mirror.ccs.tencentyun.com
+
+Docker for Mac的用户，您可以参考以下配置步骤：
+Docker Desktop 应用图标 -> Perferences，在左侧导航菜单选择 Docker Engine，在右侧输入栏编辑 json 文件，最后选择Apply & Restart
+```
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "debug": true,
+  "experimental": false,
+  "registry-mirrors": ["http://hub-mirror.c.163.com","http://mirror.ccs.tencentyun.com"]
+}
+```
+
 
 
 ### 构建镜像
