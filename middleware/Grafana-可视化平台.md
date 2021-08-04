@@ -377,6 +377,27 @@ $<varname> 示例：@hostname:$hostname
 |Min time interval	|This value multiplied by the denominator from the Resolution setting sets a lower limit to both the $__interval variable and the step parameter of Prometheus range queries. Defaults to Scrape interval as set in the data source options.|
 |Exemplars	|Run and show exemplars in the graph.|
 
+查看可选配置：
+Query options：
+    Max data points：每个系列的最大数据点。某些数据源直接使用，用于计算自动间隔。对于流数据，此值用于滚动缓冲区。
+    Min interval：间隔的下限。建议设置为写入频率，例如如果您的数据每分钟写入一次，则为1m。对于大多数数据源，可以在数据源设置中设置默认值。
+    Interval：间隔。发送到数据源并在 $__interval 和 $__interval_ms 中使用的评估间隔
+    Relative time ：相对时间
+    Time shift：时移
+
+
+prometheus指标查询步骤：
+1. 选择一个指标（选择指标后，只会显示可能的标签。）
+2. 选择要搜索的标签（选择标签值后，仅显示可能的标签组合。）
+3. 为您的标签选择（多个）值（使用搜索字段在选定标签中查找值。）
+4. 结果选择器
+   Use query
+   Use as rate query
+   Validate selector
+
+
+
+
 
 
 

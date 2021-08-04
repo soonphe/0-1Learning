@@ -244,6 +244,72 @@ public class NacosProviderApplication {
 
 
 
+### nacos服务添加示例
+依赖
+```
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+    <version>${latest.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+    <version>${latest.version}</version>
+</dependency>
+```
+
+在 Nacos Spring Cloud 中，dataId 的完整格式如下：
+${prefix}-${spring.profiles.active}.${file-extension}
+prefix 默认为 spring.application.name 的值，也可以通过配置项 spring.cloud.nacos.config.prefix来配置。
+
+
+配置：
+```
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        # public环境
+        namespace:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace:
+```
+代码：
+```//配置管理
+@RestController
+@RequestMapping("/config")
+@RefreshScope
+public class ConfigController {
+
+    @Value("${useLocalCache:false}")
+    private boolean useLocalCache;
+
+    @RequestMapping("/get")
+    public boolean get() {
+        return useLocalCache;
+    }
+}
+
+//服务发现（服务消费者和提供者都要配置）
+@SpringBootApplication
+@EnableDiscoveryClient
+
+//服务消费
+给 RestTemplate 实例添加 @LoadBalanced 注解，开启 @LoadBalanced 与 Ribbon 的集成：
+@LoadBalanced
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+//调用服务
+    restTemplate.getForObject("http://service-provider/echo/" + str, String.class);
+```
+
+
+
 
 
 

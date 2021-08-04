@@ -98,7 +98,6 @@ docker inspect container_id | grep Mounts -A 20
 docker inspect -f "{{.Mounts}}" nginx
 
 docker info | grep "Docker Root Dir"        • 查看Docker镜像的存放位置
-docker cp /etc/localtime $ContainerName(或者$ContainerId):/etc/   同步宿主机时间到容器
 docker exec -it $ContainerName /bin/bash  进入Docker容器内部的bash
 
 
