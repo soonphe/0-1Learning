@@ -258,5 +258,21 @@ tar -zxvf gx-invoice-web.tar.gz
 
 
 
+### 构建多分支流水线任务
+1. 新建任务——多分支流水线
+2. 输入Git仓库地址、凭据
+3. 项目中添加jenkinsfile，内容同上面的pipline
+4. Jenkins——系统管理——系统设置——设置 SSH Servers：输入IP、用户名、密码、远程目录
+
+
+### 常见问题解析
+- shell脚本执行nohup java -jar 失败，手动执行脚本成功 
+解决：可能是java环境变量在当前用户找不到，shell脚本添加source /etc/profile
+
+
+
+
+
+
 
 

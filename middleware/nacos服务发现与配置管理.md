@@ -265,6 +265,7 @@ prefix 默认为 spring.application.name 的值，也可以通过配置项 sprin
 
 
 配置：
+*在 bootstrap.properties / bootstrap.yml 中配置 Nacos server 的地址和应用名*
 ```
 spring:
   cloud:

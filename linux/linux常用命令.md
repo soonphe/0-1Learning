@@ -18,7 +18,7 @@ cp -R original/dir/ backup/dir/
 ```
 这个命令的目的是将 original/dir/ 的内容递归地复制到 backup/dir/ 中。
 虽然看起来很简单，但是如果原目录里面的文件太大，在执行过程中终端就会一直被卡住。
-所以，可以在命令的末尾加上一个 & 号，将这个任务放到后台去执行：
+所以，可以在命令的末尾加上一个 & 号，将这个任务放到后台去执行
 
 ### 用户相关
 * `/etc/passwd`： 用户账户的详细信息在此文件中更新。
@@ -114,6 +114,16 @@ chown [-R] 账号名称:组群  文件/目录
 例：
 chown admin:groupa file     //修改fil的拥有者为admin，并且所属组为groupa
 chown -R admin fileDir    //同时文件夹下改变其下所有文件拥有者
+
+source	//在当前bash环境下读取并执行FileName中的命令。
+*注：该命令通常用命令“.”来替代。
+使用范例：
+source filename
+. filename #（中间有空格）
+
+sh 执行.sh脚本
+	“-x”选项实现shell脚本逐条语句的跟踪
+
 ```
 
 ### 查看文件及内容（head、tail、cat、nl、grep、less、more）

@@ -979,10 +979,24 @@ npm install -g npm
 ```
 mvn compile
 mvn clean
-mvn compile -X
-mvn spring-boot:run
-```
+mvn compile -X		#打包，发生jar的冲突显示冲突的原因
+mvn spring-boot:run #已springboot方式启动
 
+其他命令：
+mvn dependency:tree 	#显示依赖树
+mvn -e		#查看错误的详细信息
+mvn compile	#编译源代码
+mvn test		#运行测试代码
+mvn package	#打包项目
+mvn clean	#清除项目
+mvn clean install -DskipTests	打包项目到本地仓库
+mvn clean package ****  -DskipTests -DskipRat	打包项目跳过测试
+```
+或者查看maven helper插件是否存在、升级
+
+
+### nacos不同服务、同一端口是否可以服务发现
+可以
 
 
 
