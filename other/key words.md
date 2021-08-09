@@ -13,7 +13,19 @@ Github排行榜：https://www.githubs.cn/top
 容器：spring + springboot 
 aop切面支持：springboot-aop
 web功能：springboot-web
+redis功能支持：spring-boot-starter-data-redis
+es功能支持：spring-boot-starter-data-elasticsearch
+数据校验：spring-boot-starter-validation
+通用工具包：spring-data-commons
 认证授权：Spring Security + OAuth
+登录支持：JWT(Json Web Token)
+数据库：mysql
+数据库持久层框架：mybatis
+数据库连接池：druid
+web API支持：swagger2
+RPC解析：fastjson
+logstash日志采集：logstash-logback-encoder
+
 alibaba微服务框架：dubbo
 alibab微服务组件：Nacos：服务发现，配置管理✔️ seata：分布式事务 Sentinel：熔断降级
 spring微服务框架：spring-cloud
@@ -36,25 +48,28 @@ Redission：分布式redis✔️
 Kafka：分布式消息队列系统✔️   
 rocketMQ：消息队列系统✔️ 
 
+3. 三方工具
+虚拟化容器：docker、kubernates
+运维工具：ansible
+自动构建工具：jenkins
+服务监控治理：Moss（拓展SpringCloudAdmin）   
+调用链监控：skywalking  
+可视化平台：Grafana
+mysql binlog二进制日志增量订阅：canal
+数据库集群管理工具：mycat
+ES Web管理工具：Cerebro  
 
-
+4.其他工具
+分页工具：pagehelper
+代码生成工具：mybatis-generator
+代码生成插件：mybatis-generator-maven-plugin
 java爬虫（webmagic）/Python爬虫（crawl✔）
-
-
-3. 系统工具
-docker虚拟化容器工具✔️
-kubernates：虚拟化容器工具✔️
-jenkins自动构建工具✔️
-ansible：自动化运维工具
-
-2.监控工具
-Moss：服务监控治理（拓展SpringCloudAdmin）✔️   
-skywalking：调用链监控✔️  
-Grafana：可视化平台✔️
-Binlog：mysql二进制日志✔️ 
-canal：binlog增量订阅✔️
-mycat：大数据集群管理工具✔️   
-Cerebro：ES Web管理工具  
+工具包：Hutool
+汉字转拼音：pinyin4j
+excel支持：poi
+推送：极光Jpush
+短信：aliyun sms
+对象存储：aliyun oss、MinIO
 
 
 ### html + javascript
