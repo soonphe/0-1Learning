@@ -22,6 +22,16 @@ docker run -p 6379:6379 --name redis -d redis   //启动redis容器
 docker ps -a        //列出所有容器
 docker stop redis   //停止redis容器
 
+二进制安装：
+官网地址：https://redis.io/download
+wget方式下载：wget http://download.redis.io/releases/redis-5.0.7.tar.gz
+解压：tar -zvxf redis-5.0.7.tar.gz
+编译：make
+安装：make install
+bin目录下启动：./redis-server
+指定配置文件启动：./redis-server & ./redis.conf
+
+
 ### Redis支持的数据类型：String，Hash，List，Set（String无序集合），zset（有序集合，实现方式是跳表+字典）
 常用操作：
 Set String
