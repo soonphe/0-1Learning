@@ -714,35 +714,30 @@ public class EventHandler {
 
 
 ### 责任链实现：
+
+虚拟类AbstractOrderFilter判断责任链Seletor处理（doFilter，handle）
+DefaultFilterChain责任链判断实现
+
 1.FilterChain责任链接口（方法：preAuth前置鉴权，fireNext下一个鉴权）
 ```
-//第一种形式
+//OrderFilter作为业务处理
+public interface OrderFilter<T extends OrderContext> {
+  void doFilter(T var1, OrderFilterChain var2);
+}
+
+//OrderFilterChain责任链式处理
 public interface OrderFilterChain<T extends OrderContext> {
   void handle(T var1);
 
   void fireNext(T var1);
 }
-//第二种形式
-public interface FilterChain {
-
-   /**
-    * 前置鉴权
-    * @param request
-    */
-   void preAuth(StandardPreAuthModel request);
-
-   /**
-    * 开启下一个鉴权
-    * @param request
-    */
-   void fireNext(StandardPreAuthModel request);
-}
 ```
 2.实现责任链接口
-```java
-//第一种形式
+```
 public class DefaultFilterChain<T extends OrderContext> implements OrderFilterChain<T> {
+  //下一个filterChain引用
   private OrderFilterChain<T> next;
+  //filter业务处理
   private OrderFilter<T> filter;
 
   public DefaultFilterChain(OrderFilterChain chain, OrderFilter filter) {
@@ -762,38 +757,10 @@ public class DefaultFilterChain<T extends OrderContext> implements OrderFilterCh
 
   }
 }
-//第二种形式
-public class DefaultFilterChain implements FilterChain {
-
-  //下一个filterChain引用
-  private FilterChain next;
-  //filter鉴权（只有一个doAuth方法）
-  private PreAuthFilter filter;
-
-  public DefaultFilterChain(FilterChain chain, PreAuthFilter filter) {
-    this.next = chain;
-    this.filter = filter;
-  }
-
-  //调用filter的doAuth鉴权、传递next引用，鉴权完毕调用下一个fireNext
-  @Override
-  public void preAuth(StandardPreAuthModel request) {
-    filter.doAuth(request, this);
-  }
-
-  //调用next的preAuth
-  @Override
-  public void fireNext(StandardPreAuthModel request) {
-    FilterChain nextChain = this.next;
-    if (Objects.nonNull(nextChain)) {
-      nextChain.preAuth(request);
-    }
-  }
-}
 ```
 3.责任链初始化
 ```
-//第一种形式
+//第一种形式使用Pipline链式添加
 public class FilterChainPipeline<T extends OrderFilter> {
   private DefaultFilterChain last;
 
@@ -816,10 +783,117 @@ public class FilterChainPipeline<T extends OrderFilter> {
     return this;
   }
 }
+//添加引用pipline
+FilterChainPipeline pipeline = new FilterChainPipeline();
+pipeline.addFilter("创建订单附表", orderExtensionAuthFilter(syncService, meterRegistry))
+	.addFilter...
+return new IotCuoHePreAuthProvider(pipeline.getFilterChain(), iotCuoHeAuthReqConverter,
+	producerServer, redisServer);
 
 //第二种形式
+//1.直接使用filterChain链式添加
 FilterChain filterChain7=new DefaultFilterChain(null, orderExtensionAuthFilter);
 FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuthFilter);
+return new IotCuoHePreAuthProvider(filterChain1, iotCuoHeAuthReqConverter, producerServer, redisServer);
+
+```
+4. 添加seletor选择执行责任链
+```
+//Filter选择器
+public interface FilterSelector {
+  //匹配Filter
+  boolean matchFilter(String var1);
+
+  List<String> getFilterNames();
+}
+
+//Filter选择器实现
+public class LocalListBasedFilterSelector implements FilterSelector {
+  private List<String> filterNames = Lists.newArrayList();
+
+  public LocalListBasedFilterSelector() {
+  }
+
+  public boolean matchFilter(String classSimpleName) {
+    return this.filterNames.stream().anyMatch((s) -> {
+      return Objects.equals(s, classSimpleName);
+    });
+  }
+
+  public List<String> getFilterNames() {
+    return this.filterNames;
+  }
+
+  public void addFilter(String clsNames) {
+    this.filterNames.add(clsNames);
+  }
+}
+
+//实际业务使用
+public class FeeItemDomainService {
+
+  private final FilterChainPipeline orderFilterChainPipeline;
+
+  public FeeItemDomainService(
+      FilterChainPipeline orderFilterChainPipeline) {
+    this.orderFilterChainPipeline = orderFilterChainPipeline;
+  }
+
+  /**
+   * 构造context对象
+   * 
+   * @param request
+   * @return
+   */
+  public FeeItemResult getFeeItemResult(OrderCreateRequest request){
+    CalculateContext calculateContext = new CalculateContext(BizEnum.OVER_TIME_ORDER,feeFilter(),request);
+    orderFilterChainPipeline.getFilterChain().handle(calculateContext);
+    return calculateContext.getFeeItemResult();
+  }
+
+  /**
+   * 构造filter选择器
+   *
+   * @param request
+   * @return
+   */
+  private LocalListBasedFilterSelector feeFilter(){
+    LocalListBasedFilterSelector selector = new LocalListBasedFilterSelector();
+    selector.addFilter(OverTimeFeeItemCalculateFilter.class.getSimpleName());
+    selector.addFilter(RequestSaveFilter.class.getSimpleName());
+    return selector;
+  }
+
+}
+```
+5. context对象
+```
+//通用Context对象
+public interface OrderContext {
+  BizEnum getBizCode();
+
+  FilterSelector getFilterSelector();
+
+  List<String> getDynamicCloseFilters();
+}
+
+public abstract class AbstractOrderContext implements OrderContext {
+  private final BizEnum bizEnum;
+  private final FilterSelector selector;
+
+  public AbstractOrderContext(BizEnum bizEnum, FilterSelector selector) {
+    this.bizEnum = bizEnum;
+    this.selector = selector;
+  }
+
+  public BizEnum getBizCode() {
+    return this.bizEnum;
+  }
+
+  public FilterSelector getFilterSelector() {
+    return this.selector;
+  }
+}
 
 ```
 
@@ -998,6 +1072,16 @@ mvn clean package ****  -DskipTests -DskipRat	打包项目跳过测试
 ### nacos不同服务、同一端口是否可以服务发现
 可以
 
+
+### gitlab push报错
+git push -u gitlab  --all
+
+> 提示内容：GitLab: You are not allowed to push code to this project. fatal: Could not r
+
+解决
+1. 确认用户名、邮箱
+2. 查看是否存在项目权限
+3. 查看仓库链接方式，如果是SSH，确认是否配置ssh key，建议直接配置http测试推送
 
 
 
