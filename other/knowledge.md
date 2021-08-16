@@ -1260,3 +1260,126 @@ TINYINT是8位整数值，BIT字段可以存储1位BIT（1）和64位BIT（64）
 说明：
 如果确定只有2个状态，可以用bit，否则就用tinyint，以防今后就多个状态的可能。
 bit 不能建索引，TINYINT可以建索引。
+
+### Spring @Bean注解的使用
+自定义bean的命名
+默认情况下bean的名称和方法名称相同，你也可以使用name属性来指定
+
+### 常见的spring注入方法
+一：目前使用最广泛的 @Autowired和@Resource
+```
+@Service
+public class BaseInfoCompanyFareServiceImpl implements BaseInfoCompanyFareService {
+
+    @Autowired
+    private BaseInfoCompanyFareDao baseInfoCompanyFareDao;
+```
+说明：
+@Autowired按byType自动注入，而@Resource默认按 byName自动注入罢了
+由于@Autowired 默认第一按照byType(类的类型),第二byName(l类名\类ID)来加载类，所以当存在类型相同,多个beanname时，想注入某个类，就必须指定根据什么beanName查找（使用@Qualifier注解指定），如果不用@Qualifier注解指定，则会以变量名为为beanName进行查找；
+备注：@Autowired实现方式是通过 *反射* 来设置属性值
+
+二：构造器注入
+```
+@Service
+public class BaseInfoCompanyPayServiceImpl implements BaseInfoCompanyPayService {
+
+    private final BaseInfoCompanyPayDao baseInfoCompanyPayDao;
+
+    public BaseInfoCompanyPayServiceImpl(BaseInfoCompanyPayDao baseInfoCompanyPayDao) {
+        this.baseInfoCompanyPayDao = baseInfoCompanyPayDao;
+    }
+}
+```
+通过有参的构造函数注入
+备注：构造注入是一种高内聚的体现，特别是针对有些属性需要在对象在创建时候赋值，且后续不允许修改（不提供setter方法）。
+
+三：属性注入
+```
+@Service
+public class BaseInfoCompanyPayServiceImpl implements BaseInfoCompanyPayService {
+
+    private final BaseInfoCompanyPayDao baseInfoCompanyPayDao;
+
+    public BaseInfoCompanyPayServiceImpl( ) {
+    }
+    
+    private void setBaseInfoCompanyPayDao(BaseInfoCompanyPayDao baseInfoCompanyPayDao){
+    	this.baseInfoCompanyPayDao = baseInfoCompanyPayDao;
+    }
+}
+```
+通过无参构造函数+setter方法注入
+备注：SpringContext利用无参的构造函数创建一个对象，然后利用setter方法赋值。所以如果无参构造函数不存在，Spring上下文创建对象的时候便会报错。
+
+四：lombok提供的@RequiredArgsConstructor方式
+```
+@Service
+@RequiredArgsConstructor
+public class BaseInfoCompanyServiceImpl implements BaseInfoCompanyService {
+
+    final BaseInfoCompanyDao baseInfoCompanyDao;
+```
+说明：在注入时生成具有所需参数的构造函数（原理还是利用的构造注入）。必需参数是最终字段和具有约束的字段，例如final和@NonNull注解
+在我们写controller或者Service层的时候，需要注入很多的mapper接口或者另外的service接口，这时候就会写很多的@AutoWired注解，@RequiredArgsConstructor避免代码看起来很乱
+
+
+### logback动态配置日志路径
+定义变量
+- 在 logback.xml 中定义
+```
+  <property name="LOGPATH" value="/home/admin/logs" />
+```
+- 在VM变量中定义
+```
+  -DLOG_PATH="/Users/luoxiaosheng/logs"
+```
+- 引入properties/yml文件
+```
+  <property resource="bootstrap.yml" />
+  <property name="LOG_HOME" value="${LOG_PATH:-.}/${springAppName}"/>
+  
+#配置文件中
+LOG_PATH: /Users/luoxiaosheng/logs/
+```
+- 引入的spring配置变量springProperty️（对比上一种不用引入配置文件，直接引入单个属性就行）
+```
+  <springProperty scope="context" name="LOG_PATH" source="log.path"></springProperty>
+  <property name="LOG_HOME" value="${LOG_PATH:-.}/${springAppName}"/>
+  
+#配置文件application-*.yml中：
+log:
+  level: info
+  path: /Users/luoxiaosheng/logs/
+```
+
+使用变量：${var}
+```
+<file>/${home}/myApp.log</file>
+```
+变量的默认值：
+在引用一个变量时，如果该变量未定义，需要为其指定默认值，写法是：*${变量名:-默认值}*
+```
+  <springProperty scop="context" name="springAppName" source="spring.application.name"
+    defaultValue=""/>
+  <property name="LOG_HOME" value="${LOG_PATH:-.}/${springAppName}"/>
+```
+
+
+### jenkins打包vue 全局工具中找不到node版本
+解决办法
+去官网找个文件 （文末带百度云共享文件 2018年12月22日10:20:07）
+
+hudson.plugins.nodejs.tools.NodeJSInstaller
+
+这个文件就是nodejs文件版本信息文件
+
+放在jenkins 的目录下 /var/jenkins_home/updates
+
+docker cp ./hudson.plugins.nodejs.tools.NodeJSInstaller jenkins:/var/jenkins_home/updates
+
+
+
+
+
+

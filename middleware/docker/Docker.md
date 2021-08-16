@@ -78,6 +78,9 @@ docker rmi java:8       • 指定名称删除镜像
 docker rmi -f java:8    • 指定名称删除镜像（强制）
 docker rmi -f $(docker images)  • 强制删除所有镜像
 
+docker images           • 列出镜像
+docker images -a        • -a :列出本地所有的镜像（含中间映像层，默认情况下，过滤掉中间映像层
+
 docker ps           • 列出运行中的容器
 docker ps -a或-l     -a列出所有容器	-l列出最新创建的容器
 

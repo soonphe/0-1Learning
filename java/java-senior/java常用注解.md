@@ -22,7 +22,7 @@ Spring2.5为我们引入了组件自动扫描机制，他可以在类路径底�
 * @Service用于标注业务层组件，
 * @Controller用于标注控制层组件（如struts中的action）
 * @Component泛指组件，当组件不好归类的时候，我们可以使用这个注解进行标注
-* @Autowired装配bean,即引入一个java bean
+* @Autowired装配bean,即引入一个java bean（由于@Autowired 默认第一按照byType(类的类型),第二byName(l类名\类ID)来加载类，所以当存在类型相同,多个beanname时，想注入某个类，就必须指定根据什么beanName查找（使用@Qualifier注解指定），如果不用@Qualifier注解指定，则会以变量名为为beanName进行查找；）
 * @Resource的作用相当于@Autowired，只不过@Autowired按byType自动注入，而@Resource默认按 byName自动注入罢了
 * spring aop中：
     * @Around ：是在所拦截方法执行之前执行一段逻辑
@@ -114,6 +114,7 @@ public class GlobalDefaultExceptionHandler{
 @Log4j ：注解在类上；为类提供一个 属性名为log 的 log4j 日志对象
 @NoArgsConstructor ：注解在类上；为类提供一个无参的构造方法
 @AllArgsConstructor ：注解在类上；为类提供一个全参的构造方法
+@RequiredArgsConstructor：注解在类上；生成具有所需参数的构造函数。必需参数是最终字段和具有约束的字段，例如final和@NonNull注解。
 @Cleanup : 可以关闭流
 @Builder ： 被注解的类加个构造者模式
 @Synchronized ： 加个同步锁
