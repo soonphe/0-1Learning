@@ -1379,6 +1379,11 @@ hudson.plugins.nodejs.tools.NodeJSInstaller
 docker cp ./hudson.plugins.nodejs.tools.NodeJSInstaller jenkins:/var/jenkins_home/updates
 
 
+### 状态的单词有 status 和 state的区别
+status ： 用来描述操作的结果，比如： 成功/失败
+state： 用来描述过程的某个阶段，比如 进行中/ 已发送； 处理完成后 “进行中” 就变成 “已发送” 了
+
+
 
 
 

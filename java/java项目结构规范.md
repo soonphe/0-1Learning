@@ -19,6 +19,7 @@
 这里标注了命令规则和中文释义，实际使用可以进行适当的调整修改。
 ```
 demo
+├── document -- 文档模块
 ├── demo-api -- 服务接口模块contract、公共
     └── com.xxx.xxx -- 包名
         ├── constans -- 常量池
@@ -31,7 +32,7 @@ demo
         ├── anotaion -- 注解层
         ├── config -- 配置项
         ├── constans -- 常量池
-        ├── controller -- 前端Controller层
+        ├── controller -- 内置Controller层（看情况使用）
         ├── domian -- 领域层
         ├── enums -- 枚举
         ├── events -- 事件层
@@ -52,8 +53,10 @@ demo
         ├── application.test -- 配置文件test
         └── logback-spring.xml -- 日志配置
 ├── common module -- 公共模块
+├── job module -- 分布式任务模块
+├── elasticsearch module -- 搜索引擎模块
 ├── else module -- 其他模块
-├── web -- 前端controller模块
+├── web -- 独立的controller模块
 └── README -- 项目说明
 ```
 

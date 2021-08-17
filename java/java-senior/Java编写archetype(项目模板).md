@@ -46,7 +46,6 @@ Archetype插件有四个目标可以直接使用：
 - 第一种是通过已有的项目来创建,
 - 第二种是通过mvn archetype:generate创建一个简单的JAVA项目或WEB项目,然后进行改造。
 
-第一种
 在已有maven项目中的pom.xml里面添加maven-archetype-plugin,Maven-resources-plugins,maven-compiler-plugin插件。
 利用archetype plugin的create-from-project将maven项目将该maven项目生成为archetype类型项目。
 执行命令：
@@ -58,18 +57,53 @@ mvn archetype:create-from-project
 
 安装Archetype
 在上文创建了archetype之后，进入到target\generate-sources\archetype目录，然后在命令行执行：
+```
+#将模板安装到本地仓库（因为创建的maven项目一般都是从仓库中选择模板）
 mvn clean install
+#使用插件爬取骨架配置
 mvn archetype:crawl
-执行成功后会在\MavenRepository\archetype-catalog.xml中多出来一个骨架配置文件:
+```
+执行成功后会在./m2.archetype-catalog.xml中多出来一个骨架配置文件:
+```
+<archetype-catalog xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-catalog/1.0.0 http://maven.apache.org/xsd/archetype-catalog-1.0.0.xsd"
+    xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-catalog/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <archetypes>
+    <archetype>
+      <groupId>com.sgcc.ywzt</groupId>
+      <artifactId>gx-cloud-service-template</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <description>quickstart</description>
+    </archetype>
+  </archetypes>
+</archetype-catalog>
+```
 
 
-第二种：
-执行命令
+### 使用archetype模板生成项目
+在*空目录*下执行命令(不要在archetype下执行以下命令)
 ```
 mvn archetype:generate -DarchetypeCatalog=local
 ```
 此时会给出上文安装的archetype，选择输入编号,就可以了,这里就输入"2",然后输入GroupId,artifactId,就可以了
 
+如果想使用选定的模板生成
+```
+mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
+```
+注：这里的-D后都是可以自定义并且可以在项目获取的变量参数！
+
+变量说明
+- groupId    | 组名(业务中台一般情况下不要改)
+- artifactId | 工程名字  （gx-authsrv)
+- package    | 包名 com.sgcc.ywzt.auth  ywzt后面的要是模块的名字
+- dataId     | nacos 上dataId
+
+配置参数获取示例：
+```
+${groupId}
+${artifactId}
+```
 
 ### archetype命令
 archetype:help      帮助命令
@@ -78,21 +112,6 @@ archetype:create-from-project   根据一个工程，创建一个新的archetype
 archetype:generate              根据一个archetype，创建一个新的工程:
 archetype:jar                   根据当前的archetype工程，创建一个jar包:
 archetype:update-local-catalog      更新本地的maven目录：
-
-### archetype生成模板项目
-在archetype项目执行命令：
-```
-mvn archetype:generate  -DgroupId=com.sgcc.ywzt -DartifactId=demosrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt.demo -DdataId=demo-srv -DarchetypeArtifactId=gx-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT
-```
-变量说明
-- groupId    | 组名(业务中台一般情况下不要改)
-- artifactId | 工程名字  （gx-authsrv)
-- package    | 包名 com.sgcc.ywzt.auth  ywzt后面的要是模块的名字
-- dataId     | nacos 上dataId
-
-配置参数获取：
-${groupId}
-${artifactId}
 
 
 ### 自定义archetype示例
