@@ -310,6 +310,62 @@ public class ConfigController {
 ```
 
 
+### 集群模式部署
+集群架构图：
+```
+          DNS（nacos.com）
+                |
+          SLB(intranet)
+         /      |      \
+Nacos(ip1)  Nacos(ip2)  Nacos(ip3)
+```
+
+环境准备：
+> 64 bit OS Linux/Unix/Mac，推荐使用Linux系统。
+> 
+> 64 bit JDK 1.8+；下载.配置。
+> 
+> Maven 3.2.x+；下载.配置。
+> 
+> 3个或3个以上Nacos节点才能构成集群。
+
+配置集群配置文件
+在nacos的解压目录nacos/的conf目录下，有配置文件cluster.conf，请每行配置成ip:port。（请配置3个或3个以上节点）
+```
+# ip:port
+200.8.9.16:8848
+200.8.9.17:8848
+200.8.9.18:8848
+```
+
+确定数据源
+```
+使用内置数据源
+无需进行任何配置
+
+使用外置数据源
+生产使用建议至少主备模式，或者采用高可用数据库。
+```
+初始化 MySQL 数据库
+![sql语句源文件](https://github.com/alibaba/nacos/blob/master/distribution/conf/nacos-mysql.sql)
+application.properties 配置
+![application.properties配置文件](https://github.com/alibaba/nacos/blob/master/distribution/conf/nacos-mysql.sql)
+
+
+启动服务器
+```
+
+Linux/Unix/Mac
+Stand-alone mode
+sh startup.sh -m standalone
+
+集群模式
+使用内置数据源
+sh startup.sh -p embedded
+
+使用外置数据源
+sh startup.sh
+```
 
 
 
