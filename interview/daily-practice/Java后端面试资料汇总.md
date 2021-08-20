@@ -152,6 +152,13 @@ Eureka和zookeeper有哪些不同
     ZooKeeper在选举期间注册服务瘫痪,虽然服务最终会恢复,但是选举期间不可用的
     Eureka各个节点是平等关系,只要有一台Eureka就可以保证服务可用,而查询到的数据并不是最新的
 
+Dubbo隐式传参：
+```
+dubbo通过客户端向服务器端传递参数，传递参数时path,group,version,dubbo,token,timeout即可key有特殊处理，不能使用这几个特殊key
+服务提供方使用：RpcContext.getContext().getAttachments();获取参数，
+服务调用方使用：RpcContext.getContext().setAttachment(); 传递参数。
+```
+
 ### 设计模式
 常见的设计模式及适用场景：单例，工厂，观察者，建造者，代理。。。
 
@@ -177,6 +184,31 @@ hashmap常见问题：
     * 在HashMap类中有一个Entry的内部类（包含了key-value作为实例变量）。
     * put存储键值对时，先计算key的hashcode，定位到合适的数组索引，然后在该索引上的单向链表进行遍历，用equals函数比较key是否存在。如果存在，则覆盖原来的value值；如果不存在，则将新的Entry对象插入到链表头部
     * 当链表长度大于某个值（可能是8）时，链表会变为红黑树，链表的查询效率为O(n)，红黑树的查询效率为O(lgn)，
+
+hashmap如何解决hash冲突：
+```
+hashmap的结构：
+HashMap底层是一个数组，数组中的每个元素是链表。
+HashMap中的节点是Map.Entry类型的，而不是简单的value，hashmap底层为数组结构，即一个Node<K,V>[] table数组（在jdk6中是Entry<K,V>数组），Node是Map.Entry的实现类。
+
+hashmap使用“拉链法/链表法”解决hash冲突：
+put元素进去的时候，计算key的hash值来获取bucketIndex，Entry 对象放入 table 数组的 bucketIndex 索引处。
+如果 bucketIndex 索引处已经有了一个 Entry 对象，就会插入到链表的头部。新添加的 Entry 对象指向原有的 Entry 对象（产生一个 Entry 链）。
+
+查询时：
+HashMap里面没有出现hash冲突时，没有形成单链表时，hashmap查找元素很快,get()方法能够直接定位到元素。
+key值不同的两个或多个Map.Entry<K,V>可能会插在同一个桶下面，但是当查找到某个特定的hash值的时候，下面挂了很多个<K,V>映射，怎么确定哪个是我要找的那个<K,V>呢？
+出现单链表后，单个bucket 里存储的不是一个 Entry，而是一个 Entry 链，系统只能必须按顺序遍历每个 Entry，直到找到想搜索的 Entry 为止。如果恰好要搜索的 Entry 位于该 Entry 链的最末端（该 Entry 是最早放入该 bucket 中），那系统必须循环到最后才能找到该元素。
+这就是HashMap底层结构的一个亮点，在它的Entry中不仅仅只是插入value的，他是插入整个Entry 的，里面包含key和value的，所以能识别同一个hash值下的不同Map.Entry,
+```
+
+为什么Hashmap底层使用数组：
+```
+1）数组效率高
+在HashMap中，定位桶的位置是利用元素的key的哈希值对数组长度取模得到。此时，我们已得到桶的位置。显然数组的查找效率比LinkedList快。
+2）可自定义扩容机制
+采用基本数组结构，扩容机制可以自己定义，HashMap中数组扩容刚好是2的次幂，在做取模运算的效率高。
+```
 
 为什么现在没有人用hashtable:
     
@@ -258,7 +290,32 @@ ReentrantLock：
     * ReentrantReadWriteLock实现了ReadWriteLock接口.ReadWriteLock也是一个接口，在它里面只定义了两个方法：一个用来获取读锁，一个用来获取写锁。也就是说将文件的读写操作分开，分成2个锁来分配给线程，从而使得多个线程可以同时进行读操作。
     * ReentrantReadWriteLock里面提供了很多丰富的方法，不过最主要的两个方法：readlock()和writelock用来获取读锁和写锁
 
-ThreadLocalT、InheritableThreadLocals和TransmittableThreadLocal区别
+ThreadLocal：
+```
+每个thread中都存在一个map, map的类型是ThreadLocal.ThreadLocalMap. Map中的key为一个threadlocal实例
+使用场景：Threadlocal用来设置线程私有变量，本身不储存值 主要提供自身引用 和 操作ThreadLocalMap 属性，保证线程的独立性，解决多线程使用共享对象的问题 空间换时间
+
+ThreadLocalHashmap与hashmap区别：
+和普通Hashmap类似存储在一个数组内，但与hashmap使用的拉链法解决散列冲突的是 ThreadLocalMap使用开放地址法
+//拉链法原理
+把具有相同散列地址的关键字(同义词)值放在同一个单链表中，称为同义词链表。
+有m个散列地址就有m个链表，同时用指针数组A[0,1,2…m-1]存放各个链表的头指针，凡是散列地址为i的记录都以结点方式插入到以A[i]为指针的单链表中。A中各分量的初值为空指针。
+//开放地址法缺点 ： 空间利用率低 开发地址发会在散列冲突时寻找下一个可存入的槽点 为了避免冲突 负载因子会设置的相对较小
+ThreadLocalMap的散列值均匀 且经常增删 纯数组较方便 节点数量少时也能节省掉指针域带来的空间开销
+数组 初始容量16，负载因子2/3
+node节点 的key封装了WeakReference 用于回收
+
+ThreadLocalMap的键为什么使用弱引用：
+JVM利用设置ThreadLocalMap的Key为弱引用，来避免内存泄露。
+JVM利用调用remove、get、set方法的时候，回收弱引用。
+当ThreadLocal存储很多Key为null的Entry的时候，而不再去调用remove、get、set方法，那么将导致内存泄漏。
+当使用static ThreadLocal的时候，延长ThreadLocal的生命周期，那也可能导致内存泄漏。因为，static变量在类未加载的时候，它就已经加载，当线程结束的时候，static变量不一定会回收。那么，比起普通成员变量使用的时候才加载，static的生命周期加长将更容易导致内存泄漏危机。
+
+每个thread中都存在一个map, map的类型是ThreadLocal.ThreadLocalMap. Map中的key为一个threadlocal实例. 这个Map的确使用了弱引用,不过弱引用只是针对key. 每个key都弱引用指向threadlocal. 当把threadlocal实例置为null以后,没有任何强引用指向threadlocal实例,所以threadlocal将会被gc回收. 但是,我们的value却不能回收,因为存在一条从current thread连接过来的强引用. 只有当前thread结束以后, current thread就不会存在栈中,强引用断开, Current Thread, Map, value将全部被GC回收.
+所以得出一个结论就是只要这个线程对象被gc回收，就不会出现内存泄露，但在threadLocal设为null和线程结束这段时间不会被回收的，就发生了我们认为的内存泄露。其实这是一个对概念理解的不一致，也没什么好争论的。最要命的是线程对象不被回收的情况，这就发生了真正意义上的内存泄露。比如使用线程池的时候，线程结束是不会销毁的，会再次使用的。就可能出现内存泄露
+```
+
+ThreadLocal、InheritableThreadLocals和TransmittableThreadLocal区别
 
     ThreadLocal：父线程的本地变量是无法传递给子线程的
     InheritableThreadLocals：

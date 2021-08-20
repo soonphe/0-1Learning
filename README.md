@@ -1,6 +1,4 @@
-
-
-<a>![alt text](static/common/svg/luoxiaosheng.svg "公众号")</a>
+![alt text](static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](static/common/svg/luoxiaosheng_gitee.svg "码云")
@@ -9,7 +7,22 @@
 
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
 
-### 组织结构
+### 高可用分布式系统架构（Highly available distributed system architecture）
+![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
+
+### 系统技术栈
+
+### 学习路线图（Learning roadmap）
+
+#### 后端路线图（Backend-Roadmap）
+
+#### 运维路线图（Devops-Roadmap）
+
+#### 前端路线图（Frontend-Roadmap）
+
+#### Android路线图（Android-Roadmap）
+
+### 0-1Learning项目组织目录
 ``````
 0-1Learning
 ├── algorithm -- 算法
@@ -97,10 +110,32 @@
 ├── middleware -- 中间件
     ├── docker -- 容器化技术
     ├── elasticSearch -- 搜索引擎
+    ├── Grafana -- 可视化工具
+    ├── Grafana -- 分布式消息队列
+    ├── Kibana -- ES是可视化管理工具
+    ├── knife4j -- swagger文档聚合
+    ├── minio -- 对象存储中间件
+    ├── nacos -- alibaba服务发现与配置管理
+    ├── Nginx -- nginx安装、配置
+    ├── Prometheus -- Prometheus系统监控报警
+    ├── skywalking -- 调用链监控
+    ├── xxl-job -- 分布式调度任务
     ├── kafka -- 分布式消息队列
     ├── mongodb -- nosql数据库
     ├── redis -- redis缓存
     └── zookeeper -- 分布式调度
+├── orther -- 其他
+    ├── key words -- 常见技术关键词释义
+    ├── knowledge -- 零散知识点
+    ├── Mac-brew使用
+    ├── Mac-IDEA快捷键
+    ├── Mac-Xcode快捷键
+    ├── Mac快捷键
+    ├── markdown语法
+    ├── oh-my-zsh命令行工具
+    ├── vpn代理说明
+    ├── 常用软件及安装 -- 常用软件整理收集
+    └── 开发软件和环境 -- 各编辑器及环境
 └── static -- 静态文件包
 ``````
 
