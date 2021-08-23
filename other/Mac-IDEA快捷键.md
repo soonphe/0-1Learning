@@ -20,7 +20,7 @@ shift(⇧) = shift
 #2 自我修复：Option + Enter：显示意向动作和快速修复代码、导入包
     Option + /： 循环扩展
 #3 自动完成：Command + Shift + Enter（补全末尾字符、括号、分号）
-#4 重构(refactor)一切：Command + T
+#4 重构(refactor)一切：Ctrl + T
     Shift+F6：改名（文件名和类名、方法名、变量名）
     Command+Option+V： 则是提取变量，
     Command+Option+F：则是提取为属性字段
