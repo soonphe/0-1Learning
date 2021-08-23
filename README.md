@@ -10,7 +10,10 @@
 ### 高可用分布式系统架构（Highly available distributed system architecture）
 ![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
 
+
 ### 系统技术栈
+![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
+
 
 ### 学习路线图（Learning roadmap）
 
