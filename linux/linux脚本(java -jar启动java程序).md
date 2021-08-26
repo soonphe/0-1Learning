@@ -5,7 +5,59 @@
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-## java部署脚本jar包版本
+## linux脚本(java -jar启动java程序)
+
+### 脚本解析
+我们经常会见到这样的脚本启动方式：
+```
+./start.sh
+或
+./start.sh start
+备注：windows为.bat文件
+```
+
+常见的脚本至少要有：
+```
+start   #启动
+stop    #停止
+status  #状态
+info    #信息
+help    #帮助
+*       #任意输入匹配
+```
+
+### 脚本主要结构
+定义变量：
+```
+VM_OPTS="-server -Xmx1g -Xms1g -Xmn256m "
+```
+定义方法：
+```
+start() {
+ stop                       #方法中调用其他方法
+ echo "sleep for stopping"  #打印
+ sleep 2                    #休眠
+ echo "start $APP_NAME "
+ echo "exec command : nohup $JAVA $VM_OPTS -jar $DEPLOY_DIR/lib/$JAR_NAME $SPB_OPTS > /dev/null 2>&1 &"
+ nohup $JAVA $VM_OPTS -jar $DEPLOY_DIR/lib/$JAR_NAME  > /dev/null 2>&1 &    #执行启动命令
+ sleep 3
+ boot_id=`ps -ef |grep java|grep $APP_NAME|grep -v grep|awk '{print $2}'`
+ echo "app started pid = ${boot_id}"
+}
+```
+定义参数解析：
+```
+case $1 in  #case判断
+start)      #如果命令为./start.sh start
+    start   #执行方法动作
+    ;;
+stop)       #如果命令为./start.sh stop
+    stop
+    ;;
+esac        #与case配对
+exit $?     #退出命令
+```
+
 
 ### 脚本示例
 ```
@@ -102,19 +154,3 @@ esac
 exit $?
 ```
 
-### 脚本解析
-我们经常会见到这样的脚本启动方式：
-```
-./start.sh
-或
-./start.sh start
-备注：windows为.bat文件
-```
-
-脚本至少要有
-start   #启动
-stop    #停止
-status  #状态
-info    #信息
-help    #帮助
-*       #任意输入匹配

@@ -448,43 +448,7 @@ public class OverTimeConsumerV3 {
 2.如果没有显示为maven，模块的pom.xml上点击Add as maven project
 
 
-### springboot引入redission：
-1.依赖
-```
-<dependency>
-   <groupId>org.redisson</groupId>
-   <artifactId>redisson</artifactId>
-   <version>3.16.0</version>
-</dependency>  
-```
-2.配置文件
-```
-redisson:
-	nodes:
-		-192.168.161.68:7001
-		-192.168.161.68:7002
-		-192.168.161.68:7003
-		-192.168.161.68:7004
-		-192.168.161.68:7005
-		-192.168.161.68:7006
-	password:evcsr2020%1dSP
-	mode:cluster
-```
-3.使用
-```
-Config config = new Config();
-config.useClusterServers()
-       // use "rediss://" for SSL connection
-      .addNodeAddress("redis://127.0.0.1:7181");
-// or read config from file
-config = Config.fromYAML(new File("config-file.yaml")); 
-//创建RedissonClient 对象
-RedissonClient redisson = Redisson.create(config);
-//获取分布式锁
-RLock lock = redisson.getLock("myLock");
-//加锁
-lock.lock(RedisKeyConstants.getAuthKeyTimeOut(),TimeUnit.SECONDS);
-```
+
 
 ### springboot引入nacos：
 1.依赖
@@ -1390,6 +1354,8 @@ state： 用来描述过程的某个阶段，比如 进行中/ 已发送； 处�
 除非你使用隐藏的域名转发，但是实际还要加 :端口
 
 一台服务器可以被2个域名访问，但一个域名不能同时访问2台服务器。
+
+
 
 
 

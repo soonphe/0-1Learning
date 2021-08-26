@@ -42,31 +42,31 @@ Java 8 中的 Stream 是对集合（Collection）对象功能的增强，它专�
 例:聚合操作：
 Stream对象的创建
 Stream对象分为两种，一种串行的流对象，一种并行的流对象。
-~~~~
+```
 // permissionList指所有权限列表
 // 为集合创建串行流对象
 Stream<UmsPermission> stream = permissionList.stream();
 // 为集合创建并行流对象
 tream<UmsPermission> parallelStream = permissionList.parallelStream();
-~~~~
+```
 
 #### filter
     Stream<T> filter(Predicate<? super T> predicate);
 
 对Stream中的元素进行过滤操作，当设置条件返回true时返回相应元素。
 
-~~~~
+```
 // 获取权限类型为目录的权限
 List<UmsPermission> dirList = permissionList.stream()
     .filter(permission -> permission.getType() == 0)
     .collect(Collectors.toList());
-~~~~
+```
 
 #### map
     <R> Stream<R> map(Function<? super T, ? extends R> mapper);
 
 对Stream中的元素进行转换处理后获取。比如可以将UmsPermission对象转换成Long对象。 我们经常会有这样的需求：需要把某些对象的id提取出来，然后根据这些id去查询其他对象，这时可以使用此方法。
-~~~~
+```
 // 获取所有权限的id组成的集合
 List<Long> idList = permissionList.stream()
     .map(permission -> permission.getId())
@@ -75,16 +75,16 @@ List<Long> idList = permissionList.stream()
 Stream.of("My", "Java", "My", "Life!")
         .map(String::toLowerCase)//转化为小写
         .map(Student::new);//接着以名字为参数转化Student流
-~~~~
+```
 
 #### flatMap
     <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
 
-~~~~
+```
 Stream.of(Arrays.asList("My"), Arrays.asList("Java", "My", "Life!"))//此时，这是List流，里面是两个List对象，List里面才是字符串数据
         .flatMap(list -> list.stream())//扁平化，即把List流转化为字符串流，这里也可以使用方法引用：.flatMap(Collection::stream)
         .forEach(System.out::println);
-~~~~
+```
 说明：
 Map一般用于对原始的参数进行加工处理，返回值还是基本的类型。
 flatMap一般用于返回结果数目未知时不太方便，使用flatMap()会将多个数目不一的流合为一个流
@@ -95,49 +95,115 @@ flatMap一般用于返回结果数目未知时不太方便，使用flatMap()会�
     Stream<T> limit(long maxSize);
 
 从Stream中获取指定数量的元素。
-~~~~
+```
 // 获取前5个权限对象组成的集合
 List<UmsPermission> firstFiveList = permissionList.stream()
     .limit(5)
     .collect(Collectors.toList());
-~~~~
+```
 
 #### count
 仅获取Stream中元素的个数。
-~~~~
+```
 // count操作：获取所有目录权限的个数
 long dirPermissionCount = permissionList.stream()
     .filter(permission -> permission.getType() == 0)
     .count();
-~~~~
+```
 
 #### sorted
     Stream<T> sorted();
 
 对Stream中元素按指定规则进行排序。
-~~~~
+```
 // 将所有权限按先目录后菜单再按钮的顺序排序
 List<UmsPermission> sortedList = permissionList.stream()
     .sorted((permission1,permission2)->{return permission1.getType().compareTo(permission2.getType());})
     .collect(Collectors.toList());
-~~~~
+```
 
 #### skip
 跳过指定个数的Stream中元素，获取后面的元素。
-~~~~
+```
 // 跳过前5个元素，返回后面的
 List<UmsPermission> skipList = permissionList.stream()
     .skip(5)
     .collect(Collectors.toList());
-~~~~
+```
 
 #### 用collect方法将List转成map
 有时候我们需要反复对List中的对象根据id进行查询，我们可以先把该List转换为以id为key的map结构，然后再通过map.get(id)来获取对象，这样比较方便。
-~~~~
-// 将权限列表以id为key，以权限对象为值转换成map
+```
+//Collector<T, ?, Map<K,U>> toMap(Function<? super T, ? extends K> keyMapper,
+                                    Function<? super T, ? extends U> valueMapper)
+//返回一个将元素累积到 Map 中的收集器，其键和值是将提供的映射函数应用于输入元素的结果。
+//如果映射的键包含重复项（根据 Object.equals(Object)），则在执行集合操作时会抛出 IllegalStateException。如果映射的键可能有重复项，请改用 toMap(Function, Function, BinaryOperator)。
+
+// 以id为key，对象为值转换成map
 Map<Long, UmsPermission> permissionMap = permissionList.stream()
     .collect(Collectors.toMap(permission -> permission.getId(), permission -> permission));
-~~~~
+```
+如果键值有重复的，则使用：
+```
+//Collector<T, ?, Map<K,U>> toMap(Function<? super T, ? extends K> keyMapper,
+                                    Function<? super T, ? extends U> valueMapper,
+                                    BinaryOperator<U> mergeFunction)
+//返回一个将元素累积到 Map 中的收集器，其键和值是将提供的映射函数应用于输入元素的结果。
+//如果映射的键包含重复项（根据 Object.equals(Object)），则将值映射函数应用于每个相等的元素，并使用提供的合并函数合并结果。
+                                    
+// 以id为key，对象为值转换成map，重复对象使用新对象替代
+Map<Long, UmsPermission> permissionMap = permissionList.stream()
+    .collect(Collectors.toMap(permission -> permission.getId(), permission -> permission, (v1, v2) -> v2)));
+```
+
+#### 分组获取
+Collectors.groupingBy根据一个或多个属性对集合中的项目进行分组。
+单属性分组
+```
+Map<String, List<Product>> prodMap= prodList.stream().collect(Collectors.groupingBy(Product::getCategory));
+```
+多属性分组
+```
+Map<String, List<Product>> prodMap = prodList.stream().collect(Collectors.groupingBy(item -> item.getCategory() + "_" + item.getName()));
+```
+根据不同条件分组
+```
+Map<String, List<Product>> prodMap= prodList.stream().collect(Collectors.groupingBy(item -> {
+	if(item.getNum() < 3) {
+		return "3";
+	}else {
+		return "other";
+	}
+}));
+```
+
+#### stream去重
+按整个对象去重
+```
+list.stream().distinct().forEach(System.out::println);
+```
+
+按某个字段去重
+```
+    List<Book> unique2 = books.stream()
+            .filter(distinctByKey(o -> o.getId()))
+            .collect(Collectors.toList());
+    
+    //使用map去重
+    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        //如果指定的键尚未与值关联（或映射为 null），则将其与给定值关联并返回 null，否则返回当前值。
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+    //使用Set去重
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        //创建一个由 ConcurrentHashMap 从给定类型到 Boolean.TRUE 支持的新 Set。
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        //如果指定的元素尚不存在，则将其添加到此集合中（可选操作）。如果此集合已包含该元素，则调用将保持该集合不变并返回 false。
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+```
+
 
 ### Funcion
 

@@ -49,24 +49,24 @@ yum install -y openssl openssl-devel
 
 - Linux中Nginx安装与配置详解
 ```
-    1. 下载
-    2. 解压
-    # cd /usr/local/nginx
-    # tar zxvf nginx-1.14.0.tar.gz
-    3. 进入目录
-    # cd nginx-1.14.0
-    4. 配置
-    # ./configure
-    5. 编译
-    # make
-    6. 安装
-    #  make install
-    7. 检查是否安装成功
-    # cd  /usr/local/nginx/sbin
-    # ./nginx -t 
-    结果显示：
-    nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
-    nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful。
+       1. 下载
+       2. 解压
+       # cd /usr/local/nginx
+       # tar zxvf nginx-1.14.0.tar.gz
+       3. 进入目录
+       # cd nginx-1.14.0
+       4. 配置
+       # ./configure
+       5. 编译
+       # make
+       6.  安装
+       #   make install
+       7. 检查是否安装成功
+       # cd   /usr/local/nginx/sbin
+       # ./nginx -t 
+       结果显示：
+       nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+       nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful。
 ```
 
 
@@ -90,28 +90,22 @@ ps aux|grep nginx
 ### Nginx 配置
 基本结构：
 ```
-main        # 全局配置，对全局生效
-├── events  # 配置影响 nginx 服务器或与用户的网络连接
-├── http    # 配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置
-│   ├── upstream # 配置后端服务器具体地址，负载均衡配置不可或缺的部分
-│   ├── server   # 配置虚拟主机的相关参数，一个 http 块中可以有多个 server 块
-│   ├── server
-│   │   ├── location  # server 块可以包含多个 location 块，location 指令用于匹配 uri
-│   │   ├── location
-│   │   └── ...
-│   └── ...
+main                    # 全局配置，对全局生效
+├── events              # 配置影响 nginx 服务器或与用户的网络连接
+├── http                # 配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置
+    ├── upstream        # 配置后端服务器具体地址，负载均衡配置不可或缺的部分
+        ├── server      # 要转发的server地址，可以配置多个，参数：weight权重，down暂时不参数负载，backup备份，max_fails最多失败次数，fail_timeout失败等待时长
+    ├── server          # 配置虚拟主机的相关参数，一个 http 块中可以有多个 server 块
+        ├── listen      # 监听端口
+        ├── server_name # 配置基于名称的虚拟主机，不同server_name可以监听同一端口，匹配规则：准确的server_name匹配 > 以*通配符开始的字符串 > 以*通配符结束的字符串 > 匹配正则表达式
+        ├── location    # 匹配请求的路由,server 块可以包含多个 location 块，location 指令用于匹配 uri
+        ├── location... #其他location
+        └── ...
+    ├── server  # 其他server
+    └── ...
 └── ...
 ```
-
-主要配置含义
-```
-main:nginx 的全局配置，对全局生效。
-events:配置影响 nginx 服务器或与用户的网络连接。
-http：可以嵌套多个 server，配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置。
-server：配置虚拟主机的相关参数，一个 http 中可以有多个 server。
-location：配置请求的路由，以及各种页面的处理情况。
-upstream：配置后端服务器具体地址，负载均衡配置不可或缺的部分。
-```
+说明：当客户端向 Nginx 服务器发送请求时，Nginx首先会根据 IP地址和端口（listen 属性） 对server服务器进行配置；如果IP地址匹配不成功，会对 域名（server_name属性） 进行匹配；如果域名也匹配不成功，则会默认匹配第一个server服务器（因此，当只有一个Nginx服务器时，客户端的请任何情况下都会匹配到这个服务器上）。
 
 nginx.conf 配置文件的语法规则
 ```
@@ -193,41 +187,45 @@ http {
 	#引入配置2
 	include /etc/nginx/default.d/*.conf;
 
-    #配置负载均衡（映射规则）
-    upstream www.932edu.com {
-        ip_hash;
-        server 47.93.193.146:8080 weight=2;
-        server 47.94.108.123:8080 weight=1;
-    }
+    #配置负载均衡（映射规则）
+    upstream www.0-1Leaning.com {   #这里也可以配置
+        #upstream默认不指定是轮询方式，weight不指定时，各服务器weight相同
+        ip_hash;        #每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session不能跨服务器的问题
+        server 47.93.193.146:8080 weight=2; #配置权重比，weight越大，负载的权重就越大。
+        server 47.94.108.123:8080 weight=1; 
+        #server 192.168.11.69:20201 weight=100 down;    #down 表示当前的server暂时不参与负载
+        #server 192.168.11.71:20201 weight=100 backup;  #backup 其它所有的非backup机器down或者忙的时候，请求backup机器。所以这台机器压力会最轻
+        #server 192.168.11.72:20201 weight=100 max_fails=3 fail_timeout=30s; #max_fails允许请求失败的次数默认为1。fail_timeout max_fails次失败后，暂停的时间
+        #当upstream中只有一个 server 时，max_fails 和 fail_timeout 参数可能不会起作用。weight\backup 不能和 ip_hash 关键字一起使用。
+    }
     
     server {
-        listen       80;    #配置监听端口号
-        #配置访问域名，域名可以有多个，用空格隔开
-        #server_name  localhost; 
-        #配置基于名称的虚拟主机
-        server_name  www.932edu.net 932edu.net;
-        if ($host != 'www.932edu.net'){
-            rewrite ^/(.*)$ http://www.932edu.net/$1 permanent;
-        }
+        listen       80;    #监听端口号
+        #配置访问域名，默认localhost，域名可以有多个，用空格隔开
+        server_name www.0-1Leaning.com 0-1Leaning.com;
+        if ($host != 'www.0-1Leaning.com'){ #如果访问不为www开头，强制转换
+            rewrite ^/(.*)$ http://www.0-1Leaning.com/$1 permanent;
+        }
 
         #charset koi8-r;    #字符集设置
 
         #access_log  logs/host.access.log  main;
-        # 跳转规则，配置为 = ，可精确匹配加快访问速度
-        location / {
+        
+        # 默认配置uri，配置为 = ，可精确匹配加快访问速度
+        location / {    
             root         /usr/share/nginx/html;
             index  index.html index.htm;
         }
-        # 静态文件配置
+        # 静态文件
         location ~ /uploadtuyue.*\.(gif|jpg|jpeg|png|js|css|woff|woff2|ttf|mp4|mp3|apk|txt)$ {
             expires 7d;
             root /usr/local/;    
         }
-        # 匹配路径
+        # 匹配uri
         location /tuyue {
             proxy_pass http://localhost:8080/tuyue/;
         }
-        # 匹配路径
+        # 匹配uri
         location /jenkins {
             proxy_pass http://10.10.18.36:8080/;
             proxy_set_header Host $proxy_host; # 修改转发请求头，让8080端口的应用可以受到真实的请求
@@ -236,19 +234,19 @@ http {
         }
 
         # 配置转发代理跳转规则
-        location /lwgk/ {
-            #root   html;
-            #index  index.html index.htm;
-            proxy_pass   http://www.932edu.net/lwgk/;        #充当代理服务器，转发请求
-            proxy_redirect off;                #对发送给客户端的URL进行修改，默认default
-            proxy_set_header Host $host:$server_port;
-            proxy_set_header X-Real-IP $remote_addr;        #获取真实ip
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;        #获取代理者的真实ip
-            add_header Access-Control-Allow-Origin *;
-            add_header Access-Control-Allow-Headers X-Requested-With;
-            add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
-            client_max_body_size    100M;
-        }
+        location /lwgk/ {
+        #root html;
+        #index index.html index.htm;
+            proxy_pass http://www.0-1Leaning.com/lwgk/;   #充当代理服务器，转发请求
+            proxy_redirect off;                                #对发送给客户端的URL进行修改，默认default
+            proxy_set_header Host $host:$server_port;
+            proxy_set_header X-Real-IP $remote_addr;                #获取真实ip
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;                #获取代理者的真实ip
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Allow-Headers X-Requested-With;
+            add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
+            client_max_body_size       100M;
+        }
 
         #error_page  404              /404.html;
 
@@ -323,28 +321,44 @@ http {
 }
 ```
 
-### nginx配置二级模块
+### 代理文件proxy_pass配置选项
 ```
-server
-   {
-     listen       80;
-     server_name  ~^(.+)?\.domain\.com$;
-     index index.html;
-     if ($host = domain.com){
-         rewrite ^ http://www.domain.com permanent;
-     }
-     root  /data/wwwsite/domain.com/$1/;
-   }
+# proxy.conf
+proxy_redirect                   off;
+proxy_set_header               Host $host;
+proxy_set_header               X-Real-IP $remote_addr;   #获取真实ip
+#proxy_set_header             X-Forwarded-For     $proxy_add_x_forwarded_for; #获取代理者的真实ip
+client_max_body_size       10m;
+client_body_buffer_size 128k;
+proxy_connect_timeout     90;
+proxy_send_timeout           90;
+proxy_read_timeout           90;
+proxy_buffer_size             4k;
+proxy_buffers                     4 32k;
+proxy_busy_buffers_size 64k;
+proxy_temp_file_write_size 64k;
+```
+
+### nginx配置二级路径匹配
+```
+server {
+    listen 80;
+    server_name ~^(.+)?\.domain\.com$;
+    index index.html;
+    if ($host = domain.com){
+        rewrite ^ http://www.domain.com permanent;
+    }
+    root /data/wwwsite/domain.com/$1/;
+}
 /*站点目录结构*/
 /data/wwwsite/domain.com/www/
 /data/wwwsite/domain.com/nginx/
 ```
- 
-这样访问
-www.domain.com时root目录为/data/wwwsite/domain.com/www/，
-nginx.domain.com时为/data/wwwsite/domain.com/nginx/，以此类推
+访问**www.domain.com**时：root目录为/data/wwwsite/domain.com/www/，
+访问**nginx.domain.com**时：root目录为/data/wwwsite/domain.com/nginx/，以此类推
 
-### nginx配置二级域名
+
+### nginx配置二级域名匹配
 ```
     server {
         listen          80;
@@ -355,7 +369,6 @@ nginx.domain.com时为/data/wwwsite/domain.com/nginx/，以此类推
             index   index.html index.htm;
         }
     }
-    
     
     server {
         listen          80;
@@ -377,24 +390,8 @@ nginx.domain.com时为/data/wwwsite/domain.com/nginx/，以此类推
         }
     }
 ```
- 
- 
-### 代理文件配置
-```
-# proxy.conf
-proxy_redirect          off;
-proxy_set_header        Host $host;
-proxy_set_header        X-Real-IP $remote_addr;  #获取真实ip
-#proxy_set_header       X-Forwarded-For   $proxy_add_x_forwarded_for; #获取代理者的真实ip
-client_max_body_size    10m;
-client_body_buffer_size 128k;
-proxy_connect_timeout   90;
-proxy_send_timeout      90;
-proxy_read_timeout      90;
-proxy_buffer_size       4k;
-proxy_buffers           4 32k;
-proxy_busy_buffers_size 64k;
-proxy_temp_file_write_size 64k;
-```
+  
+  
+
 
 
