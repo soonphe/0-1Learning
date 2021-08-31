@@ -3,7 +3,7 @@
 ![alt text](static/common/svg/luoxiaosheng_wechat.svg "微信")
 ![alt text](static/common/svg/luoxiaosheng_gitee.svg "码云")
 
-## 项目介绍
+## 项目介绍（Project Introduction）
 
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
 
@@ -11,7 +11,7 @@
 ![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
 
 
-### 系统技术栈
+### 系统技术栈（System Technology Stack）
 ![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
 
 
@@ -25,7 +25,7 @@
 
 #### Android路线图（Android-Roadmap）
 
-### 0-1Learning项目组织目录
+### 0-1Learning项目组织目录（Project structure）
 ``````
 0-1Learning
 ├── algorithm -- 算法
