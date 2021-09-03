@@ -33,10 +33,11 @@ Github排行榜：https://www.githubs.cn/top
 - 异步Nio框架：netty(封装Java nio api)    Mina
 
 2. 功能模块（function module）
-- solr：搜索引擎
-- docker搭建ELK，logstash测试发送数据
+- 常见系统搭配：EFK+K8s，prometheus+K8s，skywalking+K8s+es存储
+- ELK：Elasticsearch，Kibana，logstash
+- EFK：Elasticsearch，Filebeat or Fluentd(*)，Kibana
 - Elastic Search：全文搜索引擎    
-- Kbana：Es系统可视化工具
+- Kibana：Es系统可视化工具
 - logstash：日志收集工具
 - xxl-job:分布式定时任务(基于数据库)
 - Elastic-Job：分布式定时任务(基于zookeeper)

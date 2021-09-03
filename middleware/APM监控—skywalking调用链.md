@@ -81,7 +81,7 @@ storage:
 注意：需要将mysql的驱动包放入到apache-skywalking-apm-bin/oap-libs目录下，否则会出现找不到驱动的异常。
 
 
-### 使用elastic作为存储介质：
+### 使用elastic作为存储介质（推荐）：
 1. 部署ElasticSearch
 2. 修改elasticsearch.yml文件，并设置cluster.name设置成CollectorDBCluster。此名称需要和collector配置文件一致。
 3. 修改ES配置network.host值，将network.host的值修改成0.0.0.0。
