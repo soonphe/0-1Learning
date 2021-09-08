@@ -15,15 +15,13 @@
 ![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
 
 
+### 系统持续交付流水线图（Continuous delivery pipeline）
+![持续交付流水线图](static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
+
+
 ### 学习路线图（Learning roadmap）
 
-#### 后端路线图（Backend-Roadmap）
 
-#### 运维路线图（Devops-Roadmap）
-
-#### 前端路线图（Frontend-Roadmap）
-
-#### Android路线图（Android-Roadmap）
 
 ### 0-1Learning项目组织目录（Project structure）
 ``````
