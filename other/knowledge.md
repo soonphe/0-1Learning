@@ -1031,6 +1031,7 @@ mvn clean install -DskipTests	打包项目到本地仓库
 mvn clean package ****  -DskipTests -DskipRat	打包项目跳过测试
 
 mvn -U 强制刷新本地仓库不存在release版和所有的snapshots版本。
+mvn clean install -P test #-P test的意思是使用 test profile 进行项目的构建
 ```
 或者查看maven helper插件是否存在、升级
 
