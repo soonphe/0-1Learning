@@ -529,6 +529,374 @@ data:
 ### ELK——Elasticsearch、Logstash、Kibana收集处理日志
 ELK即Elasticsearch、Logstash、Kibana,组合起来可以搭建线上日志系统
 
+---
+
+### ElasticSearch分页查询：
+ES 分页搜索一般有三种方案，from + size、search after、scroll api，这三种方案分别有自己的优缺点，下面将进行分别介绍。
+
+1. from + size
+   这是ES分页中最常用的一种方式，与MySQL类似，from指定起始位置，size指定返回的文档数。
+```
+GET kibana_sample_data_flights/_search
+{
+  "from": 10,
+  "size": 2, 
+  "query": {
+    "match": {
+      "DestWeather": "Sunny"
+    }
+  },
+  "sort": [
+    {
+      "timestamp": {
+        "order": "asc"
+      }
+    }
+  ]
+}
+```
+使用简单，且默认的深度分页限制是1万，from + size 大于 10000会报错，可以通过index.max_result_window参数进行修改。
+
+2. search after
+   search after 利用实时有游标来帮我们解决实时滚动的问题。第一次搜索时需要指定 sort，并且保证值是唯一的，可以通过加入 _id 保证唯一性。
+```
+GET kibana_sample_data_flights/_search
+{
+  "size": 2, 
+  "query": {
+    "match": {
+      "DestWeather": "Sunny"
+    }
+  },
+  "sort": [
+    {
+      "timestamp": {
+        "order": "asc"
+      },
+      "_id": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+```
+在返回的结果中，最后一个文档有类似下面的数据，由于我们排序用的是两个字段，返回的是两个值。
+```
+"sort" : [
+  1614561419000,
+  "6FxZJXgBE6QbUWetnarH"
+]
+```
+第二次搜索，带上这个sort的信息即可，如下
+```
+GET kibana_sample_data_flights/_search
+{
+  "size": 2,
+  "query": {
+    "match": {
+      "DestWeather": "Sunny"
+    }
+  },
+  "sort": [
+    {
+      "timestamp": {
+        "order": "asc"
+      },
+      "_id": {
+        "order": "desc"
+      }
+    }
+  ],
+  "search_after": [
+    1614561419000,
+    "6FxZJXgBE6QbUWetnarH"
+  ]
+}
+```
+
+3. scroll api
+   创建一个快照，有新的数据写入以后，无法被查到。每次查询后，输入上一次的 scroll_id。目前官方已经不推荐使用这个API了，使用search_after即可。
+```
+GET kibana_sample_data_flights/_search?scroll=1m
+{
+  "size": 2,
+  "query": {
+    "match": {
+      "DestWeather": "Sunny"
+    }
+  },
+  "sort": [
+    {
+      "timestamp": {
+        "order": "asc"
+      },
+      "_id": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+```
+在返回的数据中，有一个_scroll_id字段，下次搜索的时候带上这个数据，并且使用下面的查询语句。
+```
+POST _search/scroll
+{
+  "scroll" : "1m",
+  "scroll_id" : "DXF1ZXJ5QW5kRmV0Y2gBAAAAAAAAA6UWWVJRTk9TUXFTLUdnU28xVFN6bEM4QQ=="
+}
+```
+上面的scroll指定搜索上下文保留的时间，1m代表1分钟，还有其他时间可以选择，有d、h、m、s等，分别代表天、时、分钟、秒。
+
+搜索上下文有过期自动删除，但如果自己知道什么时候该删，可以自己手动删除，减少资源占用。
+```
+DELETE /_search/scroll
+{
+  "scroll_id" : "DXF1ZXJ5QW5kRmV0Y2gBAAAAAAAAA6UWWVJRTk9TUXFTLUdnU28xVFN6bEM4QQ=="
+}
+```
+
+总结
+from + size 的优点是简单，缺点是在深度分页的场景下系统开销比较大。
+
+search after 可以实时高效的进行分页查询，但是它只能做下一页这样的查询场景，不能随机的指定页数查询。
+
+scroll api 方案也很高效，但是它基于快照，不能用在实时性高的业务场景，且官方已不建议使用。
+
+
+### Es原生查询：
+依赖
+```
+	<properties>
+		<elasticsearch.version>7.3.2</elasticsearch.version>
+	</properties>
+	
+		<!-- es -->
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.client</groupId>
+			<artifactId>elasticsearch-rest-high-level-client</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.client</groupId>
+			<artifactId>elasticsearch-rest-client</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch-core</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch-x-content</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.shardingsphere.elasticjob</groupId>
+			<artifactId>elasticjob-lite-core</artifactId>
+			<version>3.0.0-beta</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.shardingsphere.elasticjob</groupId>
+			<artifactId>elasticjob-lite-spring-namespace</artifactId>
+			<version>3.0.0-beta</version>
+		</dependency>
+		<!--es jenkins编译失败扫此包，手动加上-->
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch-secure-sm</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.plugin</groupId>
+			<artifactId>parent-join-client</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>8.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.plugin</groupId>
+			<artifactId>lang-mustache-client</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.plugin</groupId>
+			<artifactId>rank-eval-client</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch.plugin</groupId>
+			<artifactId>aggs-matrix-stats-client</artifactId>
+			<version>${elasticsearch.version}</version>
+		</dependency>
+		<!--结束-->
+```
+
+配置：
+```
+es:
+  nodes:
+    - 192.168.161.215:9200
+    - 192.168.161.33:9200
+  username: elastic
+  password: ddqc.12345
+```
+
+构造RestClientConfig
+```
+@Configuration
+public class RestClientConfig {
+
+  @Autowired
+  private EsProperties esProperties;
+
+  @Bean
+  public RestHighLevelClient elasticsearchClient() {
+    RestHighLevelClient client = new RestHighLevelClient(buildRestClientBuilder());
+    return client;
+  }
+
+  @Bean
+  public RestClientBuilder buildRestClientBuilder() {
+    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+    credentialsProvider
+        .setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(esProperties.getUsername(),
+            esProperties.getPassword()));
+    HttpHost[] httpHosts = new HttpHost[esProperties.getNodes().size()];
+    for (int i = 0; i < esProperties.getNodes().size(); i++) {
+      String host = esProperties.getNodes().get(i);
+      Iterable<String> nodeStr = Splitter.on(":").split(host);
+      HttpHost httpHost = new HttpHost(Iterables.get(nodeStr, 0),
+          Integer.parseInt(Iterables.get(nodeStr, 1)));
+      httpHosts[i] = httpHost;
+    }
+    RestClientBuilder builder = RestClient.builder(httpHosts);
+    builder.setHttpClientConfigCallback(b -> b.setDefaultCredentialsProvider(credentialsProvider));
+    return builder;
+  }
+}
+```
+
+执行查询三步骤：
+```
+	@Autowire
+	private RestHighLevelClient restHighLevelClient;
+
+	//1.构造SearchSourceBuilder
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    //ES term语句
+    sourceBuilder.query(
+        QueryBuilders.boolQuery().must(QueryBuilders.termQuery("id", id))
+    );
+    //查询分页大小（from + size默认的深度分页限制是1万，大于1万使用scrollId）
+    sourceBuilder.from(0);
+    sourceBuilder.size(10);
+    sourceBuilder.sort("createTime", SortOrder.DESC);
+    //超时
+    sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+    
+	//2.构造SearchRequest
+	SearchRequest searchRequest = new SearchRequest();
+	//指定索引
+    searchRequest.indices(IndexConstants.ORDER_CONSUME_INDEX);
+    //关联游标
+    searchRequest.scroll(scroll);
+    //关联sourceBuilder
+    searchRequest.source(sourceBuilder);
+
+	//3.查询并解析
+	SearchResponse searchResponse = null;
+	//第一种：判断小于10000使用内存分页，大于10000使用游标
+	if(pageNum*pageSize <= 10000 && pageSize != -1){
+		searchRequest.scroll((Scroll)null);
+		sourceBuilder.from((pageNum-1)*pageSize);
+		SearchResponse response = elasticClient.search(searchRequest, RequestOptions.DEFAULT);
+	}
+	
+	//第二种：直接使用游标
+	if(StringUtils.isEmpty(orderDetailRequest.getScrollId())){
+		searchResponse=restHighLevelClient.search(searchRequest,RequestOptions.DEFAULT);
+	}else {
+        SearchScrollRequest scrollRequest = new SearchScrollRequest(orderDetailRequest.getScrollId());
+        scrollRequest.scroll(scroll);
+        searchResponse = restHighLevelClient.scroll(scrollRequest, RequestOptions.DEFAULT);
+    }
+	//解析数据
+    SearchHits hits = response.getHits();
+    SearchHit[] searchHits = hits.getHits();
+    BigEsOrderModel model = null;
+    for (SearchHit sh : searchHits) {
+      model = JSON.parseObject(sh.getSourceAsString(), BigEsOrderModel.class);
+    }
+    //searchResponse.getHits().getTotalHits().value为记录总条数        
+    PageResultResponse pageResult = PageResultResponse.of(responses,
+            searchResponse.getHits().getTotalHits().value, orderDetailRequest.getPageSize(),
+            orderDetailRequest.getPageNum(), searchResponse.getScrollId());
+    return model;
+```
+
+
+### ES写数据
+根据ID保存或更新：
+```
+	//查询对象并更新索引ID更新对象
+    BigEsOrderModel model = bigOrderBuildBussiness.bigOrderBuilder(ordOrderConsumeEntity,null);
+    IndexRequest request = new IndexRequest(IndexConstants.ORDER_CONSUME_INDEX)
+        .id(String.valueOf(id))
+        .source(JSON.toJSONString(model), XContentType.JSON);
+    try {
+      elasticClient.index(request, RequestOptions.DEFAULT);
+    } catch (IOException e) {
+      log.error("更新文档失败", e);
+    }
+```
+
+批量写数据
+```
+	//循环遍历list写数据
+	BulkRequest request = new BulkRequest();
+    list.forEach(item ->
+        request.add(new IndexRequest(IndexConstants.ORDER_CONSUME_INDEX).id(item.getId().toString())
+            .source(JSON.toJSONString(item), XContentType.JSON)));
+    //批量提交
+    try {
+      elasticClient.bulk(request,RequestOptions.DEFAULT);
+      log.info("批量同步索引成功");
+    } catch (IOException e) {
+      log.error("批量同步失败");
+    }
+```
+
+批量写数据或更新数据：
+```
+	//IndexRequest定义的是添加，UpdateRequest如果已存在则更新，如果不存在则创建
+	BulkRequest request = new BulkRequest();
+    list.forEach(socBody ->{
+      UpdateRequest updateRequest = new UpdateRequest(IndexConstants.ORDER_SOC_INDEX, MigrateConstants.ES_TYPE_DOC, socBody.getBatch());
+      request.add(updateRequest
+            .id(String.valueOf(socBody.getBatch()))
+            .doc(JSON.toJSONString(socBody), XContentType.JSON));
+    });
+    //批量提交
+    try {
+      elasticClient.bulk(request,RequestOptions.DEFAULT);
+      log.info("批量同步soc索引成功");
+    } catch (IOException e) {
+      log.error("批量同步soc失败");
+    }
+```
+
+
+
 
 
 

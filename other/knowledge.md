@@ -1358,174 +1358,30 @@ state： 用来描述过程的某个阶段，比如 进行中/ 已发送； 处�
 
 一台服务器可以被2个域名访问，但一个域名不能同时访问2台服务器。
 
-### Es查询三步骤：
-
-
+### java使用okhttp
+引入依赖：
 ```
-	//1.构造SearchSourceBuilder
-    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-    //ES term语句
-    sourceBuilder.query(
-        QueryBuilders.boolQuery().must(QueryBuilders.termQuery("id", id))
-    );
-    //查询分页大小
-    sourceBuilder.from(0);
-    sourceBuilder.size(10);
-    //超时
-    sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
-    
-	//2.构造SearchRequest
-	SearchRequest searchRequest = new SearchRequest();
-	//指定索引
-    searchRequest.indices(IndexConstants.ORDER_CONSUME_INDEX);
-    //关联sourceBuilder
-    searchRequest.source(sourceBuilder);
-    
-	//3.查询并解析
-	SearchResponse response = elasticClient.search(searchRequest, RequestOptions.DEFAULT);
-    SearchHits hits = response.getHits();
-    SearchHit[] searchHits = hits.getHits();
-    BigEsOrderModel model = null;
-    for (SearchHit sh : searchHits) {
-      model = JSON.parseObject(sh.getSourceAsString(), BigEsOrderModel.class);
-    }
-    return model;
+<dependency>
+  <groupId>com.squareup.okhttp3</groupId>
+  <artifactId>okhttp</artifactId>
+  <version>4.9.1</version>
+</dependency>
 ```
 
-
-### ElasticSearch分页查询：
-ES 分页搜索一般有三种方案，from + size、search after、scroll api，这三种方案分别有自己的优缺点，下面将进行分别介绍。
-
-1. from + size
-这是ES分页中最常用的一种方式，与MySQL类似，from指定起始位置，size指定返回的文档数。
+获取网址信息：
 ```
-GET kibana_sample_data_flights/_search
-{
-  "from": 10,
-  "size": 2, 
-  "query": {
-    "match": {
-      "DestWeather": "Sunny"
-    }
-  },
-  "sort": [
-    {
-      "timestamp": {
-        "order": "asc"
-      }
-    }
-  ]
+OkHttpClient client = new OkHttpClient();
+
+String run(String url) throws IOException {
+  Request request = new Request.Builder()
+      .url(url)
+      .build();
+
+  try (Response response = client.newCall(request).execute()) {
+    return response.body().string();
+  }
 }
 ```
-使用简单，且默认的深度分页限制是1万，from + size 大于 10000会报错，可以通过index.max_result_window参数进行修改。
-
-2. search after
-   search after 利用实时有游标来帮我们解决实时滚动的问题。第一次搜索时需要指定 sort，并且保证值是唯一的，可以通过加入 _id 保证唯一性。
-```
-GET kibana_sample_data_flights/_search
-{
-  "size": 2, 
-  "query": {
-    "match": {
-      "DestWeather": "Sunny"
-    }
-  },
-  "sort": [
-    {
-      "timestamp": {
-        "order": "asc"
-      },
-      "_id": {
-        "order": "desc"
-      }
-    }
-  ]
-}
-```
-在返回的结果中，最后一个文档有类似下面的数据，由于我们排序用的是两个字段，返回的是两个值。
-```
-"sort" : [
-  1614561419000,
-  "6FxZJXgBE6QbUWetnarH"
-]
-```
-第二次搜索，带上这个sort的信息即可，如下
-```
-GET kibana_sample_data_flights/_search
-{
-  "size": 2,
-  "query": {
-    "match": {
-      "DestWeather": "Sunny"
-    }
-  },
-  "sort": [
-    {
-      "timestamp": {
-        "order": "asc"
-      },
-      "_id": {
-        "order": "desc"
-      }
-    }
-  ],
-  "search_after": [
-    1614561419000,
-    "6FxZJXgBE6QbUWetnarH"
-  ]
-}
-```
-
-
-
-
-3. scroll api
-   创建一个快照，有新的数据写入以后，无法被查到。每次查询后，输入上一次的 scroll_id。目前官方已经不推荐使用这个API了，使用search_after即可。
-```
-GET kibana_sample_data_flights/_search?scroll=1m
-{
-  "size": 2,
-  "query": {
-    "match": {
-      "DestWeather": "Sunny"
-    }
-  },
-  "sort": [
-    {
-      "timestamp": {
-        "order": "asc"
-      },
-      "_id": {
-        "order": "desc"
-      }
-    }
-  ]
-}
-```
-在返回的数据中，有一个_scroll_id字段，下次搜索的时候带上这个数据，并且使用下面的查询语句。
-```
-POST _search/scroll
-{
-  "scroll" : "1m",
-  "scroll_id" : "DXF1ZXJ5QW5kRmV0Y2gBAAAAAAAAA6UWWVJRTk9TUXFTLUdnU28xVFN6bEM4QQ=="
-}
-```
-上面的scroll指定搜索上下文保留的时间，1m代表1分钟，还有其他时间可以选择，有d、h、m、s等，分别代表天、时、分钟、秒。
-
-搜索上下文有过期自动删除，但如果自己知道什么时候该删，可以自己手动删除，减少资源占用。
-```
-DELETE /_search/scroll
-{
-  "scroll_id" : "DXF1ZXJ5QW5kRmV0Y2gBAAAAAAAAA6UWWVJRTk9TUXFTLUdnU28xVFN6bEM4QQ=="
-}
-```
-
-总结
-from + size 的优点是简单，缺点是在深度分页的场景下系统开销比较大。
-
-search after 可以实时高效的进行分页查询，但是它只能做下一页这样的查询场景，不能随机的指定页数查询。
-
-scroll api 方案也很高效，但是它基于快照，不能用在实时性高的业务场景，且官方已不建议使用。
 
 
 
