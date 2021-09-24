@@ -30,7 +30,7 @@ Archetype插件有四个目标可以直接使用：
 目录示例：
 ```
 0-1Learning-template
-├── src -- 算法
+├── src
     └── main 
         └── resources
             ├── archetype-resources - 要拷贝的原型文件夹
@@ -63,7 +63,7 @@ mvn clean install
 #使用插件爬取骨架配置
 mvn archetype:crawl
 ```
-执行成功后会在./m2.archetype-catalog.xml中多出来一个骨架配置文件:
+执行成功后会在~/.m2/repository/archetype-catalog.xml中多出来一个骨架配置文件:
 ```
 <archetype-catalog xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-catalog/1.0.0 http://maven.apache.org/xsd/archetype-catalog-1.0.0.xsd"
     xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-catalog/1.0.0"
@@ -78,18 +78,26 @@ mvn archetype:crawl
   </archetypes>
 </archetype-catalog>
 ```
+注：如果mvn archetype:crawl中没有生成对应的骨架文件， 可以使用maven-archetype-plugin插件中的update-local-catalog功能生成
+也可以使用命令更新本地文件：
+```
+archetype:update-local-catalog
+```
 
 
 ### 使用archetype模板生成项目
 在*空目录*下执行命令(不要在archetype下执行以下命令)
 ```
 mvn archetype:generate -DarchetypeCatalog=local
+也可以指定archetype版本：
+mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate <parameters>
 ```
 此时会给出上文安装的archetype，选择输入编号,就可以了,这里就输入"2",然后输入GroupId,artifactId,就可以了
 
 如果想使用选定的模板生成
 ```
 mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
+mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-es-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
 ```
 注：这里的-D后都是可以自定义并且可以在项目获取的变量参数！
 
@@ -431,5 +439,26 @@ archetype依赖：
 		</plugins>
 	</build>
 </project>
+
+```
+
+业务代码：
+```
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+
+package ${package}.infrastructure.config;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionAdvice {
+
+
+}
 
 ```

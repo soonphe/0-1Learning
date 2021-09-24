@@ -17,6 +17,33 @@ Mac下查看已安装的jdk版本及其安装目录
 查看mysql字符串相关信息：show variables  like "%char%";
 ```
 
+### JDK相关工具使用
+```
+查看JDK信息：/usr/libexec/java_home -V
+JDK bin目录：cd /Library/Java/JavaVirtualMachines/jdk1.8.0_241.jdk/Contents/Home/bin/
+
+jconsole：Jconsole （Java Monitoring and Management Console），一种基于JMX的可视化监视、管理工具。
+JConsole 基本包括以下基本功能：概述、内存、线程、类、VM概要、MBean
+1.3.1 内存监控
+内存页签相对于可视化的jstat 命令，用于监视受收集器管理的虚拟机内存。
+1.3.2 线程监控
+如果上面的“内存”页签相当于可视化的jstat命令的话，“线程”页签的功能相当于可视化的jstack命令，遇到线程停顿时可以使用这个页签进行监控分析。线程长时间停顿的主要原因主要有：等待外部资源（数据库连接、网络资源、设备资
+源等）、死循环、锁等待（活锁和死锁）
+
+jvisualvm：VisualVM（All-in-One Java Troubleshooting Tool）;功能最强大的运行监视和故障处理程序
+- 显示虚拟机进程以及进程的配置、环境信息（jps、jinfo）。
+- 监视应用程序的CPU、GC、堆、方法区(1.7及以前)，元空间（JDK1.8及以后）以及线程的信息（jstat、jstack）。
+- dump以及分析堆转储快照（jmap、jhat）。
+- 方法级的程序运行性能分析，找出被调用最多、运行时间最长的方法。
+- 离线程序快照：收集程序的运行时配置、线程dump、内存dump等信息建立一个快照
+
+平时启动jvisualvm
+1./usr/libexec/java_home -V
+2.cd /Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/bin
+3.jvisualvm
+
+```
+
 ### Mapstruct：
 ```
 实体属性相同、名称不同转换：
@@ -591,6 +618,7 @@ public class EventBusConfig {
   @Bean
   public EventBus eventBus(AsyncEventListener eventListener) {
     Builder builder = new Builder().namingPattern("event-bus-threads");
+    //参数：corePoolSize，maximumPoolSize，keepAliveTime，TimeUnit，BlockingQueue等待对了
     ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 60L,
         TimeUnit.SECONDS,
         new ArrayBlockingQueue<>(100), builder.build());
@@ -1383,6 +1411,56 @@ String run(String url) throws IOException {
 }
 ```
 
+### SpringBoot中CommandLineRunner的作用
+> 平常开发中有可能需要实现在项目启动后执行的功能，SpringBoot提供的一种简单的实现方案就是添加一个model并实现CommandLineRunner接口，实现功能的代码放在实现的run方法中
+
+代码实现
+``` java
+package org.springboot.sample.runner;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyStartupRunner implements CommandLineRunner {
+
+	@Override
+	public void run(String... args) throws Exception {
+		System.out.println(">>>>>>>>>>>>>>>服务启动执行，执行加载数据等操作<<<<<<<<<<<<<");
+	}
+
+}
+```
+
+### @Bean(initMethod = "init")的作用
+init-method="init"  destroy-method="close" 作用：
+
+init-method="init"是指bean被初始化时执行的方法，当bean实例化后,执行init-method用于初始化数据库连接池。
+
+destroy-method="close" 是指bean被销毁时执行的方法   Spring容器关闭时调用该方法即调用close()将连接关闭。
+
+### Spring JdbcTemplate 方法详解
+JdbcTemplate主要提供以下五类方法：
+- execute方法：可以用于执行任何SQL语句，一般用于执行DDL语句；
+- update方法及batchUpdate方法：update方法用于执行新增、修改、删除等语句；batchUpdate方法用于执行批处理相关语句；
+- query方法及queryForXXX方法：用于执行查询相关语句；
+- call方法：用于执行存储过程、函数相关语句。
+
+JdbcTemplate类支持的回调类：
+预编译语句及存储过程创建回调：用于根据JdbcTemplate提供的连接创建相应的语句；
+PreparedStatementCreator：通过回调获取JdbcTemplate提供的Connection，由用户使用该Conncetion创建相关的PreparedStatement；
+CallableStatementCreator：通过回调获取JdbcTemplate提供的Connection，由用户使用该Conncetion创建相关的CallableStatement；
+预编译语句设值回调：用于给预编译语句相应参数设值；
+PreparedStatementSetter：通过回调获取JdbcTemplate提供的PreparedStatement，由用户来对相应的预编译语句相应参数设值；
+BatchPreparedStatementSetter：；类似于PreparedStatementSetter，但用于批处理，需要指定批处理大小；
+自定义功能回调：提供给用户一个扩展点，用户可以在指定类型的扩展点执行任何数量需要的操作；
+ConnectionCallback：通过回调获取JdbcTemplate提供的Connection，用户可在该Connection执行任何数量的操作；
+StatementCallback：通过回调获取JdbcTemplate提供的Statement，用户可以在该Statement执行任何数量的操作；
+PreparedStatementCallback：通过回调获取JdbcTemplate提供的PreparedStatement，用户可以在该PreparedStatement执行任何数量的操作；
+CallableStatementCallback：通过回调获取JdbcTemplate提供的CallableStatement，用户可以在该CallableStatement执行任何数量的操作；
+结果集处理回调：通过回调处理ResultSet或将ResultSet转换为需要的形式；
+RowMapper：用于将结果集每行数据转换为需要的类型，用户需实现方法mapRow(ResultSet rs, int rowNum)来完成将每行数据转换为相应的类型。
+RowCallbackHandler：用于处理ResultSet的每一行结果，用户需实现方法processRow(ResultSet rs)来完成处理，在该回调方法中无需执行rs.next()，该操作由JdbcTemplate来执行，用户只需按行获取数据然后处理即可。
+ResultSetExtractor：用于结果集数据提取，用户需实现方法extractData(ResultSet rs)来处理结果集，用户必须处理整个结果集；
 
 
 

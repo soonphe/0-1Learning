@@ -19,28 +19,16 @@
 
 ### 什么是Job
 Job和Step是spring batch执行批处理任务最为核心的两个概念。
-其中Job是一个封装整个批处理过程的一个概念。Job在spring batch的体系当中只是一个最顶层的一个抽象概念，体现在代码当中则它只是一个最上层的接口，其代码如下:
 
 在Job这个接口当中定义了五个方法，它的实现类主要有两种类型的job，一个是simplejob，另一个是flowjob。
 在spring batch当中，job是最顶层的抽象，除job之外我们还有JobInstance以及JobExecution这两个更加底层的抽象。
 
 一个job是我们运行的基本单位，它内部由step组成。job本质上可以看成step的一个容器。一个job可以按照指定的逻辑顺序组合step，并提供了我们给所有step设置相同属性的方法，例如一些事件监听，跳过策略。
-Spring Batch以SimpleJob类的形式提供了Job接口的默认简单实现，它在Job之上创建了一些标准功能。一个使用java config的例子代码如下：
-```
-@Bean
-public Job footballJob() {
-    return this.jobBuilderFactory.get("footballJob")
-                     .start(playerLoad())
-                     .next(gameLoad())
-                     .next(playerSummarization())
-                     .end()
-                     .build();
-```
-这个配置的意思是：首先给这个job起了一个名字叫footballJob，接着指定了这个job的三个step，他们分别由方法，playerLoad,gameLoad, playerSummarization实现。
+Spring Batch以SimpleJob类的形式提供了Job接口的默认简单实现，它在Job之上创建了一些标准功能。
 
 
 ### 什么是JobInstance
-```text
+```
 public interface JobInstance {
 	/**
 	 * Get unique id for this JobInstance.
@@ -153,110 +141,216 @@ spring batch的job会在项目启动时自动run，如果我们不想让他在�
 - 调整reader读数据逻辑，按分页读取，但实现上会麻烦一些，且运行效率会下降
 - 增大service内存
 
+---
+
 ### SpringBatch代码实现
 
-#### 例子背景
-本博客的例子是迁移数据，数据源是一个文本文件，数据量是上百万条，一行就是一条数据。然后我们通过Spring Batch帮我们把文本文件的数据全部迁移到MySQL数据库对应的表里面。
-
-假设我们迁移的数据是Message，那么我们就需要提前创建一个叫Message的和数据库映射的数据类。
-```text
-@Entity
-@Table(name = "message")
-public class Message {
-    @Id
-    @Column(name = "object_id", nullable = false)
-    private String objectId;
-
-    @Column(name = "content")
-    private String content;
-
-    @Column(name = "last_modified_time")
-    private LocalDateTime lastModifiedTime;
-
-    @Column(name = "created_time")
-    private LocalDateTime createdTime;
-}
+#### 依赖
 ```
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
+		<!--batch任务多台部署时加锁解决重复执行-->
+		<dependency>
+			<groupId>net.javacrumbs.shedlock</groupId>
+			<artifactId>shedlock-spring</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.javacrumbs.shedlock</groupId>
+			<artifactId>shedlock-provider-jdbc-template</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+```
+
+#### 配置文件
+配置了多数据源，配置了migrate作为springBatch分页、分片的大小，还配置elastic job作为调度，
+```
+spring:
+  batchDatasource:
+    username: root
+    password: Sgcc_1234
+    url: jdbc:mysql://192.168.160.178:3306/batch?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      maximum-pool-size: 50
+  datasource:
+    username: testgroup
+    password: Sgcc_1234
+    url: jdbc:mysql://192.168.102.115:3306/testgroup?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      maximum-pool-size: 50
+      max-lifetime: 120000
+      idleTimeout: 130000
+    tomcat:
+      test-on-borrow: true
+      validation-query: SELECT 1
+  flyway:
+    enabled: false
+  batch:
+    job:
+      enabled: false
+debug: true
+migrate:
+  config:
+    pageSize: 10000
+    chunkSize: 1
+    threadSize: 4
+gx:
+  web:
+    enable: true
+    base-package: "com.sgcc.ywzt.controller"
+    version: 1.0.0
+    description: "repairsrv web api"
+elasticjob:
+  tracing:
+    type: RDB
+  regCenter:
+    serverLists: 192.168.161.224:2181,192.168.161.44:2181,192.168.161.112:2181
+    namespace: cluster
+```
+
 
 #### 全局Configuration
-首先，我们需要一个全局的Configuration来配置所有的Job和一些全局配置。
-代码如下：
+启动类注解：@EnableBatchProcessing(modular = true)
 ```
-@Configuration
-@EnableAutoConfiguration
+@SpringBootApplication
+@EnableDiscoveryClient
 @EnableBatchProcessing(modular = true)
-public class SpringBatchConfiguration {
-    @Bean
-    public ApplicationContextFactory firstJobContext() {
-        return new GenericApplicationContextFactory(FirstJobConfiguration.class);
-    }
-    
-    @Bean
-    public ApplicationContextFactory secondJobContext() {
-        return new GenericApplicationContextFactory(SecondJobConfiguration.class);
-    }
+public class BootstrapApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(BootstrapApplication.class, args);
+  }
 
 }
 ```
 @EnableBatchProcessing是打开Batch。如果要实现多Job的情况，需要把EnableBatchProcessing注解的modular设置为true，让每个Job使用自己的ApplicationConext。
-比如上面代码的就创建了两个Job。
 
-#### 构建Job
-首先我们需要一个关于这个Job的Configuration，它将在SpringBatchConfigration里面被加载。
 
+#### BatchConfig 
+批处理配置：定义JobRepository，Reader，定义Step，Writer，Job（层级递进关系）
 ```
+@Slf4j
 @Configuration
-@EnableAutoConfiguration
-@EnableBatchProcessing(modular = true)
-public class SpringBatchConfiguration {
-    @Bean
-    public ApplicationContextFactory messageMigrationJobContext() {
-        return new GenericApplicationContextFactory(MessageMigrationJobConfiguration.class);
-    }
+public class BatchConfig extends DefaultBatchConfigurer {
+
+  @Autowired
+  private JobBuilderFactory jobBuilderFactory;
+
+  @Autowired
+  private StepBuilderFactory stepBuilderFactory;
+
+  @Autowired
+  @Qualifier("primaryDatasource")
+  private DataSource primaryDatasource;
+
+  @Autowired
+  @Qualifier("batchDatasource")
+  private DataSource batchDatasource;
+
+  @Autowired
+  private MigrateConfig config;
+
+  @Autowired
+  private DiscountProcessor processor;
+
+  @Autowired
+  private IOrderService orderService;
+
+  /**
+   * 定义JobRepository
+   *
+   * @return
+   * @throws Exception
+   */
+  @Override
+  protected JobRepository createJobRepository() throws Exception {
+    JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
+    factory.setDataSource(batchDatasource);
+    factory.setTransactionManager(this.getTransactionManager());
+    factory.afterPropertiesSet();
+    factory.setIsolationLevelForCreate("ISOLATION_REPEATABLE_READ");
+    return factory.getObject();
+  }
+
+
+
+  /**
+   * 数据读取 根据id 查询保证性能 分页读取
+   * Reader顾名思义就是从数据源读取数据。
+   * Spring Batch给我们提供了很多好用实用的reader，基本能满足我们所有需求。比如FlatFileItemReader，JdbcCursorItemReader，JpaPagingItemReader等。也可以自己实现Reader。
+   *
+   * 本例子里面，数据源是文本文件，所以我们就使用FlatFileItemReader。FlatFileItemReader是从文件里面一行一行的读取数据。
+   * 首先需要设置文件路径，也就是设置resource。
+   * 因为我们需要把一行文本映射为Message类，所以我们需要自己设置并实现LineMapper。
+   */
+  @Bean
+  @StepScope
+  public JdbcPagingItemReader<OrderDiscountsDetailEntity> discountReader(@Value("#{jobParameters[startTime]}") String startTime, @Value("#{jobParameters[endTime]}") String endTime)
+      throws Exception {
+    JdbcPagingItemReader<OrderDiscountsDetailEntity> reader = new JdbcPagingItemReader();
+    MySqlDRDSPagingQueryProvider provider =  new MySqlDRDSPagingQueryProvider();
+    provider.setSelectClause(" * ");
+    provider.setFromClause("from ord_order_discounts_detail");
+    provider.setWhereClause("preferential_type in (50,51) and order_state = 20 and fin_clearing_discount_id is null and state =1  and update_time >= '" + startTime + "' and update_time <= '" + endTime + "' and comment != '"+UPDATE_COMMENT+"'" );
+    Map<String, Order> keys = new LinkedHashMap();
+    keys.put("id", Order.ASCENDING);
+    provider.setSortKeys(keys);
+    reader.setQueryProvider(provider);
+    reader.setDataSource(primaryDatasource);
+    reader.setPageSize(config.getPageSize());
+    reader.setRowMapper(new OrderDiscountsRowMapper());
+    reader.afterPropertiesSet();
+    reader.setSaveState(true);
+    return reader;
+  }
+
+  /**
+   * 定义Step
+   * stepBuilderFactory是注入进来的，然后get里面是Step的名字。
+   * 我们的Step中可以构建很多东西，比如reader，processer，writer，listener等等。
+   * @param discountReader
+   * @return
+   */
+  @Bean
+  public Step migrateOrderDiscountConsumedStep(@Qualifier("discountReader") JdbcPagingItemReader<OrderDiscountsDetailEntity> discountReader) {
+    return this.stepBuilderFactory.get("migrateOrderDiscountStep")
+        .<OrderDiscountsDetailEntity, OrderUnionEntity>chunk(config.getChunkSize())
+        .reader(discountReader)
+        .processor(processor)
+        .writer(marketResultWriter())
+        .taskExecutor(new SimpleAsyncTaskExecutor("migrate_thread"))
+        .throttleLimit(config.getThreadSize())
+        .build();
+  }
+
+
+  @Bean
+  public ItemWriter<? super OrderUnionEntity> marketResultWriter() {
+    return new MarketResultWriter(orderService);
+  }
+
+
+  /**
+   * 定义Job，这个job只有一个step
+   * jobBuilderFactory是注入进来的，get里面的就是job的名字。
+   *
+   * @param step
+   * @return
+   */
+  @Bean("migrateOrderDiscountJob")
+  public Job migrateOrderDiscountJob(@Qualifier("migrateOrderDiscountConsumedStep") Step step) {
+    return this.jobBuilderFactory.get("migrateOrderDiscountJob")
+        .start(step)
+        .incrementer(new RunIdIncrementer())
+        .build();
+  }
 }
 
 ```
-下面的关于构建Job的代码都将写在这个MessageMigrationJobConfiguration里面。
-```
-public class MessageMigrationJobConfiguration {
-}
-```
-我们先定义一个Job的Bean。
-```
-@Autowired
-private JobBuilderFactory jobBuilderFactory;
-
-@Bean
-public Job messageMigrationJob(@Qualifier("messageMigrationStep") Step messageMigrationStep) {
-    return jobBuilderFactory.get("messageMigrationJob")
-            .start(messageMigrationStep)
-            .build();
-}
-```
-jobBuilderFactory是注入进来的，get里面的就是job的名字。
-这个job只有一个step。
-
-#### Step
-创建Step
-```
-@Autowired
-private StepBuilderFactory stepBuilderFactory;
-
-@Bean
-public Step messageMigrationStep(@Qualifier("jsonMessageReader") FlatFileItemReader<Message> jsonMessageReader,
-                                 @Qualifier("messageItemWriter") JpaItemWriter<Message> messageItemWriter,
-                                 @Qualifier("errorWriter") Writer errorWriter) {
-    return stepBuilderFactory.get("messageMigrationStep")
-            .<Message, Message>chunk(CHUNK_SIZE)
-            .reader(jsonMessageReader).faultTolerant().skip(JsonParseException.class).skipLimit(SKIP_LIMIT)
-            .listener(new MessageItemReadListener(errorWriter))
-            .writer(messageItemWriter).faultTolerant().skip(Exception.class).skipLimit(SKIP_LIMIT)
-            .listener(new MessageWriteListener())
-            .build();
-}
-```
-stepBuilderFactory是注入进来的，然后get里面是Step的名字。
-我们的Step中可以构建很多东西，比如reader，processer，writer，listener等等。
 
 #### Chunk
 Spring batch在配置Step时采用的是基于Chunk的机制，即每次读取一条数据，再处理一条数据，累积到一定数量后再一次性交给writer进行写入操作。这样可以最大化的优化写入效率，整个事务也是基于Chunk来进行。
@@ -268,22 +362,6 @@ Spring batch在配置Step时采用的是基于Chunk的机制，即每次读取�
 .<Message, Message>chunk(CHUNK_SIZE)
 ```
 
-#### Reader
-Reader顾名思义就是从数据源读取数据。
-Spring Batch给我们提供了很多好用实用的reader，基本能满足我们所有需求。比如FlatFileItemReader，JdbcCursorItemReader，JpaPagingItemReader等。也可以自己实现Reader。
-
-本例子里面，数据源是文本文件，所以我们就使用FlatFileItemReader。FlatFileItemReader是从文件里面一行一行的读取数据。
-首先需要设置文件路径，也就是设置resource。
-因为我们需要把一行文本映射为Message类，所以我们需要自己设置并实现LineMapper。
-```text
-@Bean
-public FlatFileItemReader<Message> jsonMessageReader() {
-    FlatFileItemReader<Message> reader = new FlatFileItemReader<>();
-    reader.setResource(new FileSystemResource(new File(MESSAGE_FILE)));
-    reader.setLineMapper(new MessageLineMapper());
-    return reader;
-}
-```
 
 #### Line Mapper
 LineMapper的输入就是获取一行文本，和行号，然后转换成Message。
@@ -304,45 +382,85 @@ public class MessageLineMapper implements LineMapper<Message> {
 ```
 
 #### Processor
-由于本例子里面，数据是一行文本，通过reader变成Message的类，然后writer直接把Message写入MySQL。所以我们的例子里面就不需要Processor，关于如何写Processor其实和reader/writer是一样的道理。
-从它的接口可以看出，需要定义输入和输出的类型，把输入I通过某些逻辑处理之后，返回输出O。
+Reader和Writer中间处理过程：从它的接口可以看出，需要定义输入和输出的类型，把输入I通过某些逻辑处理之后，返回输出O。
 ```
-public interface ItemProcessor<I, O> {
-    O process(I item) throws Exception;
+@Slf4j
+@Component
+public class DiscountProcessor implements
+    ItemProcessor<OrderDiscountsDetailEntity, OrderUnionEntity> {
+
+  @Autowired
+  private IOrderService orderService;
+  @Value("${package.url}")
+  private String packageUrl;
+
+  @Override
+  public OrderUnionEntity process(OrderDiscountsDetailEntity orderDiscountsDetailEntity)
+      throws Exception {
+    OrdOrderConsumeEntity byId = orderService.findById(orderDiscountsDetailEntity.getTradeFlowNo());
+    if (Objects.isNull(byId)){
+      return null;
+    }
+    PackageConsumeReq packageConsumeReq = new PackageConsumeReq();
+    packageConsumeReq.setThirdTradeNo(byId.getTradeFlowNo());
+    packageConsumeReq.setOrderAmount(byId.getAmount());
+    packageConsumeReq.setElecCharge(byId.getTotalElecty());
+    packageConsumeReq.setElecAmount(byId.getElecAmount());
+    packageConsumeReq.setServiceAmount(byId.getServiceAmount());
+
+    String result = HttpUtil.doPost(getOkHttpUrlbyQuerySrvEs(packageUrl),
+        JsonUtil.toJson(packageConsumeReq), null, null);
+    if (StringUtils.isNotBlank(result)){
+      log.info("构造PackageConsumeResp");
+      PackageConsumeResp packageConsumeResp = JsonUtil.fromJson(result, PackageConsumeResp.class);
+      OrderUnionEntity orderUnionEntity = new OrderUnionEntity();
+      orderUnionEntity.setOrdOrderConsume(byId);
+      orderUnionEntity.setPackageConsumeResp(packageConsumeResp);
+      return orderUnionEntity;
+    }
+    return null;
+  }
 }
 ```
 
 #### Writer
 Writer顾名思义就是把数据写入到目标数据源里面。
-Spring Batch同样给我们提供很多好用实用的writer。比如JpaItemWriter，FlatFileItemWriter，HibernateItemWriter，JdbcBatchItemWriter等。同样也可以自定义。
+Spring Batch同样给我们提供很多好用实用的writer。比如ItemWriter，JpaItemWriter，FlatFileItemWriter，HibernateItemWriter，JdbcBatchItemWriter等。同样也可以自定义。
 
-本例子里面，使用的是JpaItemWriter，可以直接把Message对象写到数据库里面。但是需要设置一个EntityManagerFactory，可以注入进来。
+ItemWriter处理list数据
 ```
-@Autowired
-private EntityManagerFactory entityManager;
+@Slf4j
+@RequiredArgsConstructor
+public class MarketResultWriter implements ItemWriter<OrderUnionEntity> {
 
-@Bean
-public JpaItemWriter<Message> messageItemWriter() {
-    JpaItemWriter<Message> writer = new JpaItemWriter<>();
-    writer.setEntityManagerFactory(entityManager);
-    return writer;
+  private final IOrderService orderService;
+  @Autowired
+  private EventBus eventBus;
+
+  @Override
+  public void write(List<? extends OrderUnionEntity> list) throws Exception {
+
+    log.info("进入write：list Size：{}", list.size());
+    if (CollectionUtils.isNotEmpty(list)){
+      for (OrderUnionEntity item: list){
+        if (Objects.nonNull(item)){
+          OrderDiscountsDetailEntity orderDiscountsDetailEntity = orderService.addPackageOrderDisCountDetail(item.getOrdOrderConsume(), item.getPackageConsumeResp());
+//          orderService.discountsUpdate(orderDiscountsDetailEntity);
+//          orderService.consumeUpdate(orderDiscountsDetailEntity.getTradeFlowNo());
+          //异步更新DiscountsDetail
+          eventBus.post(
+              UpdateDiscountsEvent.builder()
+                  .orderDiscountsDetailEntity(orderDiscountsDetailEntity)
+                  .build()
+          );
+        }
+
+      }
+    }
+  }
 }
-
 ```
 
-另外，你需要配置数据库的连接等东西。由于我使用的spring，所以直接在Application.properties里面配置如下：
-```
-spring.datasource.url=jdbc:mysql://database
-spring.datasource.username=username
-spring.datasource.password=password
-spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-spring.jpa.show-sql=true
-spring.jpa.properties.jadira.usertype.autoRegisterUserTypes=true
-spring.jackson.serialization.write-dates-as-timestamps=false
-spring.batch.initialize-schema=ALWAYS
-spring.jpa.hibernate.ddl-auto=update
-```
 
 #### Listener
 Spring Batch同样实现了非常完善全面的listener，listener很好理解，就是用来监听每个步骤的结果。比如可以有监听step的，有监听job的，有监听reader的，有监听writer的。没有你找不到的listener，只有你想不到的listener。
@@ -409,41 +527,43 @@ writer(messageItemWriter).faultTolerant().skip(Exception.class).skipLimit(SKIP_L
 同样可以分别给reader，writer等设置retry机制。
 
 如果同时设置了retry和skip，会先重试所有次数，然后再开始skip。比如retry是10次，skip是20，会先重试10次之后，再开始算第一次skip。
+```
+.writer(marketResultWriter()).faultTolerant().skip(Exception.class).retry(Exception.class).retryLimit(RETRY_LIMIT)
+```
 
 #### 运行Job
-所有东西都准备好以后，就是如何运行了。
+
 运行就是在main方法里面用JobLauncher去运行你制定的job。
-
-下面是我写的main方法，main方法的第一个参数是job的名字，这样我们就可以通过不同的job名字跑不同的job了。
-
-首先我们通过运行起来的Spring application得到jobRegistry，然后通过job的名字找到对应的job。
-
-接着，我们就可以用jobLauncher去运行这个job了，运行的时候会传一些参数，比如你job里面需要的文件路径或者文件日期等，就可以通过这个jobParameters传进去。如果没有参数，可以默认传当前时间进去。
 ```
-public static void main(String[] args) {
-    String jobName = args[0];
+//需要注入jobLauncher和Job
+jobLauncher.run(migrateOrderDiscountJob, params);
+//第二种：通过Spring application得到jobRegistry，然后通过job的名字找到对应的job。
 
-    try {
-        ConfigurableApplicationContext context = SpringApplication.run(ZuociBatchApplication.class, args);
-        JobRegistry jobRegistry = context.getBean(JobRegistry.class);
-        Job job = jobRegistry.getJob(jobName);
-        JobLauncher jobLauncher = context.getBean(JobLauncher.class);
-        JobExecution jobExecution = jobLauncher.run(job, createJobParams());
-        if (!jobExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-            throw new RuntimeException(format("%s Job execution failed.", jobName));
-        }
-    } catch (Exception e) {
-        throw new RuntimeException(format("%s Job execution failed.", jobName));
-    }
-}
+```
+也可以构造elasticJob当做springbatch的调度器，这样就能自如的控制springbatch的启停。
 
+在运行的时候会传一些参数，比如你job里面需要的文件路径或者文件日期等，就可以通过这个jobParameters传进去。如果没有参数，可以默认传当前时间进去。
+```
+/**
+ * 构造JobParameters传参
+ * 
+ */
 private static JobParameters createJobParams() {
+    //构造字符串
+    JobParameters params = new JobParametersBuilder()
+        .addString("startTime", DateUtil.getTimeString(startTime))
+        .addString("endTime", DateUtil.getTimeString(endTime))
+        .addString("random",getParameter(jobParameterMap,"random"))
+        .toJobParameters();
+    //构造日期
     return new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
 }
 ```
 
 #### Spring Batch数据表
-batch_job_instance：这张表能看到每次运行的job名字。
-batch_job_execution：这张表能看到每次运行job的开始时间，结束时间，状态，以及失败后的错误消息是什么。
-batch_step_execution：这张表你能看到更多关于step的详细信息。比如step的开始时间，结束时间，提交次数，读写次数，状态，以及失败后的错误信息等。
+springBatch共有15张表，重点关注以下三张表：
+
+- batch_job_instance：这张表能看到每次运行的job名字。
+- batch_job_execution：这张表能看到每次运行job的开始时间，结束时间，状态，以及失败后的错误消息是什么。
+- batch_step_execution：这张表你能看到更多关于step的详细信息。比如step的开始时间，结束时间，提交次数，读写次数，状态，以及失败后的错误信息等。
 

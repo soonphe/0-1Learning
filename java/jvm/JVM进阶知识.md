@@ -185,9 +185,14 @@ jdk1.9 默认垃圾收集器G1
 -heap：打印jvm heap的情况  
 -histo：打印jvm heap的直方图。其输出信息包括类名，对象数量，对象占用大小。  
 -histo：live ：同上，但是只答应存活对象的情况  
--permstat：打印permanent generation heap情况  
+-permstat：打印permanent generation heap情况
+
 * jstack（linux下特有）可以观察到jvm中当前所有线程的运行情况和线程当前状态
+
 * jconsole一个图形化界面，可以观察到java进程的gc，class，内存等信息
+
+* jvisualvm：图形化界面，VisualVM（All-in-One Java Troubleshooting Tool）;功能最强大的运行监视和故障处理程序
+
 * jstat最后要重点介绍下这个命令。这是jdk命令中比较重要，也是相当实用的一个命令，可以观察到classloader，compiler，gc相关信息
 具体参数如下：
 -class：统计class loader行为信息  
