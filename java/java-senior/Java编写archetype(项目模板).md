@@ -97,7 +97,7 @@ mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate <parameters>
 如果想使用选定的模板生成
 ```
 mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
-mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-es-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
+mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-es2-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
 ```
 注：这里的-D后都是可以自定义并且可以在项目获取的变量参数！
 

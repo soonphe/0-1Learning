@@ -20,6 +20,10 @@ Nacos 的关键特性包括:
     动态 DNS 服务
     服务及其元数据管理
 
+Nacos、Eureka、zookeeper对比：
+
+    Nacos（可选择CP或AP）、Eureka（AP）、zookeeper（ CP）
+
 ### 安装启动
 1.预备环境准备
 Nacos 依赖 Java 环境来运行。如果您是从代码开始构建并运行Nacos，还需要为此配置 Maven环境，请确保是在以下版本环境中安装使用:
