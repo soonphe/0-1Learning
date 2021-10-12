@@ -324,10 +324,11 @@ http {
 ### 代理文件proxy_pass配置选项
 ```
 # proxy.conf
-proxy_redirect                   off;
-proxy_set_header               Host $host;
-proxy_set_header               X-Real-IP $remote_addr;   #获取真实ip
-#proxy_set_header             X-Forwarded-For     $proxy_add_x_forwarded_for; #获取代理者的真实ip
+proxy_redirect      off;
+proxy_set_header    Host $host; #将原有请求的host放入转发的请求里
+proxy_set_header    X-Real-IP $remote_addr;   #获取真实ip
+proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for; #获取代理者的真实ip
+proxy_set_header    X-Forwarded-Proto   $scheme; #识别协议HTTP或HTTPS的，及用户自定义header的
 client_max_body_size       10m;
 client_body_buffer_size 128k;
 proxy_connect_timeout     90;
@@ -337,6 +338,20 @@ proxy_buffer_size             4k;
 proxy_buffers                     4 32k;
 proxy_busy_buffers_size 64k;
 proxy_temp_file_write_size 64k;
+```
+
+说明：
+nginx为了实现反向代理的需求而增加了一个ngx_http_proxy_module模块。其中proxy_set_header指令就是该模块需要读取的配置文件
+X-Forwarded-For:简称XFF头，它代表客户端，也就是HTTP的请求端真实的IP，只有在通过了HTTP 代理或者负载均衡服务器时才会添加该项
+
+当request header 中key存在特殊字符时（如“:”，“_”），修改配置：
+解除ngnix的限制，当key含特殊字符时，忽略。
+```
+server{
+    listen 80;
+    ignore_invalid_headers off;
+    ...
+}
 ```
 
 ### nginx配置二级路径匹配

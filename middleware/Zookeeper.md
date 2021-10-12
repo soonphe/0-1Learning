@@ -6,63 +6,98 @@
 ![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
 
 ## Zookeeper
+官方资源包：http://zookeeper.apache.com/
+国内压缩包地址：
+```
+https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz
+```
 
-1.下载tar压缩包，解压
+### jdk环境
+```
+vim ~/.bash_profile
 
-2.Windows下安装
+export JAVA_HOME=/opt/edas/jdk/jdk1.8.0_65
+export JRE_HOME=${JAVA_HOME}/jre
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export PATH=.:${JAVA_HOME}/bin:$PATH
 
-把下载的zookeeper的文件解压到指定目录
-D:\machine\zookeeper-3.3.6>
+source ~/.bash_profile
+```
 
-修改conf下增加一个zoo.cfg
-内容如下：
-# The number of milliseconds of each tick  心跳间隔 毫秒每次
+### 单机环境搭建
+操作
+```
+1. 下载压缩包
+
+2.tar –xvf 命令将包解压到你想要的路径：
+tar -zxf apache-zookeeper-3.6.3-bin.tar.gz -C /usr/local
+
+3.创建两个文件夹，路径如图：
+mkdir data
+mkdir logs
+
+4.你可以在conf文件里面复制zoo_sample.cfg,并重命名为zoo.cfg,或者创建一个文件命名为zoo.cfg
 tickTime=2000
-# The number of ticks that the initial
+dataDir=/usr/local/apache-zookeeper-3.6.3-bin/data
+dataLogDir=/usr/local/apache-zookeeper-3.6.3-bin/logs
+clientPort=2181
+dataDir和dataLogDir的路径是你创建的文件夹的路径
+
+5.命令
+./zkServer.sh start
+./zkServer.sh stop
+./zkServer.sh restart
+./zkServer.sh status
+
+./zkServer.sh start-foreground查看相关启动信息
+./zkCli.sh -server 127.0.0.1:2185  利用客户端测试连接（ls 还能查看所有节点）
+
+6.启动前利用命令：netstat -tunlp|grep 端口号  查看端口有没有被占用，有的话kill掉，或者改用其他端口
+```
+
+常见问题
+- 可能端口被占用，端口被占用就换
+- 也有可能因为jdk问题，jdk的问题可能是你的环境变量没配好
+- 连接zookeeper的时候要注意防火墙有没有开
+
+### 集群环境搭建
+
+操作步骤：
+```
+1. 新增myid文件
+cd /opt
+mkdir zk
+vim myid
+1
+将1 写入文件，各机器依次递增
+
+2.修改zoo.cfg配置
+cp zoo_sample.cfg zoo.cfg
+vim zoo.cfg
+
+dataDir=/opt/zk
+# the port at which the clients will connect
+clientPort=2181
+server.1=192.168.161.224:2888:3888
+server.2=192.168.161.44:2888:3888
+server.3=192.168.161.112:2888:3888
+```
+
+### 配置文件说明
+```
+# The number of milliseconds of each tick       心跳间隔 毫秒每次
+tickTime=2000
+# The number of ticks that the initial          LF初始通信时限（集群中的follower服务器(F)与leader服务器(L)之间 初始连接 时能容忍的最多心跳数（tickTime的数量））
 # synchronization phase can take
 initLimit=10
-# The number of ticks that can pass between
+# The number of ticks that can pass between     LF同步通信时限（集群中的follower服务器(F)与leader服务器(L)之间 请求和应答 之间能容忍的最多心跳数（tickTime的数量）。）
 # sending a request and getting anacknowledgement
 syncLimit=5
-# the directory where the snapshot isstored.  //镜像数据位置
-dataDir=D:\\data\\zookeeper
-#日志位置
-dataLogDir=D:\\logs\\zookeeper
-# the port at which the clients willconnect  客户端连接的端口
+# the directory where the snapshot isstored.    数据文件和日志文件地址
+dataDir=/usr/local/apache-zookeeper-3.6.3-bin/data
+dataLogDir=/usr/local/apache-zookeeper-3.6.3-bin/data
+# the port at which the clients willconnect     客户端连接的端口
 clientPort=2181
-注：如果启动有报错提示cfg文件有错误，可以用zoo_sample.cfg内内容替代也是可以的
-
-进入到bin目录，并且启动zkServer.cmd，这个脚本中会启动一个java进程
-D:\machine\zookeeper-3.3.6>cd bin
-D:\machine\zookeeper-3.3.6\bin>
-D:\machine\zookeeper-3.3.6\bin >zkServer.cmd（linux为sh）
-启动后jps可以看到QuorumPeerMain的进程
-D:\machine\zookeeper-3.3.6\bin >jps
-
-启动客户端运行查看一下
-D:\machine\zookeeper-3.3.6\bin>zkCli.cmd -server 127.0.0.1:2181
-
-实际集群可参考——linux安装zookeeper.txt
-
-伪集群：
-在 一台机器上通过伪集群运行时可以修改 zkServer.cmd 文件在里面加入
-set ZOOCFG=..\conf\zoo1.cfg  这行，另存为  zkServer-1.cmd
-
-多台部署以此类推，配置多个zooX.cfg（这里clientPort=2181使用不同端口，实际多台机器集群使用相同端口）,
-在dataDir=D:\\data\\zookeeper\X 建立myid文件，里面写入对应的X（多台机器相同文件路径也要写入不同的的值，值与server.X相同）
-server.1=127.0.0.1:2888:3888
-server.2=127.0.0.1:2889:3889
-server.3=127.0.0.1:2890:3890
+```
 
 
-————————————————————————————————————————————————————————
-windows下查看zookeeper节点：
-
-进入到安装目录的bin下 
-例如：C:\resources\zookeeper\zookeeper-3.4.9\bin
-
-按着Shift再点击鼠标右键选择：在此处打开命令窗口
-执行
-zkCli.cmd -server 192.168.18.191:2181
-1
-再执行 ls / 下就能看到节点了
