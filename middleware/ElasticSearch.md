@@ -127,25 +127,26 @@ Elasticsearch是面向文档的，这意味着索引和搜索数据的最小单�
 1.查看集群的健康状态。
 http://127.0.0.1:9200/_cat/health?v
 
-    集群的状态（status）：red红表示集群不可用，有故障。yellow黄表示集群不可靠但可用，一般单节点时就是此状态。green正常状态，表示集群一切正常。
-    节点数（node.total）：节点数，这里是2，表示该集群有两个节点。
-    数据节点数（node.data）：存储数据的节点数，这里是2。数据节点在Elasticsearch概念介绍有。
-    分片数（shards）：这是12，表示我们把数据分成多少块存储。
-    主分片数（pri）：primary shards，这里是6，实际上是分片数的两倍，因为有一个副本，如果有两个副本，这里的数量应该是分片数的三倍，这个会跟后面的索引分片数对应起来，这里只是个总数。
-    激活的分片百分比（active_shards_percent）：这里可以理解为加载的数据分片数，只有加载所有的分片数，集群才算正常启动，在启动的过程中，如果我们不断刷新这个页面，我们会发现这个百分比会不断加大
+    status：集群的状态，red红表示集群不可用，有故障。yellow黄表示集群不可靠但可用，一般单节点时就是此状态。green正常状态，表示集群一切正常。
+    node.total：节点数，表示该集群有多少个节点。
+    node.data：存储数据节点数
+    shards：分片数，表示我们把数据分成多少块存储。
+    pri：primary shards，主分片数，实际上是分片数的两倍，因为有一个副本，如果有两个副本，这里的数量应该是分片数的三倍
+    active_shards_percent：激活的分片百分比，只有加载所有的分片数，集群才算正常启动，在启动的过程中，如果我们不断刷新这个页面，我们会发现这个百分比会不断加大
 
 2.查看集群的索引数。
 http://127.0.0.1:9200/_cat/indices?v
 
-    索引健康（health），green为正常，yellow表示索引不可靠（单节点），red索引不可用。与集群健康状态一致。
-    状态（status），表明索引是否打开。
-    索引名称（index），这里有.kibana和school。
-    uuid，索引内部随机分配的名称，表示唯一标识这个索引。
-    主分片（pri），.kibana为1，school为5，加起来主分片数为6，这个就是集群的主分片数。
-    文档数（docs.count），school在之前的演示添加了两条记录，所以这里的文档数为2。
-    已删除文档数（docs.deleted），这里统计了被删除文档的数量。
-    索引存储的总容量（store.size），这里school索引的总容量为6.4kb，是主分片总容量的两倍，因为存在一个副本。
-    主分片的总容量（pri.store.size），这里school的主分片容量是7kb，是索引总容量的一半。
+    health：索引健康，green为正常，yellow表示索引不可靠（单节点），red索引不可用。与集群健康状态一致。
+    status：状态，表明索引是否打开。
+    index：索引名称，这里有.kibana和school。
+    uuid：索引内部随机分配的名称，表示唯一标识这个索引。
+    pri：主分片，.kibana为1，school为5，加起来主分片数为6，这个就是集群的主分片数。
+    rep：副本数量
+    docs.count：文档数，school在之前的演示添加了两条记录，所以这里的文档数为2。
+    docs.deleted：已删除文档数，这里统计了被删除文档的数量。
+    store.size：索引存储的总容量，这里school索引的总容量为6.4kb，是主分片总容量的两倍，因为存在一个副本。
+    pri.store.size：主分片的总容量，这里school的主分片容量是7kb，是索引总容量的一半。
 
 3.查看集群所在磁盘的分配状况
 http://127.0.0.1:9200/_cat/allocation?v
@@ -199,34 +200,98 @@ http://127.0.0.1:9200/_cat/
     其实很多都可以见词知义的，相当于获得查看集群信息的目录
 
 
+### Elasticsearch支持的字段类型
+|一级分类	|二级分类	|具体类型|
+|---|---|---|
+|核心类型|字符串类型|string,text,keyword|
+|---|整数类型|integer,long,short,byte |
+|---|浮点类型|double,float,half_float,scaled_float|
+|---|逻辑类型|boolean|
+|---|日期类型|date|
+|---|范围类型|range|
+|---|二进制类型|binary|
+|复合类型|数组类型|array|
+|---|对象类型|object|
+|---|嵌套类型|nested|
+|地理类型|地理坐标类型|geo_point|
+|---|地理地图|geo_shape|
+|特殊类型|IP类型|ip|
+|---|范围类型|completion|
+|---|令牌计数类型|token_count|
+|---|附件类型|attachment|
+|---|抽取类型|percolator|
+
+说明：
+字符串类型ElasticSearch对字符串拥有两种完全不同的搜索方式. 你可以按照整个文本进行匹配, 即关键词搜索(keyword search), 也可以按单个字符匹配, 即全文搜索(full-text search).
+- Text：
+会分词，然后进行索引
+支持模糊、精确查询
+不支持聚合
+
+- keyword：
+不进行分词，直接索引
+支持模糊、精确查询
+支持聚合
+
+- text用于全文搜索的, 而keyword用于关键词搜索.
+说明：ES5.0及以后的版本取消了string类型，将原先的string类型拆分为text和keyword两种类型。它们的区别在于text会对字段进行分词处理而keyword则不会。
+
+
+
 ### Elasticsearch获取索引、删除索引、增加数据
-1、获取索引
-curl -XGET 'http://localhost:9200/{_index}/{_type}/{_id}'
-2、索引添加数据
-curl -XPOST 'http://localhost:9200/{_index}/{_type}/{_id}' -d'{"a":"avalue","b":"bvalue"}'
-3、删除索引
-curl -XDELETE 'http://localhost:9200/{_index}/{_type}/{_id}'
-4、设置mapping
+1. 创建索引：
+```
+curl -X PUT 'localhost:9200/log_index?pretty'
+```
+2. 删除索引：curl -XDELETE 'http://localhost:9200/{_index}/{_type}/{_id}'
+```
+curl -XDELETE localhost:9200/log_index
+```
+3. 设置mapping
+```
 curl -XPUT http://localhost:9200/{_index}/{_type}/{_id} -d '{
   "{type}" : {
 	"properties" : {
-	  "date" : {
+	  "createTime" : {
 		"type" : "long"
 	  },
 	  "name" : {
-		"type" : "string",
-		"index" : "not_analyzed"
-	  },
-	  "status" : {
-		"type" : "integer"
-	  },
-	  "type" : {
-		"type" : "integer"
+		"type" : "text"
 	  }
 	}
   }
 }'
-5、搜索
+说明：
+如果不指定类型，ElasticSearch字符串将默认被同时映射成text和keyword类型，会自动创建下面的动态映射(dynamic mappings)：
+{
+    "name": {
+        "type": "text",
+        "fields": {
+            "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+            }
+        }
+    }
+}
+这就是造成部分字段还会自动生成一个与之对应的“.keyword”字段的原因。
+
+```
+4. 创建索引并添加数据：curl -XPOST 'http://localhost:9200/{_index}/{_type}/{_id}' -d'{"a":"avalue","b":"bvalue"}'
+```
+限定index + type添加：
+curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type' -d'{"a":"avalue","b":"bvalue"}'
+限定index + type + id添加（ID相同会覆盖）：
+curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
+```
+
+4获取索引信息：curl -XGET 'http://localhost:9200/{_index}/{_type}/{_id}'
+```
+curl -XGET 'http://localhost:9200/log_index?pretty'
+```
+4. 获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
+5. 获取条件查询数据：
+```
 curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
     "query" : {
         "term" : { "user" : "kimchy" } //查所有 "match_all": {}
@@ -235,28 +300,15 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
 	"from":0,
 	"size":100
 }
-
-### 基础操作示例（curl）：
-创建索引：curl -X PUT 'localhost:9200/log_index?pretty'
-
-创建索引并添加数据：
-限定index + type添加：curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type' -d'{"a":"avalue","b":"bvalue"}'
-限定index + type + id添加（ID相同会覆盖）：curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
-
-获取索引信息：curl -XGET 'http://localhost:9200/log_index?pretty'
-获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
-删除索引：curl -XDELETE localhost:9200/log_index
-
-添加json文件：
-curl -XPOST 'localhost:9200/log_index/log_type/_bulk?pretty' --data-binary  @accounts.json
+```
 
 参数分析：
-    -d标识要传递的参数
-    log_index是索引index
-    log_type是索引类型type
-    索引和类型的名称在文件中如果有定义，可以省略；如果没有则必须要指定
-    _bulk是rest的命令，可以批量执行多个操作（操作是在json文件中定义的，原理可以参考之前的翻译）
-    pretty是将返回的信息以可读的JSON形式返回。
+- -d标识要传递的参数
+- log_index是索引index
+- log_type是索引类型type（索引和类型的名称在文件中如果有定义，可以省略；如果没有则必须要指定）
+- _bulk是rest的命令，可以批量执行多个操作（操作是在json文件中定义的，原理可以参考之前的翻译）
+- pretty是将返回的信息以可读的JSON形式返回。
+
 
 
 ### Elasticsearch查询索引信息

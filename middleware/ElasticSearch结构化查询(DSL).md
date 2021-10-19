@@ -120,7 +120,48 @@ GET /ad/phone/_count
   }
 }
 
-### 使用SQL语句查询Elasticsearch索引数据
+### 9. 根据查询条件求和sum
+有三中办法：
+1. 用 stats
+```
+GET /ad/phone/_count
+{
+  "query": {
+    "match" : { "content" : "在" }
+  },
+  "aggs" : {
+    "total_amount" : { "stats" : { "field" : "amount" } }
+  }
+}
+说明：total_amount 就是个名字，随便起都行。stats、field 不能修改。可以修改的是 amount 字段
+```
+2. 用extended_stats
+```
+GET /ad/phone/_count
+{
+  "query": {
+    "match" : { "content" : "在" }
+  },
+  "aggs" : {
+    "total_amount" : { "extended_stats" : { "field" : "amount" } }
+  }
+}
+```
+3. 用sum
+```
+GET /ad/phone/_count
+{
+  "query": {
+    "match" : { "content" : "在" }
+  },
+  "aggs" : {
+    "total_amount" : { "sum" : { "field" : "amount" } }
+  }
+}
+```
+说明：当query和aggs一起存在时，会先执行query的主查询，主查询query执行完后会搜出一批结果，而这些结果才会被拿去aggs拿去做聚合，另外要注意aggs后面会先接一层自定义的这个聚合的名字，然后才是接上要使用的聚合桶
+
+### 10.使用SQL语句查询Elasticsearch索引数据
 POST /_sql?format=json
 {
     "query": "SELECT * FROM indexName"
