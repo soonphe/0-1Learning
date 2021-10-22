@@ -238,19 +238,77 @@ http://127.0.0.1:9200/_cat/
 
 
 
-### Elasticsearch获取索引、删除索引、增加数据
+### Index和Type的主要区别
+Index 是什么
+Index 存储在多个分片中，其中每一个分片都是一个独立的 Lucene Index。这就应该能提醒你，添加新 index 应该有个限度：每个 Lucene Index 都需要消耗一些磁盘，内存和文件描述符。因此，一个大的 index 比多个小 index 效率更高：Lucene Index 的固定开销被摊分到更多文档上了。
+另一个重要因素是你准备怎么搜索你的数据。在搜索时，每个分片都需要搜索一次， 然后 ES 会合并来自所有分片的结果。例如，你要搜索 10 个 index，每个 index 有 5 个分片，那么协调这次搜索的节点就需要合并 5x10=50 个分片的结果。这也是一个你需要注意的地方：如果有太多分片的结果需要合并，或者你发起了一个结果巨大的搜索请求，合并任务会需要大量 CPU 和内存资源。这是第二个让 index 少一些的理由。
+
+Type 是什么
+使用 type 允许我们在一个 index 里存储多种类型的数据，这样就可以减少 index 的数量了。在使用时，向每个文档加入 _type 字段，在指定 type 搜索时就会被用于过滤。使用 type 的一个好处是，搜索一个 index 下的多个 type，和只搜索一个 type 相比没有额外的开销 —— 需要合并结果的分片数量是一样的。
+但是，这也是有限制的：
+
+- 不同 type 里的字段需要保持一致。例如，一个 index 下的不同 type 里有两个名字相同的字段，他们的类型（string, date 等等）和配置也必须相同。
+- 只在某个 type 里存在的字段，在其他没有该字段的 type 中也会消耗资源。这是 Lucene Index 带来的常见问题：它不喜欢稀疏。由于连续文档之间的差异太大，稀疏的 posting list 的压缩效率不高。这个问题在 doc value 上更为严重：为了提高速度，doc value 通常会为每个文档预留一个固定大小的空间，以便文档可以被高速检索。这意味着，如果 Lucene 确定它需要一个字节来存储某个数字类型的字段，它同样会给没有这个字段的文档预留一个字节。未来版本的 ES 会在这方面做一些改进，但是我仍然建议你在建模的时候尽量避免稀疏。[1]
+- 得分是由 index 内的统计数据来决定的。也就是说，一个 type 中的文档会影响另一个 type 中的文档的得分。
+
+这意味着，只有同一个 index 的中的 type 都有类似的映射 (mapping) 时，才应该使用 type。否则，使用多个 type 可能比使用多个 index 消耗的资源更多。
+
+
+### Elasticsearch创建索引、删除索引、设置mapping、增加数据、查询数据
 1. 创建索引：
 ```
-curl -X PUT 'localhost:9200/log_index?pretty'
+curl -X PUT 'localhost:9200/_index?pretty'
+指定分片数据和副本数量（application/json）
+{
+	"settings": {
+		"number_of_shards": 3,
+		"number_of_replicas": 2
+	}
+}
+
+说明：如果指定到index级别，只需要put就行，如果是type级别，则为post请求，如果指定id，则为添加数据
 ```
-2. 删除索引：curl -XDELETE 'http://localhost:9200/{_index}/{_type}/{_id}'
+2. 删除索引：
 ```
-curl -XDELETE localhost:9200/log_index
+删除索引：curl -XDELETE localhost:9200/_index
+
+删除数据：curl -XDELETE localhost:9200/_index/_doc/_id
 ```
-3. 设置mapping
+
+3. 设置类型、设置mapping
+同时创建索引和mapping：
 ```
-curl -XPUT http://localhost:9200/{_index}/{_type}/{_id} -d '{
-  "{type}" : {
+curl -XPUT localhost:9200/log_index
+
+{
+	"settings": {
+		"number_of_shards": 5,
+		"number_of_replicas": 2
+	},
+   "mappings": {
+        "properties": {
+            "commodity_id": {
+                "type": "long"
+            },
+            "commodity_name": {
+                "type": "text"
+            },
+            "picture_url": {
+                "type": "keyword"
+            },
+            "price": {
+                "type": "double"
+            }
+        }
+	}
+}
+```
+elasticsearch 7.x相较于elasticsearch 6.x在有所不同：7.x中设置mapping删去了_type，如果在7.x中用6.x的方法定义会出现以下的错误
+
+如果指定type则必须为post请求，es会自动创建保存一条随机ID数据
+```
+curl -XPOST http://localhost:9200/{_index}/{_type} -d '{
+  
 	"properties" : {
 	  "createTime" : {
 		"type" : "long"
@@ -259,11 +317,26 @@ curl -XPUT http://localhost:9200/{_index}/{_type}/{_id} -d '{
 		"type" : "text"
 	  }
 	}
-  }
+}'
+```
+
+指定ID创建mapping
+```
+curl -XPUT http://localhost:9200/{_index}/{_type}/{_id} -d '{
+
+	"properties" : {
+	  "createTime" : {
+		"type" : "long"
+	  },
+	  "name" : {
+		"type" : "text"
+	  }
+	}
 }'
 说明：
 如果不指定类型，ElasticSearch字符串将默认被同时映射成text和keyword类型，会自动创建下面的动态映射(dynamic mappings)：
 {
+properties
     "name": {
         "type": "text",
         "fields": {
@@ -285,11 +358,14 @@ curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index
 curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
 ```
 
-4获取索引信息：curl -XGET 'http://localhost:9200/{_index}/{_type}/{_id}'
+5.查询
+获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
+
+索引下信息：curl -XGET 'http://localhost:9200/{_index}/{_type}/{_id}'
 ```
-curl -XGET 'http://localhost:9200/log_index?pretty'
+curl -XGET 'http://localhost:9200/_index/_type/_id?pretty'
 ```
-4. 获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
+
 5. 获取条件查询数据：
 ```
 curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
@@ -460,9 +536,12 @@ GET /ad/phone/_search
 
 ````
 
+### ELK——Elasticsearch、Logstash、Kibana收集处理日志
+ELK即Elasticsearch、Logstash、Kibana,组合起来可以搭建线上日志系统
+
 ---
 
-### Elasticsearch客户端（编写java代码访问es）
+### ElasticSearch客户端（ SpringData-ElasticSearch代码实现）
 编写es客户端提供者类，对es连接做简单的封装
 
 #### 实体注解说明
@@ -578,12 +657,10 @@ data:
 ````
 
 
-### ELK——Elasticsearch、Logstash、Kibana收集处理日志
-ELK即Elasticsearch、Logstash、Kibana,组合起来可以搭建线上日志系统
 
 ---
 
-### ElasticSearch分页查询：
+### ElasticSearch分页查询代码实现：
 ES 分页搜索一般有三种方案，from + size、search after、scroll api，这三种方案分别有自己的优缺点，下面将进行分别介绍。
 
 1. from + size
@@ -716,7 +793,8 @@ scroll api 方案也很高效，但是它基于快照，不能用在实时性高
 
 
 ### Es原生查询：
-依赖
+
+#### 依赖
 ```
 	<properties>
 		<elasticsearch.version>7.3.2</elasticsearch.version>
@@ -793,7 +871,7 @@ scroll api 方案也很高效，但是它基于快照，不能用在实时性高
 		<!--结束-->
 ```
 
-配置：
+#### 配置：
 ```
 es:
   nodes:
@@ -803,7 +881,20 @@ es:
   password: ddqc.12345
 ```
 
-构造RestClientConfig
+#### 配置类
+配置读取：
+```
+@ConfigurationProperties(prefix = "es")
+@Component
+@Data
+public class EsProperties {
+  private List<String> nodes;
+  private String username;
+  private String password;
+}
+```
+
+客户端配置：
 ```
 @Configuration
 public class RestClientConfig {
@@ -945,6 +1036,53 @@ public class RestClientConfig {
     } catch (IOException e) {
       log.error("批量同步soc失败");
     }
+```
+
+### ES创建索引和mapping
+创建索引和分片：
+```
+@Test
+public void setCreateIndex() throws IOException {
+  CreateIndexRequest request = new CreateIndexRequest("orderConsume");
+  request.settings(Settings.builder()
+      .put("index.number_of_shards", 5)
+      .put("index.number_of_replicas", 1)
+  );
+  client.indices().create(request,RequestOptions.DEFAULT);
+}
+
+```
+
+创建mapping
+```
+@Test
+public void testPutMapping() throws IOException {
+  PutMappingRequest request = new PutMappingRequest("orderpro");
+  Map<String, Object> jsonMap = new HashMap<>();
+  Map<String, Object> message = new HashMap<>();
+  message.put("type", "long");
+  Map<String, Object> corp = new HashMap<>();
+  corp.put("type", "keyword");
+  corp.put("index",false);
+  corp.put("doc_values", false);
+  Map<String, Object> properties = new HashMap<>();
+  properties.put("orderId", message);
+  properties.put("corp",corp);
+  Map<String,Object> orderAttr = new HashMap<>();
+  Map<String,Object> itemMap = Maps.newHashMap();
+  Map<String,Object> itemJsonMap = Maps.newHashMap();
+  itemMap.put("type","integer");
+  itemJsonMap.put("age",itemMap);
+  Map<String,Object> nameMap = new HashMap<>();
+  nameMap.put("type","text");
+  itemJsonMap.put("name",nameMap);
+  orderAttr.put("properties",itemJsonMap);
+  properties.put("orderAttr",orderAttr);
+  orderAttr.put("type", "nested");
+  jsonMap.put("properties", properties);
+  request.source(jsonMap);
+  client.indices().putMapping(request, RequestOptions.DEFAULT);
+}
 ```
 
 
