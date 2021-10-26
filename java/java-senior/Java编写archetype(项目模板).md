@@ -3,7 +3,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## Java编写archetype(项目模板)
 Archetype是一个Maven项目的模板工具包，它定义了一类项目的基本架构。Archetype为开发人员提供了创建Maven项目的模板，同时它也可以根据已有的Maven项目生成参数化的模板。通过archetype，开发人员可以很方便地将一类项目的最佳实现应用到自己的项目中。在一个Maven项目中，开发者可以通过archetype提供的范例快速入门并了解该项目的结构与特点。
@@ -81,7 +81,7 @@ mvn archetype:crawl
 注：如果mvn archetype:crawl中没有生成对应的骨架文件， 可以使用maven-archetype-plugin插件中的update-local-catalog功能生成
 也可以使用命令更新本地文件：
 ```
-archetype:update-local-catalog
+mvn archetype:update-local-catalog
 ```
 
 

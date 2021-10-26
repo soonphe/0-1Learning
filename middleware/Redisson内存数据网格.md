@@ -3,7 +3,7 @@
 ![alt ](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt ](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt ](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt ](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## Redission
 Redisson是架设在Redis基础上的一个Java驻内存数据网格（In-Memory Data Grid）。【Redis官方推荐】

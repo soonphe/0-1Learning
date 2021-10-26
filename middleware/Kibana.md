@@ -3,7 +3,7 @@
 ![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ### Kibana
 Kibana是一个针对Elasticsearch的开源分析及可视化平台，用来搜索、查看交互存储在Elasticsearch索引中的数据。这里是Linux系统安装说明，想了解windows安装说明，可以参考《Kibana 安装（Windows）》

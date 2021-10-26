@@ -3,7 +3,7 @@
 ![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## Jenkins
 Jenkins是一个开源软件项目，是基于Java开发的一种持续集成工具，用于监控持续重复的工作，旨在提供一个开放易用的软件平台，使软件项目可以进行持续集成. 
@@ -36,17 +36,25 @@ systemctl restart  docker    #重启容器
 5. 创建第一个管理员用户
 
 ### 手动安装
-下载地址：https://jenkins.io/
+> 下载地址：https://jenkins.io/
 
-rpm安装：
+**rpm安装：**
+```
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+```
 
-yum安装：  yum install jenkins
+**yum安装：**
+```
+yum install jenkins
+```
 
+**jenkins相关命令：**
+```
 sudo systemctl daemon-reload    #注册jenkins服务
 sudo systemctl start jenkins    #启动jenkins
 sudo systemctl status jenkins   #检查 Jenkins 服务的状态
+```
 
 
 ### Jenkins全局工具配置

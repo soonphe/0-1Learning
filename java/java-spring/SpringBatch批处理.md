@@ -3,7 +3,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## SpringBatch批处理
 一个典型的批处理应用程序大致如下：

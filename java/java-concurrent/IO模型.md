@@ -3,7 +3,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## IO模型
 * IO即是in/out，相对于程序而言的输入(读取)和输出(写出)的过程。

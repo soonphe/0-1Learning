@@ -3,7 +3,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## Spring中的责任链
 参考文档：https://blog.csdn.net/ljw761123096/article/details/79591133

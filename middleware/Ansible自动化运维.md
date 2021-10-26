@@ -3,7 +3,7 @@
 ![alt ](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt ](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt ](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt ](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## Ansible自动化运维
 ansible是新出现的自动化运维工具，基于Python开发，集合了众多运维工具（puppet、cfengine、chef、func、fabric）的优点，实现了批量系统配置、批量程序部署、批量运行命令等功能。

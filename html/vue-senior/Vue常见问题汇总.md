@@ -3,7 +3,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ### 数据绑定错误
 在vue2.0中，src实现数据绑定稍不留神就不成功。假定value.src是绑定的数据。 

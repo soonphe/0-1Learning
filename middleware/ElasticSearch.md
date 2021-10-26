@@ -3,7 +3,7 @@
 ![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## ElasticSearch
 Elasticsearch是一个基于Lucene的搜索服务器。它提供了一个分布式多用户能力的全文搜索引擎，基于RESTful web接口。Elasticsearch是用Java语言开发的，并作为Apache许可条款下的开放源码发布，是一种流行的企业级搜索引擎。

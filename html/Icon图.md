@@ -3,7 +3,7 @@
 ![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## Icon
 1. img一个页面的请求资源中图片 img 占了大部分，所以为了优化有了image sprite 就是所谓的雪碧图，

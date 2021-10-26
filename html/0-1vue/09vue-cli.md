@@ -3,7 +3,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
-![alt text](../../static/common/svg/luoxiaosheng_gitee.svg "码云")
+
 
 ## vue-cli（VUE脚手架）
 脚手架，顾名思义就是为开发提供一个可直接使用的半成品模板，省去前期的准备环节。（快速开始一个vue的项目，包含基础的依赖库，只需要 npm install就可以安装相关依赖）
