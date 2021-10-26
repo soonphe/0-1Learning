@@ -102,7 +102,7 @@ pipeline {
       stage('Clone') {
          steps {
             // Get some code from a GitHub repository
-             git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/gx-new-order'
+             git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/new-order'
          }
       }
       stage('Build') {
@@ -131,7 +131,7 @@ pipeline {
 ```
 
 ### Jenkins流水线语法（pipeline-syntax生成流水线脚本）：
-> 任意Job 左侧都有流水线语法，如：http://jenkins.ywzt.com/job/dev_gx_invoice_web/pipeline-syntax/
+> 任意Job 左侧都有流水线语法，如：http://jenkins地址/pipeline-syntax/
 
 > 使用流水线语法可以生成对应的流水线脚本，
 
@@ -140,7 +140,7 @@ pipeline {
 示例：
 ```
 git: Git
-git branch: 'master', credentialsId: 'gitlab', url: 'http://IP/new-platform/gx-new-order.git'
+git branch: 'master', credentialsId: 'gitlab', url: 'http://IP/new-platform/new-order.git'
 
 Sh: Shell Script
 sh label: '', script: 'mvn clean package'
@@ -155,12 +155,12 @@ Sshagent: SSH Agent
 ### tomcat方式部署-服务器脚本
 ```
 #!/bin/bash
-/home/admin/taobao-tomcat-production-7.0.59.3/bin/catalina.sh stop 1 -force
-cd /home/admin/taobao-tomcat-production-7.0.59.3/deploy
-rm -rf new-ordersrv
-rm -rf new-ordersrv.war
-cp /tmp/new-ordersrv.war /home/admin/taobao-tomcat-production-7.0.59.3/deploy/
-/home/admin/taobao-tomcat-production-7.0.59.3/bin/catalina.sh start                                                                        
+/home/admin/tomcat/bin/catalina.sh stop 1 -force
+cd /home/admin/tomcat/deploy
+rm -rf new-order
+rm -rf new-order.war
+cp /tmp/new-order.war /home/admin/tomcat/deploy/
+/home/admin/tomcat/bin/catalina.sh start                                                                        
 ```
 注：startup.sh的源代码，其实就是执行catalina.sh start
 
@@ -172,7 +172,7 @@ pipeline {
    stages {
       stage('clone') {
          steps {
-            git credentialsId: 'github', url: 'https://github.com/SmartGim/admin-ui.git'
+            git credentialsId: 'github', url: 'https://github.com/new-platform/timber-vue.git'
          }
       }
       stage('build') {
@@ -214,7 +214,7 @@ pipeline {
       stage('Clone') {
          steps {
             // Get some code from a GitHub repository
-             git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/invoice_center/gx-invoice-web'
+             git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/timber'
          }
       }
       stage('Build') {
@@ -244,14 +244,14 @@ pipeline {
 脚本放置路径：/home/startOrderCore.sh
 ```
 #!/bin/bash
-/opt/27/gx-invoice-web/bin/start.sh stop
+/opt/timber/bin/start.sh stop
 echo 'stop success'
-cd /opt/27
-rm -rf gx-invoice-web
-rm -rf gx-invoice-web.tar.gz
-cp /tmp/gx-invoice-web.tar.gz /opt/27
-tar -zxvf gx-invoice-web.tar.gz
-/opt/27/gx-invoice-web/bin/start.sh start
+cd /opt/
+rm -rf timber
+rm -rf timber.tar.gz
+cp /tmp/timber.tar.gz /opt
+tar -zxvf timber.tar.gz
+/opt/timber/bin/start.sh start
 ```
 > 说明： 
 > 1.脚本需要授权jenkins用户执行权限：chmod -R a+rwx /home/startOrderCore.sh 
@@ -276,7 +276,6 @@ tar -zxvf gx-invoice-web.tar.gz
 ### 常见问题解析
 - shell脚本执行nohup java -jar 失败，手动执行脚本成功 
 解决：可能是java环境变量在当前用户找不到，shell脚本添加source /etc/profile
-
 
 
 

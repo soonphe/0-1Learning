@@ -192,7 +192,7 @@ System.currentTimeMillis()：当前时间戳毫秒
 
 ### Jenkins流水线自动化：
 git: Git
-git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/gx-new-order.git'
+git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/new-order.git'
 
 Sh: Shell Script
 sh label: '', script: 'mvn clean package'

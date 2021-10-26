@@ -71,7 +71,7 @@ mvn archetype:crawl
   <archetypes>
     <archetype>
       <groupId>com.sgcc.ywzt</groupId>
-      <artifactId>gx-cloud-service-template</artifactId>
+      <artifactId>cloud-service-template</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <description>quickstart</description>
     </archetype>
@@ -96,14 +96,14 @@ mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate <parameters>
 
 如果想使用选定的模板生成
 ```
-mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
-mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=gx-es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-es2-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
+mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=cloud-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
+mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=cloud-es2-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
 ```
 注：这里的-D后都是可以自定义并且可以在项目获取的变量参数！
 
 变量说明
 - groupId    | 组名(业务中台一般情况下不要改)
-- artifactId | 工程名字  （gx-authsrv)
+- artifactId | 工程名字  （authsrv)
 - package    | 包名 com.sgcc.ywzt.auth  ywzt后面的要是模块的名字
 - dataId     | nacos 上dataId
 
@@ -132,13 +132,13 @@ archetype依赖：
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>gx-archetypes</artifactId>
+    <artifactId>archetypes</artifactId>
     <groupId>com.sgcc.ywzt</groupId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>gx-cloud-service-template</artifactId>
+  <artifactId>cloud-service-template</artifactId>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
@@ -255,27 +255,27 @@ archetype依赖：
 	<dependencies>
 		<dependency>
 			<groupId>com.sgcc.ywzt</groupId>
-			<artifactId>gx-commons</artifactId>
+			<artifactId>commons</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sgcc.ywzt</groupId>
-			<artifactId>gx-web-spring-boot-starter</artifactId>
+			<artifactId>web-spring-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sgcc.ywzt</groupId>
-			<artifactId>gx-codegen</artifactId>
+			<artifactId>codegen</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sgcc.ywzt</groupId>
-			<artifactId>gx-jpa-spring-boot-starter</artifactId>
+			<artifactId>jpa-spring-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sgcc.ywzt</groupId>
-			<artifactId>gx-monitor-boot-starter</artifactId>
+			<artifactId>monitor-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -310,7 +310,7 @@ archetype依赖：
 		</dependency>
 		<dependency>
 			<groupId>com.sgcc.ywzt</groupId>
-			<artifactId>gx-security-boot-starter</artifactId>
+			<artifactId>security-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -383,7 +383,7 @@ archetype依赖：
 					<annotationProcessorPaths>
 						<path>
 							<groupId>com.sgcc.ywzt</groupId>
-							<artifactId>gx-codegen</artifactId>
+							<artifactId>codegen</artifactId>
 							<version>1.0-SNAPSHOT</version>
 						</path>
 						<path>
