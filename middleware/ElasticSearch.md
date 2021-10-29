@@ -358,7 +358,7 @@ curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index
 curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
 ```
 
-5.查询
+5. 查询
 获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
 
 索引下信息：curl -XGET 'http://localhost:9200/{_index}/{_type}/{_id}'
@@ -366,7 +366,7 @@ curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index
 curl -XGET 'http://localhost:9200/_index/_type/_id?pretty'
 ```
 
-5. 获取条件查询数据：
+6. 获取条件查询数据：
 ```
 curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
     "query" : {
@@ -377,6 +377,36 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
 	"size":100
 }
 ```
+
+7. 模糊查询
+按时间范围、状态、用户ID、词条匹配、前缀匹配、模糊搜索
+```
+{
+  "query": {
+    "bool": {
+      "must": [  
+         {"range": { "createTime": { "gte":  "2021-09-01T19:54:30","lte":  "2021-09-13T19:59:30"} }},
+         {"term": { "orderState": 20 }},
+         {"term": { "userId": 114773809 }},
+         {"match": {"stationName": "顺义 red"}},
+         {"prefix": {"stationName.keyword": "北京市朝阳"}},
+         {"wildcard": {"stationName.keyword": "北京市朝阳*"}}
+      ]
+    }
+  },
+  "sort": [
+    {
+      "createTime": {
+        "order": "desc"
+      },
+      "_id": {
+        "order": "desc"
+      }
+    }
+  ]
+}        
+```
+
 
 参数分析：
 - -d标识要传递的参数
@@ -1041,15 +1071,27 @@ public class RestClientConfig {
 ### ES创建索引和mapping
 创建索引和分片：
 ```
-@Test
-public void setCreateIndex() throws IOException {
-  CreateIndexRequest request = new CreateIndexRequest("orderConsume");
-  request.settings(Settings.builder()
-      .put("index.number_of_shards", 5)
-      .put("index.number_of_replicas", 1)
-  );
-  client.indices().create(request,RequestOptions.DEFAULT);
-}
+public class ElasticSearchTest {
+
+  private RestHighLevelClient client;
+
+  @Before
+  public void setUp() {
+    RestClientBuilder builder = RestClient.builder(
+        new HttpHost("192.168.161.215", 9200, "http"),
+        new HttpHost("192.168.161.33", 9200, "http"));
+    client = new RestHighLevelClient(builder);
+  }
+
+  @Test
+  public void setCreateIndex() throws IOException {
+    CreateIndexRequest request = new CreateIndexRequest("orderconsume");
+    request.settings(Settings.builder()
+        .put("index.number_of_shards", 5)
+        .put("index.number_of_replicas", 1)
+    );
+    client.indices().create(request, RequestOptions.DEFAULT);
+  }
 
 ```
 
