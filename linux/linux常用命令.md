@@ -124,6 +124,9 @@ source filename
 sh 执行.sh脚本
 	“-x”选项实现shell脚本逐条语句的跟踪
 
+
+war包解压： unzip -oq common.war -d common
+
 ```
 
 ### 查看文件及内容（head、tail、cat、nl、grep、less、more）

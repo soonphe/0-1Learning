@@ -379,7 +379,7 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
 ```
 
 7. 模糊查询
-按时间范围、状态、用户ID、词条匹配、前缀匹配、模糊搜索
+按时间范围、状态、用户ID、词条匹配、前缀匹配、模糊搜索，统计金额汇总，搜索结果排序
 ```
 {
   "query": {
@@ -393,6 +393,10 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
          {"wildcard": {"stationName.keyword": "北京市朝阳*"}}
       ]
     }
+  },
+  "aggs" : {
+   "total_amount" : { "sum" : { "field" : "amount" } },
+   "total_act_amount" : { "sum" : { "field" : "actAmount" } }
   },
   "sort": [
     {
@@ -959,7 +963,9 @@ public class RestClientConfig {
 }
 ```
 
-执行查询三步骤：
+**执行查询三步骤：**
+
+游标查询
 ```
 	@Autowire
 	private RestHighLevelClient restHighLevelClient;
@@ -969,7 +975,9 @@ public class RestClientConfig {
     //ES term语句
     sourceBuilder.query(
         QueryBuilders.boolQuery().must(QueryBuilders.termQuery("id", id))
+        QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery("startTime").gte(orderQueryRequest.getStartTimeStart()));
     );
+          
     //查询分页大小（from + size默认的深度分页限制是1万，大于1万使用scrollId）
     sourceBuilder.from(0);
     sourceBuilder.size(10);
@@ -982,6 +990,7 @@ public class RestClientConfig {
 	//指定索引
     searchRequest.indices(IndexConstants.ORDER_CONSUME_INDEX);
     //关联游标
+    Scroll scroll = new Scroll(TimeValue.timeValueMinutes(scrollTime));
     searchRequest.scroll(scroll);
     //关联sourceBuilder
     searchRequest.source(sourceBuilder);
@@ -1017,6 +1026,51 @@ public class RestClientConfig {
     return model;
 ```
 
+searchAfter查询：
+```
+	//1.构造SearchSourceBuilder
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    //ES term语句
+    sourceBuilder.query(
+        QueryBuilders.boolQuery().must(QueryBuilders.termQuery("id", id))
+    );
+    sourceBuilder.size(10);
+    sourceBuilder.sort("createTime", SortOrder.DESC);
+    //超时
+    sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+    //判断添加searchAfter
+    if(StringUtils.isNotBlank(orderDetailRequest.getScrollId())){
+      sourceBuilder.searchAfter(orderDetailRequest.getScrollId);
+    }
+    
+	//2.构造SearchRequest
+	SearchRequest searchRequest = new SearchRequest();
+	//指定索引
+    searchRequest.indices(IndexConstants.ORDER_CONSUME_INDEX);
+    //关联sourceBuilder
+    searchRequest.source(sourceBuilder);
+
+	//3.查询并解析
+	SearchResponse searchResponse = null;
+	//第一种：判断小于10000使用内存分页，大于10000使用游标
+	if(pageNum*pageSize <= 10000 && pageSize != -1){
+		searchRequest.scroll((Scroll)null);
+		sourceBuilder.from((pageNum-1)*pageSize);
+		SearchResponse response = elasticClient.search(searchRequest, RequestOptions.DEFAULT);
+	}
+	//解析数据
+    SearchHits hits = response.getHits();
+    SearchHit[] searchHits = hits.getHits();
+    BigEsOrderModel model = null;
+    for (SearchHit sh : searchHits) {
+      model = JSON.parseObject(sh.getSourceAsString(), BigEsOrderModel.class);
+    }
+    //searchResponse.getHits().getTotalHits().value为记录总条数        
+    PageResultResponse pageResult = PageResultResponse.of(responses,
+            searchResponse.getHits().getTotalHits().value, orderDetailRequest.getPageSize(),
+            orderDetailRequest.getPageNum(), searchResponse.getScrollId());
+    return model;
+```
 
 ### ES写数据
 根据ID保存或更新：
