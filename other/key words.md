@@ -8,7 +8,7 @@
 Github排行榜：https://www.githubs.cn/top
 
 
-### Backend   
+### backend   
 1. Base framework
 - JDK：1.8
 - 容器：spring + springboot + spring-cloud
@@ -70,7 +70,7 @@ Github排行榜：https://www.githubs.cn/top
 - ES Web管理工具：Cerebro
 
 
-### html + javascript
+### frontend
 1. Base framework
 - Node服务端：Koa/Express
 - 语法要求：Es6

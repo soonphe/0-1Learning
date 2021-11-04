@@ -18,7 +18,7 @@ kubernetes，简称K8s，是用8代替8个字符“ubernete”而成的缩写。
 步骤1：安装 Docker Desktop
 步骤2：下载 Kubernetes 镜像并启动运行
 步骤3：下载 kubectl 工具
-步骤4：启用 Dashboard（可选）使用 kubectl 命令来创建简单的 kubernetes-dashboard 服务
+步骤4：启用 Dashboard（可选）使用 kubectl 命令来创建简单的 kubernetes-dashboard 服务
 
 ### 安装k8s客户端：
 brew install kubernetes-cli

@@ -33,7 +33,7 @@ Windows下载安装步骤：
     3.下载kibana做为es客户端
     https://artifacts.elastic.co/downloads/kibana/kibana-6.2.2-windows-x86_64.zip
     4.启动ES和kibana，
-    访问http://localhost:5601 即可打开Kibana的用户界面
+    访问http://localhost:5601 即可打开Kibana的用户界面
 
 Linux安装步骤：
 
@@ -535,7 +535,7 @@ http://127.0.0.1:9200/log_index/log_type/nZjV33UBmFDDms1zHk59
 ````
 curl -H "Content-Type: application/json" -X POST '127.0.0.1:9200/log_index/_search?pretty' -d '
 {
-  "query": { "match_all": {} }
+  "query": { "match_all": {} }
 }'
 
 
@@ -965,7 +965,7 @@ public class RestClientConfig {
 
 **执行查询三步骤：**
 
-游标查询
+ScrollId游标查询
 ```
 	@Autowire
 	private RestHighLevelClient restHighLevelClient;

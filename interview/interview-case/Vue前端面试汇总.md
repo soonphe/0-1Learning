@@ -4,6 +4,26 @@
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
+### 要点
+    0.html基础
+    1.Spring
+    2.springboot
+    3.springcloud
+    4.设计模式
+    5.数据结构
+    6.多线程
+    7.锁与同步
+    8.依赖注入与控制翻转
+    9.AOP与cglib
+    10.JVM
+    11.计算机网络
+    12.分布式
+    13.数据库
+    14.索引
+    15.消息队列MQ
+    16.缓存redis
+    17.搜索引擎ES
+
 
 ## interview
 

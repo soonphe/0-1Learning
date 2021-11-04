@@ -476,6 +476,8 @@ netstat -an 	//查看网络端口
 netstat -lanp	//查看一台服务器上面哪些服务及端口
 ```
 
+lsof -i:$PORT"查看应用该端口的程序（$PORT指对应的端口号）
+
 ### 进程命令
 查看进程命令：ps（显示与进程相关的PID号）	
 ```
@@ -658,9 +660,31 @@ exit 0		//脚本返回值，正常退出返回0。之后的shell可以用$?获�
 ```
 
 ### 统计日志中ip出现的次数
+在chunyun.access.log文件中提取GET请求`GET /weixin/weixin_izp/index.html`到指定文件access.log中：
+```
+grep -r 'GET /weixin/weixin_izp/index.html' ./chunyun.access.log > ~/access.log
+```
+提取指定行到指定文件：
+```
+grep -r '订单Query查询入参' debug.log > access.log
+```
 
-grep -r 'GET /weixin/weixin_izp/index.html' ./chunyun.access.log > ~/access.log 
-cat access.log |awk '{print $1}'|cut -d, -f3|sort|uniq -c > mycount.log    
+统计指定文件中日志次数
+每行按空格分隔，输出文本中的第一项， 再按逗号分隔，显示第三块区域，排序，每列旁边统计重复次数，并输出到mycount.log文档
+cat access.log |awk '{print $1}'|cut -d, -f3| sort|uniq -c > mycount.log
+```
+	  ...
+      1 2bb4055f150c023d
+      1 2cb6e05423048137
+      1 2fec5822967cff92
+	  ...
+```
+
+wc -l access.log：统计行数
+
+按时间维度统计日志次数：
+cat debug.log | grep '入参'|  awk -F ' ' '{print $2;}' |  awk -F: '{a[$1":"($2-$2%5)]++} END{for(i in a){split(i,t);print i" 至",t[1]":"t[2]+4," 访问 "a[i] " 次" | "sort -t: -k1n -k2n"}}'
+
 ```$xslt
 1.要提取访问量最大的IP，需要先从日志中把IP段提取出来。 
 
@@ -697,16 +721,25 @@ $ cat aa.txt |awk -F " " '{print $1}' |uniq -c |sort -r
 是计算重复行并且列出重复量最大的N 条记录的基本用法了
 ```
 
+### wc命令 统计行数
+语法：wc [选项] 文件…
+说明：该命令统计给定文件中的字节数、字数、行数。如果没有给出文件名，则从标准输入读取。wc同时也给出所有指定文件的总统计数。字是由空格字符区分开的最大字符串。
+
+该命令各选项含义如下：
+- c 统计字节数。
+- l 统计行数。
+- w 统计字数。
+
 ### systemd 和 systemctl
 Linux 系统应用管理工具 systemd 关于 nginx 的常用命令：
 ```
-systemctl start nginx    # 启动 Nginx
-systemctl stop nginx     # 停止 Nginx
-systemctl restart nginx  # 重启 Nginx
-systemctl reload nginx   # 重新加载 Nginx，用于修改配置后
-systemctl enable nginx   # 设置开机启动 Nginx
-systemctl disable nginx  # 关闭开机启动 Nginx
-systemctl status nginx   # 查看 Nginx 运行状态
+systemctl start nginx    # 启动 Nginx
+systemctl stop nginx     # 停止 Nginx
+systemctl restart nginx  # 重启 Nginx
+systemctl reload nginx   # 重新加载 Nginx，用于修改配置后
+systemctl enable nginx   # 设置开机启动 Nginx
+systemctl disable nginx  # 关闭开机启动 Nginx
+systemctl status nginx   # 查看 Nginx 运行状态
 ```
 
 ### supervisor：linux进程管理工具

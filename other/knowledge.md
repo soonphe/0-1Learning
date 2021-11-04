@@ -182,7 +182,7 @@ mvn install:install-file
 ~/.bash_profile：配置用户级环境变量，在系统用户文件夹下创建，当用户登录时，该文件会被执行且仅执行一次
 
 ### mvn -v提示Permission denied
-权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
+权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
 
 ### Instant.now().toEpochMilli()和System.currentTimeMillis()用法
 Instant.now()：当前时间戳
@@ -530,7 +530,7 @@ java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar
 ```
 
 2. 探针方式
-在skywalking-agent.jar后直接追加 =agent.service_name=应用名称 
+在skywalking-agent.jar后直接追加 =agent.service_name=应用名称 
 ```
 java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=app-service -jar app-service.jar &
 ```
@@ -898,14 +898,14 @@ underscore则可以理解为一个js的函数库，其中主要封装了一些�
 ```
 public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 OkHttpClient client = new OkHttpClient();
-String post(String url, String json) throws IOException {  
-    RequestBody body = RequestBody.create(JSON, json);  
-    Request request = new Request.Builder()      
-                        .url(url)      
-                        .post(body)      
-                        .build();  
-    try (Response response = client.newCall(request).execute()) {    
-        return response.body().string();  
+String post(String url, String json) throws IOException {  
+    RequestBody body = RequestBody.create(JSON, json);  
+    Request request = new Request.Builder()      
+                        .url(url)      
+                        .post(body)      
+                        .build();  
+    try (Response response = client.newCall(request).execute()) {    
+        return response.body().string();  
     }
 }
 ```
@@ -921,9 +921,9 @@ devDependencies用于本地环境开发时候。
 dependencies用户发布环境
 
 ### npm install 安装报错解决思路：
-1、删除  package-lock.json文件
-2、npm cache clean --force
-3、npm config rm proxy    npm config rm https-proxy
+1、删除  package-lock.json文件
+2、npm cache clean --force
+3、npm config rm proxy    npm config rm https-proxy
 最后试试更换源：
 npm set registry https://registry.npmjs.org/
 
@@ -990,10 +990,10 @@ java
 
 ### maven install和package区别
 Maven install 安装指令，其做了两件事情：
-1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
-2. 同时将上述打包结果放到本地仓库的相应目录中，供其他项目或模块引用
+1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
+2. 同时将上述打包结果放到本地仓库的相应目录中，供其他项目或模块引用
 Maven package 打包指令，其就做了一件事：
-1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
+1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
 
 
 ### IDEA、WebStorm项目无法被识别为Git项目
@@ -1060,7 +1060,8 @@ mvn clean package ****  -DskipTests -DskipRat	打包项目跳过测试
 
 mvn -U 		#强制刷新本地仓库不存在release版和所有的snapshots版本。
 mvn clean install -P test 						#-P test的意思是使用 test profile 进行项目的构建
-mvn clean package -Dmaven.test.skip=true -P dev	#使用dev环境打包
+mvn clean install -Dmaven.test.skip=true 
+mvn clean package -Dmaven.test.skip=true -P dev	#使用dev环境打包 
 ```
 或者查看maven helper插件是否存在、升级
 

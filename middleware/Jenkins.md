@@ -162,7 +162,7 @@ rm -rf new-order.war
 cp /tmp/new-order.war /home/admin/tomcat/deploy/
 /home/admin/tomcat/bin/catalina.sh start                                                                        
 ```
-注：startup.sh的源代码，其实就是执行catalina.sh start
+注：startup.sh的源代码，其实就是执行catalina.sh start
 
 ### vue构建-Pipeline脚本
 ```

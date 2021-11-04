@@ -53,23 +53,23 @@ UPDATE user SET `Host` = '%' WHERE `User` = 'root' LIMIT 1; //设置允许远程
 ```
 卸载MariaDB
 CentOS7默认安装MariaDB而不是MySQL，而且yum服务器上也移除了MySQL相关的软件包。因为MariaDB和MySQL可能会冲突，故先卸载MariaDB。
- 
+ 
 查看已安装的MariaDB相关rpm包。
 rpm -qa | grep mariadb
- 
+ 
 查看已安装的MariaDB相关yum包，包名需根据rpm命令的结果判断。
 yum list mariadb-libs
- 
+ 
 移除已安装的MariaDB相关yum包，包名需根据yum list命令的结果判断。此步骤需要root权限。
 yum remove mariadb-libs
- 
+ 
 下载mysql rpm包
 wget https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.18-1.el7.x86_64.rpm-bundle.tar
- 
+ 
 使用rpm包安装MySQL
- 
+ 
 以下步骤需要root权限。且因包之间的依赖关系，各rpm命令必须按序执行。***********************
- 
+ 
 mkdir mysql-5.7.18
 tar -xv -f mysql-5.7.18-1.el7.x86_64.rpm-bundle.tar -C mysql-5.7.18
 cd mysql-5.7.18/
@@ -78,36 +78,36 @@ rpm -ivh mysql-community-libs-5.7.18-1.el7.x86_64.rpm
 rpm -ivh mysql-community-client-5.7.18-1.el7.x86_64.rpm
 rpm -ivh mysql-community-server-5.7.18-1.el7.x86_64.rpm
 安装成功后，也可把安装文件和临时文件删除。
- 
+ 
 cd ..
 rm -rf mysql-5.7.18
 rm mysql-5.7.18-1.el7.x86_64.rpm-bundle.tar
- 
- 
+ 
+ 
 mysql重新启动：service mysqld restart
 查询mysql日志信息：journalctl |grep mysql
- 
+ 
 查看端口
-    netstat -nltp;（简单的进程用kill -9 端口号杀死）
- 
+    netstat -nltp;（简单的进程用kill -9 端口号杀死）
+ 
 由于一开始并不知道密码，先修改配置文件/etc/my.cnf令MySQL跳过登录时的权限检验。加入一行：
 skip-grant-tables
- 
+ 
 重启MySQL。
 service mysqld restart
- 
+ 
 免密码登录MySQL。
 mysql
- 
+ 
 在mysql客户端执行如下命令，修改root密码。
 use mysql;
 UPDATE user SET authentication_string = password('your-password') WHERE host = 'localhost' AND user = 'root';
 quit;
- 
+ 
 修改配置文件/etc/my.cnf删除此前新增那一行skip-grant-tables，并重启MySQL。这一步非常重要，不执行可能导致严重的安全问题。
 使用刚刚设置的密码登录。
 mysql -u root -p
- 
+ 
 mysql需要你重置密码（不能是简单类型）：
 ALTER USER root@localhost IDENTIFIED BY 'Admin@123';
 ```

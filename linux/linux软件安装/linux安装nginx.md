@@ -25,43 +25,43 @@ yum install -y openssl openssl-devel
 
 5. 手动安装教程示例：
 ```
-    1）下载
-    2）上传
-    3）解压pcre-8.12.tar.gz
-    # cd /usr/local/src/nginx
-    # tar zxvf pcre-8.12.tar.gz
-    4）进入解压后的目录
-    # cd pcre-8.12 
-    5）配置
-    #  ./configure
-    6) 编译
-    #  make
-    7) 安装
-    #  make install
+    1）下载
+    2）上传
+    3）解压pcre-8.12.tar.gz
+    # cd /usr/local/src/nginx
+    # tar zxvf pcre-8.12.tar.gz
+    4）进入解压后的目录
+    # cd pcre-8.12 
+    5）配置
+    #  ./configure
+    6) 编译
+    #  make
+    7) 安装
+    #  make install
 ```
- 
+ 
 ### Nginx安装与配置
 
 Linux中Nginx安装与配置详解
 ```
-    1. 下载
-    2. 解压
-    # cd /usr/local/nginx
-    # tar zxvf nginx-1.14.2.tar.gz
-    3. 进入目录
-    # cd nginx-1.14.0
-    4. 配置
-    # ./configure
-    5. 编译
-    # make
-    6. 安装
-    #  make install
-    7. 检查是否安装成功
-    # cd  /usr/local/nginx/sbin
-    # ./nginx -t 
-    结果显示：
-    nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
-    nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful。
+    1. 下载
+    2. 解压
+    # cd /usr/local/nginx
+    # tar zxvf nginx-1.14.2.tar.gz
+    3. 进入目录
+    # cd nginx-1.14.0
+    4. 配置
+    # ./configure
+    5. 编译
+    # make
+    6. 安装
+    #  make install
+    7. 检查是否安装成功
+    # cd  /usr/local/nginx/sbin
+    # ./nginx -t 
+    结果显示：
+    nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+    nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful。
 ```
 
 ### nginx命令(启动、停止nginx)(默认端口80)
@@ -72,10 +72,10 @@ cd /usr/local/nginx/sbin/
 ./nginx -s reload
 ./nginx -s quit:此方式停止步骤是待nginx进程处理任务完毕进行停止。
 ./nginx -s stop:此方式相当于先查出nginx进程id再使用kill命令强制杀掉进程。
- 
+ 
 查询nginx进程：
 ps aux|grep nginx
 
 
- 
+ 
 
