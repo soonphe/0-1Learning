@@ -670,3 +670,12 @@ springBatch共有15张表，重点关注以下三张表：
 - batch_job_execution：这张表能看到每次运行job的开始时间，结束时间，状态，以及失败后的错误消息是什么。
 - batch_step_execution：这张表你能看到更多关于step的详细信息。比如step的开始时间，结束时间，提交次数，读写次数，状态，以及失败后的错误信息等。
 
+### JobParameters为什么要配置随机数
+这是因为JobParameters 相同的任务只能成功运行一次 ，如果连续运行同一个job ，则会出现此异常，即launcher.run(job, new JobParameters())只能调用一次。
+
+一个job由job的id和参数唯一确定，所以我们可以在参数中增加一个时间的参数，这样可以保证这个参数每次都会不同，从而可以多次调用，如下：
+```
+JobParametersBuilder builder = new JobParametersBuilder();
+builder.addDate("date", new Date());
+launcher.run(job, builder.toJobParameters());
+```
