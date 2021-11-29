@@ -154,3 +154,27 @@ esac
 exit $?
 ```
 
+### jvm参数说明：
+```
+-server 
+-Xmx1g              ：设置JVM最大可用内存.默认物理内存的1/4(<1GB)
+-Xms1g              ：置JVM促使内存.默认物理内存的1/64(<1GB)。此值可以设置与-Xmx相同,以避免每次垃圾回收完成后JVM重新分配内存.
+-Xmn256m            ：设置年轻代大小.整个堆大小=年轻代大小 + 年老代大小 + 持久代大小.持久代一般固定大小为64m,所以增大年轻代后,将会减小年老代大小.此值对系统性能影响较大,Sun官方推荐配置为整个堆的3/8.
+-XX:PermSize=128m   ：设置老年代代大小。默认物理内存的1/64
+-Xss256k            ：设置每个线程的堆栈大小
+-XX:+DisableExplicitGC                  ：关闭System.gc()
+-XX:+UseConcMarkSweepGC                 ：设置年老代为并发收集.测试中配置这个以后,-XX:NewRatio=4的配置失效了,原因不明.所以,此时年轻代大小最好用-Xmn设置.
+-XX:+CMSParallelRemarkEnabled           ：降低标记停顿
+-XX:+UseCMSCompactAtFullCollection      ：在FULL GC的时候， 对年老代的压缩
+-XX:LargePageSizeInBytes=128m           ：内存页的大小不可设置过大， 会影响Perm的大小
+-XX:+UseFastAccessorMethods             ：原始类型的快速优化
+-XX:+UseCMSInitiatingOccupancyOnly      ：使用手动定义初始化定义开始CMS收集
+-XX:CMSInitiatingOccupancyFraction=70   ：使用cms作为垃圾回收，使用70％后开始CMS收集
+-Xdebug         ：是通知JVM工作在DEBUG模式下，
+-Xrunjdwp       ：是通知JVM使用(java debug wire protocol)来运行调试环境。该参数同时了一系列的调试选项：
+transport指定了调试数据的传送方式，dt_socket是指用SOCKET模式，另有dt_shmem指用共享内存方式，其中，dt_shmem只适用于Windows平台。
+server参数是指是否支持在server模式的VM中.
+onthrow指明，当产生该类型的Exception时，JVM就会中断下来，进行调式。该参数可选。
+launch指明，当JVM被中断下来时，执行的可执行程序。该参数可选
+suspend指明，是否在调试客户端建立起来后，再执行JVM。 
+```
