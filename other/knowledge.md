@@ -710,7 +710,7 @@ public class EventHandler {
 虚拟类AbstractOrderFilter判断责任链Seletor处理（doFilter，handle）
 DefaultFilterChain责任链判断实现
 
-1.FilterChain责任链接口（方法：preAuth前置鉴权，fireNext下一个鉴权）
+1.FilterChain责任链接口
 ```
 //OrderFilter作为业务处理
 public interface OrderFilter<T extends OrderContext> {

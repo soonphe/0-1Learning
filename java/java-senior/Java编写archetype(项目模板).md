@@ -70,7 +70,7 @@ mvn archetype:crawl
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <archetypes>
     <archetype>
-      <groupId>com.sgcc.ywzt</groupId>
+      <groupId>com.soonphe.timber</groupId>
       <artifactId>cloud-service-template</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <description>quickstart</description>
@@ -96,16 +96,15 @@ mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate <parameters>
 
 如果想使用选定的模板生成
 ```
-mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=cloud-service-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
-mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=cloud-es2-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
-mvn archetype:generate -DgroupId=com.sgcc.ywzt -DartifactId=billing-model-mq-job -Dversion=1.0.0-SNAPSHOT -Dpackage=com.sgcc.ywzt -DarchetypeArtifactId=gx-cloud-es-job-template -DarchetypeGroupId=com.sgcc.ywzt -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=billing-model-mq-job.yml
+mvn archetype:generate -DgroupId=com.soonphe.timber -DartifactId=order-configsrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.soonphe.timber -DarchetypeArtifactId=cloud-service-template -DarchetypeGroupId=com.soonphe.timber -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=
+mvn archetype:generate -DgroupId=com.soonphe.timber -DartifactId=es-jobssrv -Dversion=1.0.0-SNAPSHOT -Dpackage=com.soonphe.timber -DarchetypeArtifactId=cloud-es2-job-template -DarchetypeGroupId=com.soonphe.timber -DarchetypeVersion=1.0.0-SNAPSHOT -DdataId=es-job-srv.yml
 ```
 注：这里的-D后都是可以自定义并且可以在项目获取的变量参数！
 
 变量说明
 - groupId    | 组名(业务中台一般情况下不要改)
 - artifactId | 工程名字  （authsrv)
-- package    | 包名 com.sgcc.ywzt.auth  ywzt后面的要是模块的名字
+- package    | 包名 com.soonphe.timber.auth  ywzt后面的要是模块的名字
 - dataId     | nacos 上dataId
 
 配置参数获取示例：
@@ -134,7 +133,7 @@ archetype依赖：
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>archetypes</artifactId>
-    <groupId>com.sgcc.ywzt</groupId>
+    <groupId>com.soonphe.timber</groupId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -242,7 +241,7 @@ archetype依赖：
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.sgcc.ywzt</groupId>
+		<groupId>com.soonphe.timber</groupId>
 		<artifactId>pom-parent</artifactId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
@@ -255,27 +254,27 @@ archetype依赖：
 
 	<dependencies>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>commons</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>web-spring-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>codegen</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>jpa-spring-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>monitor-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
@@ -310,12 +309,12 @@ archetype依赖：
 			<artifactId>mapstruct</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>security-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sgcc.ywzt</groupId>
+			<groupId>com.soonphe.timber</groupId>
 			<artifactId>ywzt-admin-auth-api</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
@@ -383,7 +382,7 @@ archetype依赖：
 					<target>1.8</target>
 					<annotationProcessorPaths>
 						<path>
-							<groupId>com.sgcc.ywzt</groupId>
+							<groupId>com.soonphe.timber</groupId>
 							<artifactId>codegen</artifactId>
 							<version>1.0-SNAPSHOT</version>
 						</path>

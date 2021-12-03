@@ -304,7 +304,7 @@ migrate:
 gx:
   web:
     enable: true
-    base-package: "com.sgcc.ywzt.controller"
+    base-package: "com.soonphe.timber.controller"
     version: 1.0.0
     description: "repairsrv web api"
 elasticjob:
