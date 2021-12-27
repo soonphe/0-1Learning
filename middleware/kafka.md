@@ -303,3 +303,129 @@ bin/kafka-console-consumer.sh --bootstrap-server 47.98.121.127:9092 --topic test
 使用kafka自带zookeeper可能会让consumer连接失败
 kafka版本与spring-boot版本过高也会出现bug
 ~~~~
+
+### 项目集成示例
+1. 依赖
+```
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-stream-kafka</artifactId>
+			<version>2.2.0.RELEASE</version>
+		</dependency>
+```
+
+2. 配置文件
+消息发送者：
+```
+#kafka
+spring.cloud.stream.kafka.binder.brokers=192.168.1.20:9092
+spring.cloud.stream.kafka.binder.zk-nodes=192.168.1.20:2182
+spring.cloud.stream.kafka.binder.auto-add-partitions=true
+spring.cloud.stream.kafka.binder.auto-create-topics=true
+spring.cloud.stream.kafka.binder.min-partition-count=1
+ 
+spring.cloud.stream.bindings.member.destination=mytopic
+spring.cloud.stream.bindings.member.content-type=text/plain
+spring.cloud.stream.bindings.member.producer.partitionCount=1
+
+# yml
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers:
+            - 192.168.171.11:9092
+            - 192.168.171.207:9092
+            - 192.168.171.239:9092
+#          zk-nodes: 192.168.1.20:2182
+          auto-add-partitions: true
+          auto-create-topics: true
+          min-partition-count: 1
+      bindings:
+        rds1Output: # 输出的管道名
+          destination: qfjs_jwtf_01-ord_order_consume # topic
+          content-type: application/json # 类型
+          producer:
+            partitionCount: 1
+```
+
+消息接收者
+```
+spring.cloud.stream.kafka.binder.brokers=192.168.1.20:9092
+spring.cloud.stream.kafka.binder.zk-nodes=192.168.1.20:2182
+spring.cloud.stream.kafka.binder.auto-add-partitions=true
+spring.cloud.stream.kafka.binder.auto-create-topics=true
+ 
+#这个得跟发送消息端的名称一致
+spring.cloud.stream.bindings.member.destination=mytopic
+#加上就能接收到之前发送没接收到的消息.
+spring.cloud.stream.bindings.member.group=s1
+```
+
+### 编写一个接口,output里是通道名称,通过这个名称,消费者与接收者进行关联.
+```
+package com.buba.api.rabbitmq;
+ 
+import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.messaging.SubscribableChannel;
+ 
+public interface SendService {
+ 
+    @Output("member")
+    SubscribableChannel sendMember();
+}
+```
+
+### 启动类注解
+启动类加上监听管道注解@EnableBinding,值为通道对应的接口class
+下面为同时配置发送和监听通道：
+```
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients(basePackages = {"com.sgcc.ywzt.adminauth.api"})
+@EnableBinding({Sink.class, Source.class})
+public class BootstrapApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(BootstrapApplication.class, args);
+  }
+
+}
+```
+
+### 发送消息
+```
+    @Autowired
+    SendService sendService;
+ 
+    @RequestMapping("sendMember")
+    public String sendMember(){
+        Message build = MessageBuilder.withPayload("hello,rabbitmq".getBytes()).build();
+ 
+        Boolean send = sendService.sendMember().send(build);
+ 
+        return send.toString();
+    }
+```
+
+### 接收消息
+```
+package com.buba.rabbitmq;
+ 
+import org.springframework.cloud.stream.annotation.Input;
+import org.springframework.messaging.SubscribableChannel;
+ 
+public interface ReceiveService {
+ 
+    @Input("member")
+    SubscribableChannel subscribableChannel();
+}
+```
+启动类加上监听管道注解,与发送消息那边的名称一致 
+```
+@EnableBinding(ReceiveService.class)
+```
+
+
+
+

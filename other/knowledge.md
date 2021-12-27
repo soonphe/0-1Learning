@@ -1796,6 +1796,61 @@ RowCallbackHandler：用于处理ResultSet的每一行结果，用户需实现�
 ResultSetExtractor：用于结果集数据提取，用户需实现方法extractData(ResultSet rs)来处理结果集，用户必须处理整个结果集；
 
 
+### @Component默认是单例还是多例？
+@Component注解默认实例化的对象是单例，如果想声明成多例对象可以使用@Scope("prototype")
+@Repository默认单例
+@Service默认单例
+@Controller默认多例
+
+
+### SpringMVC 默认创建 Bean 是单例的，在高并发情况下是如何保证性能的？
+spring中的bean默认是单例的，通常对单例进行多线程访问时，为了线程安全而采用同步机制，以时间换空间的方式，而Spring中是利用ThreadLocal来以空间换取时间，为每一个线程提供变量副本，来保证变量副本对于某一线程都是线程安全的。
+
+用ThreadLocal是为了保证线程安全，实际上ThreadLoacal的key就是当前线程的Thread实例。
+
+虽然spring对象是单例的，但类里面方法对每个线程来说都是独立运行的，不存在多线程问题，只有成员变量有多线程问题，所以方法里面如果有用到成员变量就要考虑用安全的数据结构。
+
+单例模式是spring推荐的配置，单利模式因为大大节省了实例的创建和销毁，它在高并发下能极大的节省资源，提高服务抗压能力。
+
+
+### mac打印
+隔空打印：在“隔空打印”协议下，可通过 Wi-Fi、USB 和以太网络访问打印机的打印和扫描选项（若特定的打印机支持这些功能）。你无需下载或安装打印机软件就能使用支持“隔空打印”的打印机。支持“隔空打印”协议的打印机类型广泛，包括 Aurora、Brother、Canon、Dell、Epson、Fuji、Hewlett Packard、Samsung、Xerox 等等。 
+互联网打印协议 - IPP：现代打印机和打印服务器使用此协议；
+行式打印机监控程序 - LPD：旧式打印机和打印服务器可能使用此协议；
+HP Jetdirect – Socket：HP 和其他许多打印机制造商都使用此协议。
+
+
+### Spring FactoryBean和BeanFactory 区别
+1. BeanFactory 是ioc容器的底层实现接口，是顶层容器（根容器），不能被实例化，不允许我们直接操作 BeanFactory bean工厂，它定义了所有 IoC 容器 必须遵从 的⼀套原则，具体的容器实现可以增加额外的功能。
+
+  	BeanFactory 接口又衍生出以下接口
+    - ApplicationContext，ApplicationContext包含BeanFactory的所有功能,同时还进行更多的扩展， 
+      - ClassPathXmlApplicationContext 包含了解析 xml 等⼀系列的内容
+      - AnnotationConfigApplicationContext 则是包含了注解解析等⼀系列的内容。Spring IoC 容器继承体系
+
+2. FactoryBean 是spirng提供的工厂bean的一个接口
+FactoryBean 接口提供三个方法，用来创建对象。 
+FactoryBean 具体返回的对象是由getObject 方法决定的。 
+```
+public interface FactoryBean<T> {
+
+	//创建的具体bean对象的类型
+	@Nullable
+	T getObject() throws Exception;
+
+	//工厂bean 具体创建具体对象是由此getObject()方法来返回的
+	@Nullable
+	Class<?> getObjectType();
+	
+ 	//是否单例
+	default boolean isSingleton() {
+		return true;
+	}
+
+}
+```
+
+
 
 
 
