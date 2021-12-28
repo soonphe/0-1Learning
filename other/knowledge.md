@@ -1850,6 +1850,54 @@ public interface FactoryBean<T> {
 }
 ```
 
+### Java8之Consumer、Supplier、Predicate和Function
+
+这几个接口都在 java.util.function 包下的，分别是
+- Consumer<T>（消费型）
+
+  Consumer<T>接口就是一个消费型的接口，实现 accept 的方法，T：入参类型；没有出参。
+  ```
+  Consumer<String> consumer = new Consumer<String>() {
+	
+                @Override
+                public void accept(String s) {
+                    System.out.println(s);
+                }
+            };
+    //lambda表达式
+	Consumer<String> consumer1 = (s) -> System.out.println(s);//lambda表达式返回的就是一个Consumer接口
+  ```
+  
+- Supplier<T>（供给型）
+
+  Supplier<T> 接口是一个供给型的接口，实现 get 方法。T：出参类型；没有入参。可以用来存储数据，然后可以供其他方法使用的这么一个接口
+  ```
+  Supplier<Integer> supplier = () -> new Random().nextInt();
+  ```
+  
+- Predicate<T>（谓词型）
+
+  Predicate<T> 接口是一个谓词型接口，实现一个 test 方法。T：入参类型；出参类型是Boolean。作用：类似于 bool 类型的判断的接口。
+  ```
+  Predicate<Integer> predicate = (t) -> t > 5;
+  ```
+  
+- Function<T, R> （功能性）
+
+  Function<T, R>  接口是一个功能型接口，实现 apply 方法。T：入参类型，R：出参类型。作用：将输入数据转换成另一种形式的输出数据。
+  ```
+  Function<String, Integer> function = new Function<String, Integer>() {
+            @Override
+            public Integer apply(String s) {
+                return s.length();//获取每个字符串的长度，并且返回
+            }
+        };
+  
+  ```
+
+
+
+
 
 
 
