@@ -1895,6 +1895,65 @@ public interface FactoryBean<T> {
   
   ```
 
+### 反射操作如何得到对象、方法、参数
+- 反射获取对象
+```
+//注意，要传完整类名，如：com.soonphe.timber.hello.Helloworld
+Class cls = Class.forName("完整类名");
+Object yourObj = cls.newInstance();
+```
+- 反射获取方法
+```
+Method methlist[] = cls.getDeclaredMethods();
+for (int i = 0; i < methlist.length; i++) {
+	Method m = methlist[i];
+}
+```
+- 反射获取方法参数
+```
+//获取到方法对象,假设方法的参数是一个int,method名为setAge
+Method sAge = cls.getMethod("setAge", new Class[] {int.class});
+//构造参数Object
+Object[] arguments = new Object[] { new Integer(37)};
+//执行方法
+sAge.invoke(yourObj , arguments);
+```
+
+
+### 反射时getConstructor()与getDeclaredConstructor()方法的区别及setAccessible()方法的作用
+```
+	@Test
+	void testName() throws Exception {
+		HelloWorld world=null;
+		String className="hello.HelloWorld";
+		Constructor con=Class.forName(className).getConstructor();
+		//设置不检查是否可以访问
+		con.setAccessible(true);
+		Object obj=con.newInstance();
+		world=(HelloWorld) obj;
+		world.sayHello();
+	}
+```
+**getConstructor()** 和 **getDeclaredConstructor()** 的作用：获取类的构造器	
+
+不同点：
+- Class类的getConstructor()方法,无论是否设置setAccessible(),都不可获取到类的私有构造器.
+- Class类的getDeclaredConstructor()方法,可获取到类的私有构造器(包括带有其他修饰符的构造器），但在使用private的构造器时，必须设置setAccessible()为true,才可以获取并操作该Constructor对象。
+
+
+### <? extends U> 和 <? super U>的区别：
+- <? super U> ：规定元素的最小粒度下限，不影响往里存，但往外取只能放在Object对象里，如Number super Integer。
+```
+Box<? super RedApple> box3 = new Box<Fruit>();
+```
+
+- <? extends U>：规定元素的最大粒度上限，不影响取，存只能存指定类型的变量，如：Integer extends Number。
+```
+Box<? extends Food> box1 = new Box<Fruit>();
+Box<? extends Food> box2 = new Box<Meat>();
+```
+
+
 
 
 
