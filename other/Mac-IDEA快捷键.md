@@ -56,9 +56,9 @@ Command+7：打开文件结构
 #9 Generate模块：Control + Enter（生成构造器、getter、setter方法等）
 
 #10 前后导航编辑过的地方：Command + ALT + left/right    
-    跳转到上次编辑的地方：Command + Shift + Backspace   
+    跳转到上次编辑的地方：Command + Shift + Backspace
 
-### IDEA快捷键
+### IDEA快捷键总结
 Command + 逗号(,)：打开当前应用的偏好设置
 Command + 分号(;)：打开项目结构project structure
 Command + N：新建文件或打开当前文件Generate选项
@@ -70,6 +70,7 @@ command + Option + L：格式化代码
 Command + Option + O：优化包
 Command + Option + T  生成try catch、if/else。。。
 Command + SHIFT + T：在方法上点击生成测试此方法代码
+Command + Option + U：在包或类上右键点击Diagram或者用快捷键
 
 Command + F：查找
 Command + Shift + N：全局查找
@@ -89,16 +90,16 @@ Command + Shift + 上下键：上下移动当前代码
 Command + Shift + 左右键：全选当前所在行 当前光标到最左侧/最右侧的代码
 Command + option + 左右键：光标之前/之后停留的位置
 
-Option + 7：靠左窗口显示当前文件的结构、即类中所有方法
-Command + F12：浮动显示当前文件的结构
-Option + F7：当前文件搜索 函数或者变量或者类的所有引用到的地方
+Option + F7：查看一个Java类、方法或变量的直接使用情况。当前文件搜索 函数或者变量或者类的所有引用到的地方
+Command + 7：左窗口显示当前文件的结构、即类中所有方法
+Command + F12：浮动显示当前文件的结构、即类中所有方法
 Command + Option + F7  全局文件搜索 函数或者变量或者类的所有引用到的地方
 
 Command + B 快速打开光标处的类或方法(Command + 鼠标左键也可以)
-Command + ALT + B  找所有的子类  
-Command + SHIFT + B  找变量的类  
+Command + Option + B  找所有的子类
+Command + SHIFT + B  找变量的类
 
-Option + Shift + | 打开所有文件最后编辑日期及大小
+Navigate | Call Hierarchy：查看Java方法结构树（caller和callee两个方向）
 
 ### 调试相关
 F2：高亮错误或警告快速定位
