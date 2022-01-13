@@ -268,11 +268,51 @@ curl -X PUT 'localhost:9200/_index?pretty'
 
 说明：如果指定到index级别，只需要put就行，如果是type级别，则为post请求，如果指定id，则为添加数据
 ```
+
+2. 单条写入put/post：
+```
+put，需要设定数据ID（同一条数据首次插入是created，再次插入会updated）
+post，可选择设定数据ID（不指定id情况下：同一条数据首次插入是created，再次插入还是created，但_id会变；指定id若id不变第二次插入失败）
+_doc:同一条数据首次插入是created，再次插入会updated
+_create:同一条数据首次插入是created，再次插入会报错
+
+PUT compyan-starff-001/_doc/1
+{
+  ...
+}
+PUT compyan-starff-001/_create/1
+{
+  ...
+}
+```
+批量写入_bulk:
+```
+POST _bulk
+{index:{"_index":"company-staff-001", "_id": "1"}}
+...
+{index:{"_index":"company-staff-001", "_id": "2"}}
+...
+{index:{"_index":"company-staff-001", "_id": "3"}}
+...
+```
+
 2. 删除索引：
 ```
 删除索引：curl -XDELETE localhost:9200/_index
 
 删除数据：curl -XDELETE localhost:9200/_index/_doc/_id
+
+根据条件删除数据：
+POST localhost:9200/_index?requests_per_second
+{
+  "slice":{   #手动分片删除
+    "id":1,    #两次删除需要修改id
+    "max":2 #分为两批次删除
+  }
+  "query": { 
+    "match_all": {}
+  }
+}
 ```
 
 3. 设置类型、设置mapping
