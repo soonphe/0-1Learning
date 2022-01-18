@@ -1953,11 +1953,101 @@ Box<? extends Food> box1 = new Box<Fruit>();
 Box<? extends Food> box2 = new Box<Meat>();
 ```
 
+### spring-boot-maven-plugin打两个包jar/exec.jar
+参考文档：https://blog.csdn.net/guduyishuai/article/details/60968728
+
+一、spring-boot-maven-plugin打包出来的jar是不可依赖的
+
+         比如我有一个root工程，type为pom，下面两个spring-boot工程作为它的module，分别为moduleA和moduleB。假如moduleA依赖于moduleB。如果你在moduleB中使用了spring-boot-maven-plugin的默认配置build，或者在root中使用spring-boot-maven-plugin的默认配置build。很遗憾，你在clean package的时候会发现moduleA找不到moduleB中的类。原因就是默认打包出来的jar是不可依赖的。
+
+         解决方案：
+
+        1、调整你的代码，把spring-boot的东西从moduleB中移走。官方文档是这样说的，但是大部分人不会
+
+              这么干吧。
+
+        2、官方告诉我们，你如果不想移代码，好吧，我这样来给你解决，给你打两个jar包，一个用来直接执
+
+              行，一个用来依赖。于是，你需要指定一个属性classifier，这个属性为可执行jar包的名字后缀。比
+
+              如我设置<classifier>exec</classifier>，原项目名为Vehicle-business。
+
+              那么我会得到两个jar：Vehicle-business.jar和Vehicle-bussiness-exec.jar
+
+         官方文档位置：84.5 Use a Spring Boot application as a dependency
+
+		总结：回到聚合maven上，如果你在root工程中使用了spring-boot-maven-plugin作为builder，那么你的依赖module一定要用解决方案二来设置。否则你不在root工程中用spring-boot-maven-plugin作为builder，而在需要打包的module上使用。
 
 
+### 后台运行nohup & 和守护进程daemon 
+1)守护进程已经完全脱离终端控制台了，而后台程序并未完全脱离终端，在终端未关闭前还是会往终端输出结果
+2)守护进程在关闭终端控制台时不会受影响，而后台程序会随用户退出而停止，需要在以nohup xxx & 格式运行才能避免影响（&后台运行）
+3)守护进程的会话组和当前目录，文件描述符都是独立的。后台运行只是终端进行了一次fork，让程序在后台执行，这些都没改变。
 
 
+### swagger注解
+类注解：
+@Api(tags="项目任务/风险")
+方法注解：
+@ApiOperation(value="任务列表",notes="任务列表")
 
+
+### package-info.java：提供包级别注解、变量、注释
+
+### JdbcTemplate方法详解
+JdbcTemplate主要提供以下五类方法：
+execute方法：可以用于执行任何SQL语句，一般用于执行DDL语句；
+update方法及batchUpdate方法：update方法用于执行新增、修改、删除等语句；batchUpdate方法用于执行批处理相关语句；
+query方法及queryForXXX方法：用于执行查询相关语句；
+call方法：用于执行存储过程、函数相关语句。
+
+### Okhttp连接超时
+错误日志
+```
+2021-09-23 16:18:13.863||[HSFBizProcessor-DEFAULT-8-thread-19]||| OkHttp error url: http://xxx.gateway.com:9966/api/query/es/getOrderListByQuery
+java.net.SocketTimeoutException: timeout
+```
+- 解决方案：
+修改最大连接数：
+```
+newOkHttpClient.Builder()
+.connectTimeout(CONNECT_TIMEOUT,TimeUnit.SECONDS)
+.readTimeout(READ_TIMEOUT,TimeUnit.SECONDS)
+.connectionPool(newConnectionPool(32,5,TimeUnit.MINUTES))
+.build();
+```
+- 参考文档：
+https://blog.csdn.net/Vincent2014Linux/article/details/98881462
+
+### datetime转localDatetime
+```
+getPaidTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+```
+localDatetime转datetime:
+```
+Date.from(ordOrderConsume.getCreateTime().atZone(ZoneId.systemDefault()).toInstant())
+```
+LocalDateTime.now()：获取当前时间
+
+### 更改启动组
+更改启动组：chown -R admin:admin /home/admin/logs/
+
+### CompletableFuture
+使用Future获得异步执行结果时，要么调用阻塞方法get()，要么轮询看isDone()是否为true，这两种方法都不是很好，因为主线程也会被迫等待。
+
+从Java 8开始引入了CompletableFuture，它针对Future做了改进，可以传入回调对象，当异步任务完成或者发生异常时，自动调用回调对象的回调方法。
+
+### mybatis多数据源
+https://mp.weixin.qq.com/s/qN1b5iSkkIhkA03RtppiJg
+
+### springbatch配置mybatis数据源
+MyBatisCursorItemReader reader = new MyBatisCursorItemReader();
+
+### builder模式如何强制分步调用
+builder已step为过程构造——以接口为返参，分步调用
+
+### node-sass安装失败：
+npm i node-sass --sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
 
 
 

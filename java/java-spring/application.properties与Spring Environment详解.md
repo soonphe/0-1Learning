@@ -243,6 +243,19 @@ public class MyBean {
 ```
 @Value后面可以跟一个参数，也就是上面代码中的name。Spring将根据这个name作为key值去我们对应的properties文件当中找它对应的value值并赋给这个String类型的变量name，
 
+示例：
+```
+@Value("${isx.oauth2.serviceHost:isx-oauth}")
+表达式：
+#{ obj.property? :default_value }
+
+第一个注入的是外部配置文件对应的property，第二个则是SpEL表达式对应的内容。
+@Value("#{'${oauth2.enable.hosts:xxx.com}'.split(',')}")
+```
+
+
+
+
 ### spring cloud bootstrap.properties介绍
 所谓bootstrap，就是指的引导程序的意思，它比我们上面提到的配置文件优先级更加高，或者说更先被加载。它的作用是负责加载外部资源的配置属性，并对加密属性进行解密。bootstrap properties指的就是外部资源，工具的一些属性。
 

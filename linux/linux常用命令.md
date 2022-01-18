@@ -131,6 +131,8 @@ sh 执行.sh脚本
 
 war包解压： unzip -oq common.war -d common
 
+解压.gz：gzip -dv *
+
 ```
 
 ### 查看文件及内容（head、tail、cat、nl、grep、less、more）

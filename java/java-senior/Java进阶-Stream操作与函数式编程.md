@@ -155,6 +155,13 @@ Map<Long, UmsPermission> permissionMap = permissionList.stream()
 Map<Long, UmsPermission> permissionMap = permissionList.stream()
     .collect(Collectors.toMap(permission -> permission.getId(), permission -> permission, (v1, v2) -> v2)));
 ```
+转换加去重：
+```
+List<PrincipalDTO>list1=list.stream()
+.map(e->newPrincipalDTO(e.getUserId(),e.getUserName()))
+.distinct()
+.collect(Collectors.collectingAndThen(Collectors.toCollection(()->newTreeSet<>(Comparator.comparing(b->b.getId()))),ArrayList::new));
+```
 
 #### 分组获取
 Collectors.groupingBy根据一个或多个属性对集合中的项目进行分组。
