@@ -9,7 +9,7 @@
 
 Hystrix断路器：阀值（Hystric 是5秒20次）
 
-一.在ribbon中使用Hystrix
+### 一.在ribbon中使用Hystrix
 1.添加依赖
 <dependency>
     <groupId>org.springframework.cloud</groupId>
@@ -34,14 +34,14 @@ Hystrix断路器：阀值（Hystric 是5秒20次）
         return "hi,"+name+",sorry,error!";
     }
 
-二.在Feign中使用Hystrix
+### 二.在Feign中使用Hystrix
 
 Feign是自带断路器的，在D版本的Spring Cloud中，它没有默认打开。需要在配置文件中配置打开它，在配置文件加以下代码：
 
 feign.hystrix.enabled=true
 
 
-三、Hystrix Dashboard (断路器：Hystrix 仪表盘)
+### 三、Hystrix Dashboard (断路器：Hystrix 仪表盘)
 
 基于service-ribbon 改造，Feign的改造和这一样。
 
@@ -64,6 +64,9 @@ feign.hystrix.enabled=true
 访问http://localhost:8764/hystrix
 
 填入http://localhost:8764/hi?name=forezp 和参数
+
+
+### 
 
 
 
