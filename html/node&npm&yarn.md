@@ -5,48 +5,19 @@
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## npm
-npm: Nodejs下的包管理器。
-
-
-### 常用命令
-npm -v  #查看版本
-npm install express     # 本地安装
-npm install express -g  # 全局安装
-npm ls                  #查看包安装信息
-npm ls -g               #查看全局包安装信息
-npm list -g             #查看全局包安装信息（ls=list）
-npm list grunt          #查看某个模块的版本号
-npm uninstall express   #卸载模块
-npm update express      #更新模块
-npm search express      #搜索模块
-npm init                #生成package.json
-npm adduser             #注册用户
-npm publish             #创建模块
-
-
-### npm修改仓库地址
-npm仓库默认地址：/usr/local/lib/node_modules/npm/node_modules
-
-npm config list：npm所有配置信息
-npm config ls -l：npm所有配置信息
-npm config get registry：查看镜像源
-
-npm切换淘宝源：npm config set registry http://registry.npm.taobao.org
-npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/repository/npm/
-npm恢复官方源：npm set registry https://registry.npmjs.org/
-
+## node & npm & yarn
+- npm: Nodejs下的包管理器。
+- node：
 
 ### node和npm的关系：
 * Node环境：
-    - node官网下载：http://nodejs.cn/download/
-    - 查看node版本：node –v
-    - node.js是javascript的一种运行环境，是对Google V8引擎进行的封装，是一个服务器端的javascript的解释器。
-    - nodejs中含有npm，比如说你安装好nodejs，你打开cmd输入npm -v会发现npm的版本号，说明npm已经安装好。
+  - node官网下载：http://nodejs.cn/download/
+  - node.js是javascript的一种运行环境，是对Google V8引擎进行的封装，是一个服务器端的javascript的解释器。
+  - nodejs中含有npm，比如说你安装好nodejs，你打开cmd输入npm -v会发现npm的版本号，说明npm已经安装好。
 
 * npm(node package manager)包结构管理工具：
-    - 官网：https://www.npmjs.com/
-    - 组成：网站，注册表（registry），命令行工具 (CLI)
+  - 官网：https://www.npmjs.com/
+  - 组成：网站，注册表（registry），命令行工具 (CLI)
 
 - webpack: 它主要的用途是通过CommonJS的语法把所有浏览器端需要发布的静态资源做相应的准备，比如资源的合并和打包。
 
@@ -69,6 +40,43 @@ npm install taco --global	yarn global add taco	安装某个全局依赖项目
 npm publish/login/logout	yarn publish/login/logout	发布/登录/登出，一系列NPM Registry操作
 npm run/test	yarn run/test	运行某个命令
 ```
+
+
+### 常用命令
+node -v               #查看node版本
+npm install -g n      #n模块是专门用来管理nodejs的版本，安装n模块，无权限添加sudo
+n stable // 把当前系统的 Node 更新成最新的 “稳定版本”
+n lts // 长期支持版
+n latest // 最新版
+n 10.14.2 // 指定安装版本
+
+npm -v  #查看版本
+npm install express     # 本地安装
+npm install express -g  # 全局安装
+npm ls                  #查看包安装信息
+npm ls -g               #查看全局包安装信息
+npm list -g             #查看全局包安装信息（ls=list）
+npm list grunt          #查看某个模块的版本号
+npm uninstall express   #卸载模块
+npm update express      #更新模块
+npm search express      #搜索模块
+npm init                #生成package.json
+npm adduser             #注册用户
+npm publish             #创建模块
+npm install -g npm   #更新最新版本，无权限添加sudo
+npm -g install npm@6.8.0  #更新到指定版本，运行指令，无权限添加sudo
+
+
+### npm修改仓库地址
+npm仓库默认地址：/usr/local/lib/node_modules/npm/node_modules
+
+npm config list：npm所有配置信息
+npm config ls -l：npm所有配置信息
+npm config get registry：查看镜像源
+
+npm切换淘宝源：npm config set registry http://registry.npm.taobao.org
+npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/repository/npm/
+npm恢复官方源：npm set registry https://registry.npmjs.org/
 
 
 ### 使用package.json安装模块
