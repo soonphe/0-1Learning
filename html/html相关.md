@@ -1,11 +1,14 @@
+# 0-1Learning
+
+![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-HTML标签头说明：
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-width=device-width：网页宽度等于设备屏幕宽度
- initial-scale=1：页面初始缩放比例为1
-user-scalable=no：禁止用户进行缩放
-maximum-scale=1，minimum-scale=1：最大和最小的页面缩放比例
+## html相关
+
+### HTML标签头说明：
+
 
 实现手机端自适应，就是可以让页面的元素字体、间距、宽高等属性的属性值可以随着手机屏幕尺寸的变化而变化
 

@@ -66,6 +66,50 @@ npm publish             #创建模块
 npm install -g npm   #更新最新版本，无权限添加sudo
 npm -g install npm@6.8.0  #更新到指定版本，运行指令，无权限添加sudo
 
+npm cache clean --force   # 清除缓存
+npm audit                 #允许开发人员分析复杂的代码，并查明特定的漏洞和缺陷
+npm audit fix             #检测项目依赖中的漏洞并自动安装需要更新的有漏洞的依赖，而不必再自己进行跟踪和修复
+npm audit fix --force     #强制更新
+npm audit fix --only=prod #只更新dependencies中安装的包，跳过devDependencies中的包
+
+
+
+### package.json中 ^ 和 ~ 的区别
+指定版本号
+(1)普通版本号: 表示安装此版本,比如"classnames": "2.2.5"，表示安装2.2.5的版本
+(2)表示安装大版本的最小最新子版本: ~版本,比如 "babel-plugin-import": "~1.1.0",表示安装1.1.x的最新版本（不低于1.1.0），但是不安装1.2.x，也就是说安装时不改变大版本号和次要版本号
+(3)表示安装大版本的最高中版本: ^版本,比如 "antd": "^3.1.4",，表示安装3.1.4及以上的版本，但是不安装4.0.0，也就是说安装时不改变大版本号。
+
+### devDependencies和dependencies区别
+- devDependencies用于本地环境开发时候。
+  devDependencies用于本地环境开发时候，所以，所有的不会在发布时候打包进线上代码的npm包都放在这里，命令是：npm i -D ***。
+  比如像这些包：babel-core、babel-eslint、等babel系列，autoprefixer、webpack、webpack-dev-server、koa、*-loaderloader系列等等
+- dependencies用户发布环境
+  用户发布环境，所以，不会包含本地开发任何的包,比如：react、react-redux、react-router-dom等
+
+### npm install 安装报错解决思路：
+1、删除  package-lock.json文件
+2、npm cache clean --force
+3、npm config rm proxy    npm config rm https-proxy
+最后试试更换源：
+npm set registry https://registry.npmjs.org/
+
+其他修复办法：
+1. npm audit fix
+   npm audit fix --force
+   npm audit
+2. 删除已经安装的：node_modules 和 package-lock.json（可行）
+   修改 package.json 格式如下
+   npm audit fix --force
+   npm install
+
+### vue axios get请求传参：
+示例：
+- 带花括号`{token}`
+  实际参数 `token: admin-token`
+- 不带花括号`token`
+  实际参数 `0:token`
+
 
 ### npm修改仓库地址
 npm仓库默认地址：/usr/local/lib/node_modules/npm/node_modules
