@@ -5,7 +5,7 @@
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## Jenkins
+## Grafana
 
 ### Mac使用brew安装
 brew search grafana

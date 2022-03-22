@@ -6,6 +6,42 @@
 
 
 ## java爬虫——webmagic
+
+### java爬虫介绍
+先声明，语言并不是局限，不必纠结选择java还是python去做，会哪个哪个好，你会java，就用java写的好，会Python，就用Python写的好，难道还为了写爬虫而特地学一门语言？
+java爬虫库：
+1. Apache Nutch
+```
+    （1）官方网站：http://nutch.apache.org/
+（2）是否支持分布式：是
+（3）可扩展性：中。Apache Nutch并不是一个可扩展性很强的爬虫，它是一个专门为搜索引擎定制的网络爬虫，虽然Apache Nutch具有一套强大的插件机制，但通过定制插件并不能修改爬虫的遍历算法、去重算法和爬取流程。
+（4）适用性：Apache Nutch是为搜索引擎定制的爬虫，具有一套适合搜索引擎的URL维护机制（包括URL去重、网页更新等），但这套机制并不适合目前大多数的精抽取业务（即结构化数据采集）。
+（5）上手难易度：难。需要使用者熟悉网络爬虫原理、hadoop开发基础及linux shell，且需要熟悉Apache Ant
+```
+2. WebCollector
+```
+（1）官方网站：https://github.com/CrawlScript/WebCollector
+（2）可扩展性：强
+（3）适用性：WebCollector适用于精抽取业务。
+（4）上手难易度：简单
+```
+3. WebMagic：推荐
+```
+官方网站http://webmagic.io/
+（1）官方网站：https://github.com/code4craft/webmagic
+（2）是否支持分布式：支持
+（3）可扩展性：强
+（4）适用性：WebMagic适用于精抽取业务。
+（5）上手难易度：简单。
+```
+4. Crawler4j
+```
+（1）官方网站：https://github.com/yasserg/crawler4j
+（2） 是否支持分布式：否
+（3）可扩展性：低。Crawler4j实际上是一个单机版的垂直爬虫，其遍历算法是一种类似泛爬的算法，虽然可以添加一些限制，但仍不能满足目前大部分的精抽取业务。另外，Crawler4j并没有提供定制http请求的接口，因此Crawler4j并不适用于需要定制http请求的爬取业务（例如模拟登陆、多代理切换）。
+（4）上手难易度：简单
+```
+
 ### 相关依赖
 <dependency>
     <groupId>us.codecraft</groupId>

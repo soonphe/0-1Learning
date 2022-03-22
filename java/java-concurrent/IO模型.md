@@ -68,6 +68,10 @@
 Linux下多路复用IO接口select/poll的增强版本
 epoll可以理解为event poll，不同于忙轮询和无差别轮询，epoll会把哪个流发生了怎样的I/O事件通知我们。所以我们说epoll实际上是事件驱动（每个事件关联上fd）的，此时我们对这些流的操作都是有意义的。（复杂度降低到了O(1)）
 
+### select,poll,epoll的底层数据结构是什么
+select是数组，poll是链表，epoll红黑树+链表
+epoll 没 IOCP 好，如果 IOCP 的数据结构：IOCP是WINDOWS系统下使用。Epoll是Linux系统下使用。
+
 
 #### NIO包有哪些结构？分别起到的作用？
 

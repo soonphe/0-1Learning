@@ -242,6 +242,16 @@ if-else判断显示：
 <span v-if="scope.row.state === 0">未审核</span>
 <span v-else-if="scope.row.state === 1">审核未通过</span>
 
+也可以使用foreach循环匹配
+```
+      this.typeList.forEach((item, index) => {
+        console.log(row.delFlag + '___' + item.id)
+        if (row.delFlag === item.id) {
+          console.log('equals___' + item.name)
+          return item.name
+        }
+      })
+```
 
 ### timestamp转date
 ```
@@ -306,6 +316,28 @@ export default {
   },
 ```
 
+
+### 封装axios直接请求
+```
+          axios({
+            url: this.uploadAction + 'sysRole/add',
+            method: 'POST',
+            data: formData,
+            params: parm
+          }).then((result) => {
+            this.loading = false
+            this.$message.success('添加成功')
+            this.$router.push({
+              path: '/sysRole/index'
+            })
+          }).catch((err) => {
+            this.loading = false
+            this.$message({
+              message: '添加失败!',
+              info: 'warning'
+            })
+          })
+```
 
 
 

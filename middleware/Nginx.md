@@ -13,6 +13,7 @@ Nginx (engine x) 是一个高性能的HTTP和反向代理web服务器，同时�
 - brew install nginx  //安装软件包
 - brew services start nginx   //启动nginx 
 - brew services stop nginx   //关闭nginx
+- nginx   //启动nginx
 - nginx -v   // 查看nginx版本
 - nginx -s reload     //重新加载nginx
 - nginx -s stop       //停止nginx
@@ -137,7 +138,7 @@ $server_port        服务器的端口号
 
 ### 配置文件参考 
 ```
-user  root;
+user  root;             # 使用root访问权限访问文件
 worker_processes  4;    #工作进程：数目。根据硬件调整，通常等于cpu数量或者2倍cpu数量。
 
 error_log  logs/error.log;

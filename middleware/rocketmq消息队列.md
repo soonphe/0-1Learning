@@ -19,7 +19,7 @@ MQ 的内核为由阿里巴巴集团捐赠给Apache基金会的顶级项目Rocke
 
 2. 为RAM用户授权(RAM控制台)
 
-3. 创建实例（RocketMQ控制台
+3. 创建实例（RocketMQ控制台）
 
 4. 创建Topic（RocketMQ控制台）
 

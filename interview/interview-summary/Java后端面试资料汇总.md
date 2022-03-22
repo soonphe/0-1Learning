@@ -146,6 +146,24 @@ zookeeper选举算法：
     10. 更新服务器状态
     以上10个步骤就是FastLeaderElection的核心，其中步骤4-9会经过几轮循环，直到有Leader选举产生。
 
+zookeeper是什么一致性，怎么实现的？
+```
+(2) 一致性分类
+一致性是指从统外部读取系统内部的数据时，在一定约束条件下相同，即数据变动在系统内部各节点应该是同步的。根据一致性的强弱程度不同，可以将一致性级别分为如下几种：
+
+① 强一致性（strong consistency）。任何时刻，任何用户都能读取到最近一次成功更新的数据。
+
+② 单调一致性（monotonic consistency）。任何时刻，任何用户一旦读到某个数据在某次更新后的值，那么就不会再读到比这个值更旧的值。也就是说，可获取的数据顺序必是单调递增的。
+
+③ 会话一致性（session consistency）。任何用户在某次会话中，一旦读到某个数据在某次更新后的值，那么在本次会话中就不会再读到比这个值更旧的值。会话一致性是在单调一致性的基础上进一步放松约束，只保证单个用户单个会话内的单调性，在不同用户或同一用户不同会话间则没有保障。
+
+④ 最终一致性（eventual consistency）。用户只能读到某次更新后的值，但系统保证数据将最终达到完全一致的状态，只是所需时间不能保障。
+
+⑤ 弱一致性（weak consistency）。用户无法在确定时间内读到最新更新的值。
+
+ZooKeeper是一种强一致性的服务（通过sync操作），也有人认为是单调一致性（更新时的大多说概念），还有人为是最终一致性（顺序一致性），反正各有各的道理这里就不在争辩了。然后它在分区容错性和可用性上做了一定折中，这和CAP理论是吻合的。
+```
+
 Eureka和zookeeper有哪些不同
     
     ZooKeeper保证的是CP,Eureka保证的是AP
@@ -160,7 +178,7 @@ dubbo通过客户端向服务器端传递参数，传递参数时path,group,vers
 ```
 
 ### 设计模式
-常见的设计模式及适用场景：单例，工厂，观察者，建造者，代理。。。
+常见的设计模式及适用场景：单例，工厂，观察者，建造者，代理，装饰器，责任链。。。
 
 观察者模型：略（挺简单的）
 
@@ -172,6 +190,15 @@ dubbo通过客户端向服务器端传递参数，传递参数时path,group,vers
 
 ### 数据结构
 常用的集合（List,Set,hashmap，hashtable，ConcurrentHashMap）
+
+Set是如何实现元素不重复：
+```
+Set是一个接口，最常用的实现类就是HashSet，今天我们就拿HashSet为例。
+将key-value对放入HashMap中时，首先根据key的hashCode()返回值决定该Entry的存储位置，
+如果两个key的hash值相同，那么它们的存储位置相同。
+如果这个两个key的equals比较返回true。那么新添加的Entry的value会覆盖原来的Entry的value，key不会覆盖。
+且HashSet中add()中 map.put(e, PRESENT)==null 为false，HashSet添加元素失败。因此,如果向HashSet中添加一个已经存在的元素，新添加的集合元素不会覆盖原来已有的集合元素。
+```
 
 hashmap常见问题：
 
@@ -274,11 +301,28 @@ ArrayList:
 
 ### 锁与同步
 
+Lock实现逻辑：
+```
+在java.util.concurrent.locks包中有很多Lock的实现类，常用的有ReentrantLock、ReadWriteLock（实现类ReentrantReadWriteLock），
+其实现都依赖java.util.concurrent.AbstractQueuedSynchronizer类，实现思路都大同小异
+
+ReentrantLock把所有Lock接口的操作都委派到一个Sync类上，该类继承了AbstractQueuedSynchronizer：
+Sync又有两个子类：公平锁和非公平锁，默认情况下为非公平锁。
+
+加锁实现：AbstractQueuedSynchronizer会把所有的请求线程构成一个CLH队列，当一个线程执行完毕（lock.unlock()）时会激活自己的后继节点，但正在执行的线程并不在队列中，而那些等待执行的线程全部处于阻塞状态，经过调查线程的显式阻塞是通过调用LockSupport.park()完成，而LockSupport.park()则调用sun.misc.Unsafe.park()本地方法，再进一步，HotSpot在Linux中中通过调用pthread_mutex_lock函数把线程交给系统内核进行阻塞。
+
+AbstractQueuedSynchronizer通过构造一个基于阻塞的CLH队列容纳所有的阻塞线程，而对该队列的操作均通过Lock-Free（CAS）操作，但对已经获得锁的线程而言，ReentrantLock实现了偏向锁的功能。
+
+synchronized的底层也是一个基于CAS操作的等待队列，但JVM实现的更精细，把等待队列分为ContentionList和EntryList，目的是为了降低线程的出列速度；当然也实现了偏向锁，从数据结构来说二者设计没有本质区别。但synchronized还实现了自旋锁，并针对不同的系统和硬件体系进行了优化，而Lock则完全依靠系统阻塞挂起等待线程。
+
+当然Lock比synchronized更适合在应用层扩展，可以继承AbstractQueuedSynchronizer定义各种实现，比如实现读写锁（ReadWriteLock），公平或不公平锁；同时，Lock对应的Condition也比wait/notify要方便的多、灵活的多。 
+```
+
 LOCK和synchronized、volatile区别
 
     1. lock是一个接口，而synchronized是java的关键字，synchronized是内置的语言实现；
     2. synchronized在发生异常时，会自动释放线程占有的锁，因此不会导致死锁现象发生；而lock在发生异常时，如果没有主动通过unlock（）去释放锁，则很可能造成死锁现象，因此使用lock（）时需要在finally块中释放锁；
-    3. lock可以让等待锁的线程响应中断，而synchronized却不行，使用synchronized时，等待的线程会一直等待下去，不讷讷狗狗响应中断
+    3. lock可以让等待锁的线程响应中断，而synchronized却不行，使用synchronized时，等待的线程会一直等待下去，不响应中断
     4. 通过lock可以知道有没有成功获取锁，而synchronized却无法办到
     5. lock可以提高多个线程进行读操作的效率
     * 在性能上来说，如果竞争资源不激烈，两者的性能是差不多的，而竞争资源非常激烈是（既有大量线程同时竞争），此时lock的性能要远远优于synchronized。所以说，在具体使用时适当情况选择。
@@ -360,6 +404,11 @@ spring循环依赖是如何解决的：
         对于“prototype”作用域bean，Spring容器无法完成依赖注入，因为“prototype”作用域的bean，Spring容器不进行缓存，因此无法提前暴露一个创建中的Bean。
         说明：singleton是默认作用域，在使用singleton时，Spring容器只存在一个可共享的Bean实例。
 
+spring为什么使用三级缓存？（解决循环依赖）
+    
+    1.不支持循环依赖情况下，只有一级缓存生效，二三级缓存用不到
+    2.二三级缓存就是为了解决循环依赖，且之所以是二三级缓存而不是二级缓存，主要是可以解决循环依赖对象需要提前被aop代理，以及如果没有循环依赖，早期的bean也不会真正暴露，不用提前执行代理过程，也不用重复执行代理过程。
+
 
 ### AOP（动、静、cglib）
 JDK动态代理只能对实现了接口的类生成代理，而不能针对类；
@@ -413,6 +462,7 @@ jdk1.9 默认垃圾收集器G1
 
 ### 数据库
 隔离级别：读未提交，读已提交，可重复读，串行化四个！默认是可重复读
+Oracle默认的隔离级别：提交读
 mysql默认隔离级别：repeatable，（mysql ---repeatable,oracle,sql server ---read commited）
 mysql binlog的格式三种：statement,row,mixed
 为什么mysql用的是repeatable而不是read committed:在 5.0之前只有statement一种格式，而主从复制存在了大量的不一致，故选用repeatable
@@ -470,6 +520,29 @@ Redis持久化：
 
     * 持久化原理：使用fork子线程，存入buffer，通过策略刷入硬盘
     * 持久化策略：RDB(默认),AOF
+
+redis的全量同步 和 增量同步、异步同步过程？
+```
+全量复制
+master 执行 bgsave ，在本地生成一份 rdb 快照文件。
+master node 将 rdb 快照文件发送给 slave node，如果 rdb 复制时间超过 60秒(repl-timeout)，那么 slave node 就会认为复制失败，可以适当调大这个参数(对于千兆网卡的机器，一般每秒传输 100MB，6G 文件，很可能超过 60s)
+master node 在生成 rdb 时，会将所有新的写命令缓存在内存中，在 slave node 保存了 rdb 之后，再将新的写命令复制给 slave node。
+如果在复制期间，内存缓冲区持续消耗超过 64MB，或者一次性超过 256MB，那么停止复制，复制失败。
+client-output-buffer-limitslave256MB64MB60
+slave node 接收到 rdb 之后，清空自己的旧数据，然后重新加载 rdb 到自己的内存中，同时基于旧的数据版本对外提供服务。
+如果 slave node 开启了 AOF，那么会立即执行 BGREWRITEAOF，重写 AOF。
+
+增量复制
+如果全量复制过程中，master-slave 网络连接断掉，那么 slave 重新连接 master 时，会触发增量复制。
+master 直接从自己的 backlog 中获取部分丢失的数据，发送给 slave node，默认 backlog 就是 1MB。
+master 就是根据 slave 发送的 psync 中的 offset 来从 backlog 中获取数据的。
+heartbeat
+主从节点互相都会发送 heartbeat 信息。
+master 默认每隔 10秒 发送一次 heartbeat，slave node 每隔 1秒 发送一个 heartbeat。
+
+异步复制
+master 每次接收到写命令之后，先在内部写入数据，然后异步发送给 slave node。
+```
 
 架构模式：
 

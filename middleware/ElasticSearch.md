@@ -459,6 +459,13 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
 - _bulk是rest的命令，可以批量执行多个操作（操作是在json文件中定义的，原理可以参考之前的翻译）
 - pretty是将返回的信息以可读的JSON形式返回。
 
+8. 更改字段类型
+es index的mapping在建好之后是不可以更改字段类型的，所以直接将mapping类型是行不通的。
+解决：
+- 重建mapping
+这是大多推荐的方式，重建新的index，然后建好全部字段的mapping，再把数据拷贝完成重新mapping。（如果index的type少、数据量也不大，可使用这种方式。如果线上库index里各种type都有，牵扯的业务繁多，而改的只是其中的一个type，谨慎使用）
+- 新建mapping字段
+虽然index的mapping在建好之后不可以更改字段类型，但是可以添加新的字段，将原有值重新赋值到新字段中
 
 
 ### Elasticsearch查询索引信息

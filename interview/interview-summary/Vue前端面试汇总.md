@@ -39,6 +39,7 @@ vue实例从被创建到销毁的一系列过程就叫vue生命周期. 也就是
 
 4.子组件之间如何共享数据
 Vuex
+
 5..axios的特点有哪些
 1.	axios是一个基于promise的HTTP库,支持promise的所有API
 2.	它可以拦截请求和响应
