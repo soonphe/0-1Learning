@@ -21,7 +21,7 @@ java spi就是提供这样的一个机制：为某个接口寻找服务实现的
 
 
 ### 2.SPI约定
-当服务的提供者，提供了服务接口的一种实现之后，在jar包的META-INF/services/目录里同时创建一个以服务接口命名的文件。该文件里就是实现该服务接口的具体实现类。
+当服务的提供者，提供了服务接口的一种实现之后，在jar包的META-INF/services/目录里同时创建一个以服务接口命名的文件。该文件里就是实现该服务接口的具体实现类全限定类名，多个实现类用换行符分隔。
 
 而当外部程序装配这个模块的时候，就能通过该jar包META-INF/services/里的配置文件找到具体的实现类名，并装载实例化，完成模块的注入。通过这个约定，就不需要把服务放在代码中了，通过模块被装配的时候就可以发现服务类了。
 
@@ -33,7 +33,113 @@ common-logging apache最早提供的日志的门面接口。只有接口，没�
 总结：SPI的好处是避免写死，调用者可以根据自己的需求调用不同的实现类 。
 
 
-### 3. springboot中的类SPI扩展机制
+### 3.SPI实现
+```
+定义一个接口，SPIService
+package com.viewscenes.netsupervisor.spi;
+public interface SPIService {
+    void execute();
+}
+
+定义两个实现类：
+package com.viewscenes.netsupervisor.spi;
+public class SpiImpl1 implements SPIService{
+    public void execute() {
+        System.out.println("SpiImpl1.execute()");
+    }
+}
+
+package com.viewscenes.netsupervisor.spi;
+public class SpiImpl2 implements SPIService{
+    public void execute() {
+        System.out.println("SpiImpl2.execute()");
+    }
+}
+
+```
+在 src/main/resources/META-INF/services/下添加文件`com.viewscenes.netsupervisor.spi.SPIService`
+文件名字是接口的全限定类名，内容是实现类的全限定类名，多个实现类用换行符分隔。
+```
+com.viewscenes.netsupervisor.spi.SpiImpl1
+com.viewscenes.netsupervisor.spi.SpiImpl2
+```
+
+测试调用
+通过ServiceLoader.load或者Service.providers方法拿到实现类的实例。
+其中，Service.providers包位于sun.misc.Service，而ServiceLoader.load包位于java.util.ServiceLoader。两种方式的输出结果是一致的：
+```
+public class Test {
+    public static void main(String[] args) {    
+        Iterator<SPIService> providers = Service.providers(SPIService.class);
+        ServiceLoader<SPIService> load = ServiceLoader.load(SPIService.class);
+
+        while(providers.hasNext()) {
+            SPIService ser = providers.next();
+            ser.execute();
+        }
+        System.out.println("--------------------------------");
+        Iterator<SPIService> iterator = load.iterator();
+        while(iterator.hasNext()) {
+            SPIService ser = iterator.next();
+            ser.execute();
+        }
+    }
+}
+
+```
+
+### Spring-boot自动装配原理
+如果我们想自定义一个starter，应该如何操作？
+
+前置步骤：新增一个项目，配置相关属性和依赖，配置文件写好参数。
+
+配置读取指定参数
+```
+@ConfigurationProperties(prefix = "microservice.redis")
+public class RedissonProperties {
+    private String host="localhost";
+    private int port = 379;
+    private String password;
+    private int timeout;
+    private boolean ssl;
+    //setter getter方法省略
+}
+```
+
+定义自动装配的配置类（这里以redission组件为例）
+```
+@Configuration
+@ConditionalOnClass(Redisson.class)
+@EnableConfigurationProperties(RedissonProperties.class)
+public class TimberConfiguration {
+    @Bean
+    public RedissonClient redisonClient(RedissonProperties redissonProperties) {
+        Config config = new Config();
+        String prefix = "redis://";
+        if (redissonProperties.isSsl()) {
+            prefix = "rediss://";
+        }
+        config.useSingleServer()
+                .setAddress(prefix + redissonProperties.getHost() + ":" + redissonProperties.getPort())
+                .setConnectTimeout(redissonProperties.getTimeout())
+                .setPassword(redissonProperties.getPassword());
+        return Redisson.create(config);
+    }
+}
+```
+告诉Spring去装配这个自动配置，在META-INF下创建spring.factories文件，在文件中声明要自动装配的配置类
+```
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.org.micorservice.redisson.TimberConfiguration
+```
+然后在使用的时候我们只需要引入这个依赖即可。
+
+然后在application.properties配置RedissonProperties 中的配置项，示例如下：
+```
+microservice.redis.host = 127.0.0.1
+microservice.redis.port = 6379
+```
+
+### springboot中的类SPI扩展机制
 在springboot的自动装配过程中，最终会加载META-INF/spring.factories文件，而加载的过程是由SpringFactoriesLoader加载的。
 
 从CLASSPATH下的每个Jar包中搜寻所有META-INF/spring.factories配置文件，然后将解析properties文件，找到指定名称的配置后返回。
@@ -85,9 +191,7 @@ public @interface EnableAutoConfiguration {
 
 > @EnableAutoConfiguration注解就是SpringBoot实现自动配置的关键了。因为注解在底层会被翻译为接口，继承注解本质上等同于继承接口，所以@SpringBootApplication注解继承了@EnableAutoConfiguration注解后，就有了@EnableAutoConfiguration注解的能力。
 
-
-我们再来说说@Import注解，上篇文章提到了它的作用机制。这篇文章中又要用到它的特性了。我们来看看EnableAutoConfigurationImportSelector类的部分源码：
-
+注意EnableAutoConfiguration是用@Import(EnableAutoConfigurationImportSelector.class)注解的，所以我们先来说说@Import注解，我们来看看EnableAutoConfigurationImportSelector类的部分源码：
 ```
 public class EnableAutoConfigurationImportSelector implements DeferredImportSelector,
 		BeanClassLoaderAware, ResourceLoaderAware, BeanFactoryAware, EnvironmentAware {

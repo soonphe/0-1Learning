@@ -19,19 +19,20 @@
 
 
 - META-INF，关于项目的一些元数据
-    ```
-    Manifest-Version: 1.0
-    Start-Class: con.soonphe.timber.BootstrapApplication
-    Spring-Boot-Classes: BOOT-INF/classes/
-    Spring-Boot-Lib: BOOT-INF/lib/
-    Build-Jdk-Spec: 1.8
-    Spring-Boot-Version: 2.2.7.RELEASE
-    Created-By: Maven Archiver 3.4.0
-    Main-Class: org.springframework.boot.loader.JarLauncher
-    ```
-  属性说明：
-  - Start-Class，为我们项目启动类的全类路径
-  - Main-Class，为JarLauncher的全类路径，即Java规定的启动jar包类
+  - MANIFEST.MF
+      ```
+      Manifest-Version: 1.0
+      Start-Class: con.soonphe.timber.BootstrapApplication
+      Spring-Boot-Classes: BOOT-INF/classes/
+      Spring-Boot-Lib: BOOT-INF/lib/
+      Build-Jdk-Spec: 1.8
+      Spring-Boot-Version: 2.2.7.RELEASE
+      Created-By: Maven Archiver 3.4.0
+      Main-Class: org.springframework.boot.loader.JarLauncher
+      ```
+    属性说明：
+    - Start-Class，为我们项目启动类的全类路径
+    - Main-Class，为JarLauncher的全类路径，即Java规定的启动jar包类
 
 - org，其实是 Spring Boot 提供的 spring-boot-loader 项目，即便我们项目中并没有明确指定loader的存在，但Spring Boot也会帮我们将其代码拷贝放到jar包内。
     ```
@@ -50,13 +51,14 @@
 
 查看META-INF文件夹下的MANIFEST.MF文件内容：
 ```
-Manifest-Version: 1.0
-Implementation-Title: Spring Boot Loader
-Automatic-Module-Name: spring.boot.loader
-Implementation-Version: 2.2.7.RELEASE
-Built-By: Spring
-Build-Jdk-Spec: 1.8
-Created-By: Maven Archiver 3.4.0
+      Manifest-Version: 1.0
+      Start-Class: con.soonphe.timber.BootstrapApplication
+      Spring-Boot-Classes: BOOT-INF/classes/
+      Spring-Boot-Lib: BOOT-INF/lib/
+      Build-Jdk-Spec: 1.8
+      Spring-Boot-Version: 2.2.7.RELEASE
+      Created-By: Maven Archiver 3.4.0
+      Main-Class: org.springframework.boot.loader.JarLauncher
 ```
 由Main-Class的属性值，我们可以得出，要想分析Spring Boot Loader的源码，得从org.springframework.boot.loader.JarLauncher开始。
 

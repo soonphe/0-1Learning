@@ -138,15 +138,6 @@ Sentinel 的资源定义与规则配置的耦合度更低：用户先通过 Sent
 try-catch 方式（通过 SphU.entry(…)），用户在 catch 块中执行异常处理 / fallback
 if-else 方式（通过 SphO.entry(…)），当返回 false 时执行异常处理 / fallback
 
-对比图如下
-在这里插入图片描述https://www.cnblogs.com/softidea/p/6346727.html
-
-### Dubbo源码
-推荐使用 Zookeeper 作为注册中心，还有 Redis、Multicast、Simple 注册中心，但不推荐。
-源码略,这个是最装逼的问题，十多层的分层 连画图都显得扎眼睛，直接略过。
-
-### 什么是微服务
-通过将功能分解到各个离散的服务中以实现对解决方案的解耦
 
 ### Java微服务的框架有 dubbo（只能用来做微服务），spring cloud（提供了服务的发现，断路器等）
 

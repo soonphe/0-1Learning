@@ -8,18 +8,26 @@
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
 
 ### 高可用分布式系统架构（Highly available distributed system architecture）
+分布式早已不是一个新鲜词汇了，一个成熟的分布式系统必然会涉及到高可用设计，在有限的资源情况下保证服务的高可用运行
+
+如下，这些技术也许你已经不是很陌生，但也许你是新手，还没接触过以下这些，那么请记住以下这些，以后免不了会打很多交道。
+
 ![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
 
 
 ### 系统技术栈（System Technology Stack）
+
+
 ![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
+
+> 本来还有画一个`学习路线图`（Learning roadmap），帮助新手朋友快速找到一条通往技术大神之路，想了想有些和技术栈重叠太多，索性就合二为一，路线图直接参照下图即可。
 
 
 ### 系统持续交付流水线图（Continuous delivery pipeline）
 ![持续交付流水线图](static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
 
 
-### 学习路线图（Learning roadmap）
+
 
 
 
@@ -163,37 +171,14 @@
 └── static -- 静态文件包
 ``````
 
-## 文档链接
-* [逻辑算法](https://github.com/soonphe/0-1Learning/tree/master/algorithm)
-    * [leecode](https://github.com/soonphe/0-1Learning/tree/master/algorithm/LeeCode)
-    * [logical-question(逻辑题)](https://github.com/soonphe/0-1Learning/tree/master/algorithm/logical-question)
-
-* [java(java技术栈)](https://github.com/soonphe/0-1Learning/tree/master/java)
-    * [0-1java(从0到1学java)](https://github.com/soonphe/0-1Learning/tree/master/java/0-1java)
-    * [java-concurrent(java并发)](https://github.com/soonphe/0-1Learning/tree/master/java/java-concurrent)
-    * [java-senior(java高级)](https://github.com/soonphe/0-1Learning/tree/master/java/java-senior)
-    * [java-spring(java-spring相关)](https://github.com/soonphe/0-1Learning/tree/master/java/java-spring)
-    * [java-spring-cloud](https://github.com/soonphe/0-1Learning/tree/master/java/java-spring-cloud)
-    * [java-源码](https://github.com/soonphe/0-1Learning/tree/master/java/java源码)
-    * [java-应用拓展](https://github.com/soonphe/0-1Learning/tree/master/java/java应用拓展)
-    * [jvm(java虚拟机)](https://github.com/soonphe/0-1Learning/tree/master/java/jvm)
-    * [java编程规范](https://github.com/soonphe/0-1Learning/tree/master/java/java编程规范.md)
-
-* [android(android技术栈)](https://github.com/soonphe/0-1Learning/tree/master/java)
-    * [0-1android(从0到1学android)](https://github.com/soonphe/0-1Learning/tree/master/android/0-1android)
-    * [android-framework(android系统)](https://github.com/soonphe/0-1Learning/tree/master/android/android-framework)
-    * [android-senior(android高级)](https://github.com/soonphe/0-1Learning/tree/master/android/android-senior)
-    * [android-ui(android UI相关)](https://github.com/soonphe/0-1Learning/tree/master/android/android-ui)
-    
-* [database(数据库)](https://github.com/soonphe/0-1Learning/tree/master/database)
-    * [0-1database(从0到1学android)](https://github.com/soonphe/0-1Learning/tree/master/database/0-1database)
-    * [database-senior(android高级)](https://github.com/soonphe/0-1Learning/tree/master/database/database-senior)
-    * [mysql开发规范](https://github.com/soonphe/0-1Learning/tree/master/database/mysql开发规范.md)
+### 关于作者
 
 
 
-## 感谢其他开源作者
+## 借鉴其他开源作者，本项目也会一直开源
 >  [LearningNotes](https://github.com/francistao/LearningNotes "")
+
+
 
 ## 公众号
 
