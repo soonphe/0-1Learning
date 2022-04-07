@@ -5,11 +5,11 @@
 ![alt text](static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 ## 目录
-- [项目介绍（Project Introduction）](#项目介绍（Project Introduction）)
-  - [高可用分布式系统架构（Highly available distributed system architecture）](#高可用分布式系统架构（Highly available distributed system architecture）)
-  - [系统技术栈（System Technology Stack）](#系统技术栈（System Technology Stack）)
-  - [系统持续交付流水线图（Continuous delivery pipeline）](#系统持续交付流水线图（Continuous delivery pipeline）)
-  - [项目组织目录（Project structure）](#项目组织目录（Project structure）)
+- [项目介绍](#项目介绍（Project Introduction）)
+  - [高可用分布式系统架构](#高可用分布式系统架构（Highly available distributed system architecture）)
+  - [系统技术栈](#系统技术栈（System Technology Stack）)
+  - [系统持续交付流水线图](#系统持续交付流水线图（Continuous delivery pipeline）)
+  - [项目组织目录](#项目组织目录（Project structure）)
 - [作者想说的一些话](#作者想说的一些话)
 - [公众号](#公众号)
 - [在哪里可以看我的视频](#在哪里可以看我的视频)
@@ -20,6 +20,7 @@
 
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
 
+
 ### 高可用分布式系统架构（Highly available distributed system architecture）
 分布式早已不是一个新鲜词汇了，一个成熟的分布式系统必然会涉及到高可用设计，在有限的资源情况下保证服务的高可用运行
 
@@ -29,8 +30,8 @@
 
 > 这张图基本涵盖了现阶段一个分布式系统所涉及的各个核心组件，对可拓展的组件也可以直接进行添加。图中只有一个组件的并不是指只有一个单节点，各组件可以单节点也可以组成集群对外提供服务。
 
-### 系统技术栈（System Technology Stack）
 
+### 系统技术栈（System Technology Stack）
 
 ![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
 
