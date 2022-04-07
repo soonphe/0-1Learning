@@ -9,6 +9,7 @@
 
 ### 目录
 - [jvm内存结构](#jvm内存结构)
+- [jvm默认参数](#jvm默认参数)
 - [内存泄漏和内存溢出](#内存泄漏和内存溢出)
 - [GC](#GC)
 - [几种常用的内存调试工具：jmap、jstack、jconsole](#几种常用的内存调试工具：jmap、jstack、jconsole)
@@ -103,6 +104,30 @@ Java虚拟机规范将JVM所管理的内存分为以下几个运行时数据区�
 * 根据Java虚拟机规范的规定，当方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常。
 * 方法区溢出也是一种常见的内存溢出异常，一个类如果要被垃圾收集器回收，判定条件是很苛刻的。在经常动态生成大量Class的应用中，要特别注意这点。
 * 由于常量池分配在方法区内，我们可以通过-XX:PermSize和-XX:MaxPermSize限制方法区的大小，从而间接限制其中常量池的容量。
+
+### jvm默认参数
+-Xmx 用来设置你的应用程序(不是JVM)能够使用的最大内存数（相当于 -XX:MaxHeapSize）。
+-Xms 用来设置程序初始化的时候内存栈的大小（相当于 -XX:MaxNewSize）。
+-Xss 规定了每个线程堆栈的大小。一般情况下256K是足够了，该值影响了此进程中并发线程数大小（相当于 -XX:ThreadStackSize）。
+
+一般来说，就JDK8而言：
+-Xmx 的默认值为你当前机器最大内存的 1/4
+-Xms 的默认值为你当前机器最大内存的 1/64 （这个值要反复测试并通过监控调整一个合适的值，是因为当Heap不够用时，会发生内存抖动，影响程序运行稳定性）
+-Xss 的默认值好像和平台有关（不同平台默认值不同），我们最常用的Linux64位服务器默认值好像是1024k（这个我不确定）。在相同物理内存下，减小这个值能生成更多的线程，这个参数在高并发的情况下对性能影响比较明显，需要花比较长的时间进行严格的测试来定义一个合适的值（如果栈不深128k够用的，大的应用建议使用256k）。
+
+```
+java
+    -Xms64m #JVM启动时的初始堆大小
+    -Xmx128m #最大堆大小
+    -Xmn64m #年轻代的大小，其余的空间是老年代
+    -XX:MaxMetaspaceSize=128m #
+    -XX:CompressedClassSpaceSize=64m #使用 -XX：CompressedClassSpaceSize 设置为压缩类空间保留的最大内存。
+    -Xss256k #线程
+    -XX:InitialCodeCacheSize=4m #
+    -XX:ReservedCodeCacheSize=8m # 这是由 JIT（即时）编译器编译为本地代码的本机代码（如JNI）或 Java 方法的空间
+    -XX:MaxDirectMemorySize=16m
+    -jar app.jar
+```
 
 ---
 ### 内存泄漏和内存溢出

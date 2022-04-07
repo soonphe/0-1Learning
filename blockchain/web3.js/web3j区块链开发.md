@@ -14,6 +14,9 @@
 ### 使用步骤
 安装Web3j CLI 或 使用Web3j插件（Maven/Gradle）
 
+安装web3.js：sudo npm -g install web3
+安装：sudo npm -g install ethereumjs-tx
+
 
 1.依赖
 <dependency>

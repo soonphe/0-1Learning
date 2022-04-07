@@ -1,3 +1,5 @@
+# 0-1Learning
+
 ![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
@@ -177,12 +179,4 @@ Github排行榜：https://www.githubs.cn/top
 数据库：realm
 
 ### else
-——————
-flutter
 
-——————
-区块链
-
-——————
-大数据
-Hadoop✔  hive✔  HBase  Scala✔  Spark

@@ -6,7 +6,7 @@
 
 
 
-## ios cocoaPod
+## ios总述
 
 ### cocoaPod包管理
 mac自带gem（ruby包管理），可以替换国内源

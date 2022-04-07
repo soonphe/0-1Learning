@@ -8,42 +8,6 @@
 
 ## knowledge(知识点整理)
 
-### JDK相关：
-Mac下查看已安装的jdk版本及其安装目录
-```
-查看JDK信息：/usr/libexec/java_home -V
-移除Oracle JDK：sudo rm -fr /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
-查看mysql数据库所有信息：show variables 
-查看mysql字符串相关信息：show variables  like "%char%";
-```
-
-### JDK相关工具使用
-```
-查看JDK信息：/usr/libexec/java_home -V
-JDK bin目录：cd /Library/Java/JavaVirtualMachines/jdk1.8.0_241.jdk/Contents/Home/bin/
-
-jconsole：Jconsole （Java Monitoring and Management Console），一种基于JMX的可视化监视、管理工具。
-JConsole 基本包括以下基本功能：概述、内存、线程、类、VM概要、MBean
-1.3.1 内存监控
-内存页签相对于可视化的jstat 命令，用于监视受收集器管理的虚拟机内存。
-1.3.2 线程监控
-如果上面的“内存”页签相当于可视化的jstat命令的话，“线程”页签的功能相当于可视化的jstack命令，遇到线程停顿时可以使用这个页签进行监控分析。线程长时间停顿的主要原因主要有：等待外部资源（数据库连接、网络资源、设备资
-源等）、死循环、锁等待（活锁和死锁）
-
-jvisualvm：VisualVM（All-in-One Java Troubleshooting Tool）;功能最强大的运行监视和故障处理程序
-- 显示虚拟机进程以及进程的配置、环境信息（jps、jinfo）。
-- 监视应用程序的CPU、GC、堆、方法区(1.7及以前)，元空间（JDK1.8及以后）以及线程的信息（jstat、jstack）。
-- dump以及分析堆转储快照（jmap、jhat）。
-- 方法级的程序运行性能分析，找出被调用最多、运行时间最长的方法。
-- 离线程序快照：收集程序的运行时配置、线程dump、内存dump等信息建立一个快照
-
-平时启动jvisualvm
-1./usr/libexec/java_home -V
-2.cd /Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/bin
-3.jvisualvm
-
-```
-
 ### Mapstruct：
 ```
 实体属性相同、名称不同转换：
@@ -190,18 +154,6 @@ System.nanoTime()：当前时间戳（纳秒）
 Instant.now().toEpochMilli()：当前时间戳毫秒
 System.currentTimeMillis()：当前时间戳毫秒
 
-### Jenkins流水线自动化：
-git: Git
-git branch: 'master', credentialsId: 'gitlab', url: 'http://192.168.102.34/new-platform/new-order.git'
-
-Sh: Shell Script
-sh label: '', script: 'mvn clean package'
-
-sshPublisher: Send build artifacts over SHH
-sshPublisher(publishers: [sshPublisherDesc(configName: '192.168.161.227', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: 'tmp', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.war')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
-
-Sshagent: SSH Agent
-选择账户或添加账户
 
 ### Linux查找文件：
  find / -name war
@@ -296,18 +248,6 @@ set @@global.sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FO
 搜索列表：http://omdbapi.com/?apikey=682d8365&s=Longest
 详情：http://omdbapi.com/?apikey=682d8365&i=tt2726560
 
-### for和foreach：
-```
-ArrayList<Object> objects=new ArrayList<>();
-1.第一种
-for (int j=0;j<objects.size();j++){
-2.第二种
-for(Object obj:objects){
-}
-3.第三种
-objects.forEach(o->String.valueOf(o));
-```
-
 ### Ajax：
 Ajax：“Asynchronous JavaScript and XML”，翻译过来就是异步JavaScript和XML。
 要创建Ajax，主角是XMLHttpRequest（下简称XHR）对象。
@@ -338,11 +278,6 @@ XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形�
 2     if (xhr.readyState == 4 && xhr.status == 200) {
 3     console.log(xhr.responseText);
 4 };
-
-
-### ES为什么不能做主数据库：
-es没有事务，而且是近实时。成本也比数据库高，几乎靠吃内存提高性能。最逆天的是，mapping不能改。
-ES团队不推荐完全采用ES作为主要存储，缺乏访问控制还有一些数据丢失和污染的问题
 
 
 ### spring StateMachine状态机：
@@ -900,42 +835,6 @@ String post(String url, String json) throws IOException {
 }
 ```
 
-### spring中重载bean
-```
-spring:
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 127.0.0.1:8848
-        # public环境
-        namespace:
-  main:
-    allow-bean-definition-overriding: true
-```
-
-### jvm默认参数
--Xmx 用来设置你的应用程序(不是JVM)能够使用的最大内存数（相当于 -XX:MaxHeapSize）。
--Xms 用来设置程序初始化的时候内存栈的大小（相当于 -XX:MaxNewSize）。
--Xss 规定了每个线程堆栈的大小。一般情况下256K是足够了，该值影响了此进程中并发线程数大小（相当于 -XX:ThreadStackSize）。
-
-一般来说，就JDK8而言：
--Xmx 的默认值为你当前机器最大内存的 1/4
--Xms 的默认值为你当前机器最大内存的 1/64 （这个值要反复测试并通过监控调整一个合适的值，是因为当Heap不够用时，会发生内存抖动，影响程序运行稳定性）
--Xss 的默认值好像和平台有关（不同平台默认值不同），我们最常用的Linux64位服务器默认值好像是1024k（这个我不确定）。在相同物理内存下，减小这个值能生成更多的线程，这个参数在高并发的情况下对性能影响比较明显，需要花比较长的时间进行严格的测试来定义一个合适的值（如果栈不深128k够用的，大的应用建议使用256k）。
-
-```
-java
-    -Xms64m #JVM启动时的初始堆大小
-    -Xmx128m #最大堆大小
-    -Xmn64m #年轻代的大小，其余的空间是老年代
-    -XX:MaxMetaspaceSize=128m #
-    -XX:CompressedClassSpaceSize=64m #使用 -XX：CompressedClassSpaceSize 设置为压缩类空间保留的最大内存。
-    -Xss256k #线程
-    -XX:InitialCodeCacheSize=4m #
-    -XX:ReservedCodeCacheSize=8m # 这是由 JIT（即时）编译器编译为本地代码的本机代码（如JNI）或 Java 方法的空间
-    -XX:MaxDirectMemorySize=16m
-    -jar app.jar
-```
 
 ### linux 软链接和硬链接区别
 【硬连接】
@@ -1226,67 +1125,6 @@ TINYINT是8位整数值，BIT字段可以存储1位BIT（1）和64位BIT（64）
 如果确定只有2个状态，可以用bit，否则就用tinyint，以防今后就多个状态的可能。
 bit 不能建索引，TINYINT可以建索引。
 
-### Spring @Bean注解的使用
-自定义bean的命名
-默认情况下bean的名称和方法名称相同，你也可以使用name属性来指定
-
-### 常见的spring注入方法
-一：目前使用最广泛的 @Autowired和@Resource
-```
-@Service
-public class BaseInfoCompanyFareServiceImpl implements BaseInfoCompanyFareService {
-
-    @Autowired
-    private BaseInfoCompanyFareDao baseInfoCompanyFareDao;
-```
-说明：
-@Autowired按byType自动注入，而@Resource默认按 byName自动注入罢了
-由于@Autowired 默认第一按照byType(类的类型),第二byName(l类名\类ID)来加载类，所以当存在类型相同,多个beanname时，想注入某个类，就必须指定根据什么beanName查找（使用@Qualifier注解指定），如果不用@Qualifier注解指定，则会以变量名为为beanName进行查找；
-备注：@Autowired实现方式是通过 *反射* 来设置属性值
-
-二：构造器注入
-```
-@Service
-public class BaseInfoCompanyPayServiceImpl implements BaseInfoCompanyPayService {
-
-    private final BaseInfoCompanyPayDao baseInfoCompanyPayDao;
-
-    public BaseInfoCompanyPayServiceImpl(BaseInfoCompanyPayDao baseInfoCompanyPayDao) {
-        this.baseInfoCompanyPayDao = baseInfoCompanyPayDao;
-    }
-}
-```
-通过有参的构造函数注入
-备注：构造注入是一种高内聚的体现，特别是针对有些属性需要在对象在创建时候赋值，且后续不允许修改（不提供setter方法）。
-
-三：属性注入
-```
-@Service
-public class BaseInfoCompanyPayServiceImpl implements BaseInfoCompanyPayService {
-
-    private final BaseInfoCompanyPayDao baseInfoCompanyPayDao;
-
-    public BaseInfoCompanyPayServiceImpl( ) {
-    }
-    
-    private void setBaseInfoCompanyPayDao(BaseInfoCompanyPayDao baseInfoCompanyPayDao){
-    	this.baseInfoCompanyPayDao = baseInfoCompanyPayDao;
-    }
-}
-```
-通过无参构造函数+setter方法注入
-备注：SpringContext利用无参的构造函数创建一个对象，然后利用setter方法赋值。所以如果无参构造函数不存在，Spring上下文创建对象的时候便会报错。
-
-四：lombok提供的@RequiredArgsConstructor方式
-```
-@Service
-@RequiredArgsConstructor
-public class BaseInfoCompanyServiceImpl implements BaseInfoCompanyService {
-
-    final BaseInfoCompanyDao baseInfoCompanyDao;
-```
-说明：在注入时生成具有所需参数的构造函数（原理还是利用的构造注入）。必需参数是最终字段和具有约束的字段，例如final和@NonNull注解
-在我们写controller或者Service层的时候，需要注入很多的mapper接口或者另外的service接口，这时候就会写很多的@AutoWired注解，@RequiredArgsConstructor避免代码看起来很乱
 
 
 ### logback动态配置日志路径
@@ -1732,13 +1570,6 @@ public class MyStartupRunner implements CommandLineRunner {
 }
 ```
 
-### @Bean(initMethod = "init")的作用
-init-method="init"  destroy-method="close" 作用：
-
-init-method="init"是指bean被初始化时执行的方法，当bean实例化后,执行init-method用于初始化数据库连接池。
-
-destroy-method="close" 是指bean被销毁时执行的方法   Spring容器关闭时调用该方法即调用close()将连接关闭。
-
 ### Spring JdbcTemplate 方法详解
 JdbcTemplate主要提供以下五类方法：
 - execute方法：可以用于执行任何SQL语句，一般用于执行DDL语句；
@@ -1763,22 +1594,6 @@ RowMapper：用于将结果集每行数据转换为需要的类型，用户需�
 RowCallbackHandler：用于处理ResultSet的每一行结果，用户需实现方法processRow(ResultSet rs)来完成处理，在该回调方法中无需执行rs.next()，该操作由JdbcTemplate来执行，用户只需按行获取数据然后处理即可。
 ResultSetExtractor：用于结果集数据提取，用户需实现方法extractData(ResultSet rs)来处理结果集，用户必须处理整个结果集；
 
-
-### @Component默认是单例还是多例？
-@Component注解默认实例化的对象是单例，如果想声明成多例对象可以使用@Scope("prototype")
-@Repository默认单例
-@Service默认单例
-@Controller默认多例
-
-
-### SpringMVC 默认创建 Bean 是单例的，在高并发情况下是如何保证性能的？
-spring中的bean默认是单例的，通常对单例进行多线程访问时，为了线程安全而采用同步机制，以时间换空间的方式，而Spring中是利用ThreadLocal来以空间换取时间，为每一个线程提供变量副本，来保证变量副本对于某一线程都是线程安全的。
-
-用ThreadLocal是为了保证线程安全，实际上ThreadLoacal的key就是当前线程的Thread实例。
-
-虽然spring对象是单例的，但类里面方法对每个线程来说都是独立运行的，不存在多线程问题，只有成员变量有多线程问题，所以方法里面如果有用到成员变量就要考虑用安全的数据结构。
-
-单例模式是spring推荐的配置，单利模式因为大大节省了实例的创建和销毁，它在高并发下能极大的节省资源，提高服务抗压能力。
 
 
 ### mac打印
@@ -1946,20 +1761,6 @@ Box<? extends Food> box2 = new Box<Meat>();
 
 		总结：回到聚合maven上，如果你在root工程中使用了spring-boot-maven-plugin作为builder，那么你的依赖module一定要用解决方案二来设置。否则你不在root工程中用spring-boot-maven-plugin作为builder，而在需要打包的module上使用。
 
-
-### 后台运行nohup & 和守护进程daemon 
-1)守护进程已经完全脱离终端控制台了，而后台程序并未完全脱离终端，在终端未关闭前还是会往终端输出结果
-2)守护进程在关闭终端控制台时不会受影响，而后台程序会随用户退出而停止，需要在以nohup xxx & 格式运行才能避免影响（&后台运行）
-3)守护进程的会话组和当前目录，文件描述符都是独立的。后台运行只是终端进行了一次fork，让程序在后台执行，这些都没改变。
-
-
-### swagger注解
-类注解：
-@Api(tags="项目任务/风险")
-方法注解：
-@ApiOperation(value="任务列表",notes="任务列表")
-
-
 ### package-info.java：提供包级别注解、变量、注释
 
 ### JdbcTemplate方法详解
@@ -2007,8 +1808,6 @@ Date.from(ordOrderConsume.getCreateTime().atZone(ZoneId.systemDefault()).toInsta
 ```
 LocalDateTime.now()：获取当前时间
 
-### 更改启动组
-更改启动组：chown -R admin:admin /home/admin/logs/
 
 ### CompletableFuture
 使用Future获得异步执行结果时，要么调用阻塞方法get()，要么轮询看isDone()是否为true，这两种方法都不是很好，因为主线程也会被迫等待。

@@ -1,6 +1,19 @@
+# 0-1Learning
+
 ![alt text](static/common/svg/luoxiaosheng.svg "公众号")
 ![alt text](static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](static/common/svg/luoxiaosheng_wechat.svg "微信")
+
+## 目录
+- [项目介绍（Project Introduction）](#项目介绍（Project Introduction）)
+  - [高可用分布式系统架构（Highly available distributed system architecture）](#高可用分布式系统架构（Highly available distributed system architecture）)
+  - [系统技术栈（System Technology Stack）](#系统技术栈（System Technology Stack）)
+  - [系统持续交付流水线图（Continuous delivery pipeline）](#系统持续交付流水线图（Continuous delivery pipeline）)
+  - [项目组织目录（Project structure）](#项目组织目录（Project structure）)
+- [作者想说的一些话](#作者想说的一些话)
+- [公众号](#公众号)
+- [在哪里可以看我的视频](#在哪里可以看我的视频)
+- [鸣谢其他开源项目](#鸣谢其他开源项目)
 
 
 ## 项目介绍（Project Introduction）
@@ -10,10 +23,11 @@
 ### 高可用分布式系统架构（Highly available distributed system architecture）
 分布式早已不是一个新鲜词汇了，一个成熟的分布式系统必然会涉及到高可用设计，在有限的资源情况下保证服务的高可用运行
 
-如下，这些技术也许你已经不是很陌生，但也许你是新手，还没接触过以下这些，那么请记住以下这些，以后免不了会打很多交道。
+如下，这些技术也许你已经不是很陌生，但也许你还是一个新手，还没接触过以下这些，那么请记住以下这些，以后免不了会打很多交道。
 
 ![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
 
+> 这张图基本涵盖了现阶段一个分布式系统所涉及的各个核心组件，对可拓展的组件也可以直接进行添加。图中只有一个组件的并不是指只有一个单节点，各组件可以单节点也可以组成集群对外提供服务。
 
 ### 系统技术栈（System Technology Stack）
 
@@ -26,19 +40,17 @@
 ### 系统持续交付流水线图（Continuous delivery pipeline）
 ![持续交付流水线图](static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
 
+> 比起一般的`项目开发流程图`千人前面，我觉得持续交付这张图更有意义，项目流程怎么开发，最终还是要落到人身上去实现，而人恰恰是不能当做一个稳定节点去进行计算的。
+> 对于持续开发交付，应该有这么样一个自动化的过程。在不断的需求迭代中，版本控制，做好持续集成赋能，自动打包和部署，环境初始化完成再分配，最后再形式一个可视化的操作面板，流程可控透明，直接呈现给用户。
 
 
-
-
-
-### 0-1Learning项目组织目录（Project structure）
+### 项目组织目录（Project structure）
 ``````
 0-1Learning
 ├── algorithm -- 算法
-    ├── LeetCode -- LeetCode
+    ├── case -- 常见算法案例
     ├── logical-question    逻辑算法问题
-    ├── Lookup -- 查询算法
-    └── sort -- 排序算法
+    └── sort -- 常见排序算法
 ├── android -- 安卓
     ├── 0-1java -- 从0到1学android
         ├── 01认识Android
@@ -52,7 +64,6 @@
         ├── 09多媒体技术
         ├── 10网络技术
         └── 11Android特色开发
-    ├── android-framework -- android系统
     ├── android-senior -- android高级
     ├── android-source-code -- android源码
     ├── android-ui -- android UI
@@ -61,8 +72,10 @@
     ├── hadoop -- hadoop/hdfs
     ├── hive -- sql操作大数据
     ├── scala -- 函数编程
-    └── spark -- 大数据计算
+    └── spark -- 计算引擎
 ├── blockchain -- 区块链
+    ├── solidity -- 智能合约编程语言
+    └── web3 -- 框架
 ├── computer-network -- 计算机网络结构
 ├── computer-os -- 计算操作系统
 ├── data-structure -- 数据结构
@@ -81,7 +94,9 @@
     ├── database-senior -- database高级
     ├── database-sql-case -- database数据库案例
     └── mysql开发规范
+├── design -- 设计
 ├── design-pattern -- 设计模式
+├── document -- 文档管理桂芬 
 ├── git -- 版本控制
 ├── html -- html网页
     ├── 0-1html -- 从0到1学html
@@ -100,7 +115,7 @@
     ├── vue-widget -- vue小组件
 ├── interview -- 面试题和面试经验
     ├── interview-case -- 面试题与面试案例 
-    └── 简历与自我介绍
+    └── interview-summary -- 面试总结
 └── ios -- ios技术栈
     ├── 0-1ios -- 从0到1学ios
         ├── 01认识Ios
@@ -128,12 +143,14 @@
         ├── 12文件与流IO
         ├── 13多线程编程
         └── 14网络编程
-    ├── java-expand -- java拓展
     ├── java-concurrent -- java并发编程
-    ├── java-sourch-code -- java源码
+    ├── java-expand -- java拓展
+    ├── java-reading-notes -- java读书笔记
     ├── java-senior -- java高级
-    ├── java-spring -- java spring
-    ├── java-spring-cloud -- java spring cloud
+    ├── java-sourch-code -- java源码
+    ├── java-spring -- 
+    ├── java-spring-boot -- 
+    ├── java-spring-cloud -- 
     ├── jvm -- java虚拟机
     └── java编程规范 --
 ├── linux -- linux常用操作和命令
@@ -157,26 +174,22 @@
     ├── redis -- redis缓存
     └── zookeeper -- 分布式调度
 ├── orther -- 其他
-    ├── key words -- 常见技术关键词释义
+    ├── 0-1life -- 一点点生活感悟
+    ├── thinking -- 一点点个人思考
     ├── knowledge -- 零散知识点
-    ├── Mac-brew使用
+    └── tech-keywords -- 常见技术关键词
+├── tools -- 工具整理
+    ├── Mac-homebrew使用
     ├── Mac-IDEA快捷键
     ├── Mac-Xcode快捷键
     ├── Mac快捷键
-    ├── markdown语法
     ├── oh-my-zsh命令行工具
     ├── vpn代理说明
-    ├── 常用软件及安装 -- 常用软件整理收集
-    └── 开发软件和环境 -- 各编辑器及环境
+    └── 常用软件及安装
 └── static -- 静态文件包
 ``````
 
-### 关于作者
-
-
-
-## 借鉴其他开源作者，本项目也会一直开源
->  [LearningNotes](https://github.com/francistao/LearningNotes "")
+## 作者想说的一些话
 
 
 
@@ -187,6 +200,23 @@
 加微信群交流，公众号后台回复「**加群**」即可。
 
 ![公众号图片](static/common/luoxiaosheng_wechat_common.jpg)
+
+## 在哪里可以看我的视频
+
+文字终究表达有限，视频效果会比文字好很多。
+
+**视频内容会不仅仅局限技术方面，想到哪就拍到哪了，什么好玩就拍什么了，也不想给自己规定个什么圈子了，以后的事，谁说得准呢！**
+
+尽量会在全平台投稿，B站、抖音、快手等，关注「**罗晓胜**」第一时间获取。
+
+如有任何疑问给我留言吧，能力范围内都会回复！记得一键三连喔！
+
+`注意，作者不会主动联系任何人`，**任何冒充作者主动联系你都是骗子！！！**
+
+
+## 鸣谢其他开源项目
+好多项目都不开源了，这里有借鉴其他开源项目，本项目也会一直开源
+>  [LearningNotes](https://github.com/francistao/LearningNotes "")
 
 
 ## 许可证
