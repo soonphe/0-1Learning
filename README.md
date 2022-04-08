@@ -5,23 +5,23 @@
 ![alt text](static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 ## 目录
-- [项目介绍](#项目介绍（Project Introduction）)
-  - [高可用分布式系统架构](#高可用分布式系统架构（Highly available distributed system architecture）)
-  - [系统技术栈](#系统技术栈（System Technology Stack）)
-  - [系统持续交付流水线图](#系统持续交付流水线图（Continuous delivery pipeline）)
-  - [项目组织目录](#项目组织目录（Project structure）)
+- [项目介绍(Project Introduction)](#项目介绍(Project Introduction))
+  - [高可用分布式系统架构(Highly available distributed system architecture)](#高可用分布式系统架构(Highly available distributed system architecture))
+  - [系统技术栈(System Technology Stack)](#系统技术栈(System Technology Stack))
+  - [系统持续交付流水线图(Continuous delivery pipeline)](#系统持续交付流水线图(Continuous delivery pipeline))
+  - [项目组织目录(Project structure)](#项目组织目录(Project structure))
 - [作者想说的一些话](#作者想说的一些话)
 - [公众号](#公众号)
 - [在哪里可以看我的视频](#在哪里可以看我的视频)
 - [鸣谢其他开源项目](#鸣谢其他开源项目)
 
 
-## 项目介绍（Project Introduction）
+## 项目介绍(Project Introduction)
 
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
 
 
-### 高可用分布式系统架构（Highly available distributed system architecture）
+### 高可用分布式系统架构(Highly available distributed system architecture)
 分布式早已不是一个新鲜词汇了，一个成熟的分布式系统必然会涉及到高可用设计，在有限的资源情况下保证服务的高可用运行
 
 如下，这些技术也许你已经不是很陌生，但也许你还是一个新手，还没接触过以下这些，那么请记住以下这些，以后免不了会打很多交道。
@@ -31,21 +31,21 @@
 > 这张图基本涵盖了现阶段一个分布式系统所涉及的各个核心组件，对可拓展的组件也可以直接进行添加。图中只有一个组件的并不是指只有一个单节点，各组件可以单节点也可以组成集群对外提供服务。
 
 
-### 系统技术栈（System Technology Stack）
+### 系统技术栈(System Technology Stack)
 
 ![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
 
 > 本来还有画一个`学习路线图`（Learning roadmap），帮助新手朋友快速找到一条通往技术大神之路，想了想有些和技术栈重叠太多，索性就合二为一，路线图直接参照下图即可。
 
 
-### 系统持续交付流水线图（Continuous delivery pipeline）
+### 系统持续交付流水线图(Continuous delivery pipeline)
 ![持续交付流水线图](static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
 
 > 比起一般的`项目开发流程图`千人前面，我觉得持续交付这张图更有意义，项目流程怎么开发，最终还是要落到人身上去实现，而人恰恰是不能当做一个稳定节点去进行计算的。
 > 对于持续开发交付，应该有这么样一个自动化的过程。在不断的需求迭代中，版本控制，做好持续集成赋能，自动打包和部署，环境初始化完成再分配，最后再形式一个可视化的操作面板，流程可控透明，直接呈现给用户。
 
 
-### 项目组织目录（Project structure）
+### 项目组织目录(Project structure)
 ``````
 0-1Learning
 ├── algorithm -- 算法
