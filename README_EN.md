@@ -14,16 +14,16 @@
 
 ## 目录
 - [Project Introduction](#Project Introduction)
-  - [Highly available distributed system architecture](#Highly available distributed system architecture)
-  - [System Technology Stack](#System Technology Stack)
-  - [Continuous delivery pipeline](#Continuous delivery pipeline)
-  - [Project structure)](#Project structure)
+    - [Highly available distributed system architecture](#Highly available distributed system architecture)
+    - [System Technology Stack](#System Technology Stack)
+    - [Continuous delivery pipeline](#Continuous delivery pipeline)
+    - [Project structure)](#Project structure)
 - [What the author wants to say](#What the author wants to say)
 - [在哪里可以免费看我的文章](#在哪里可以免费看我的文章)
-  - [github](#github)
-  - [公众号](#公众号)
+    - [github](#github)
+    - [公众号](#公众号)
 - [在哪里可以看我的视频](#在哪里可以看我的视频)
-  - [B站](#B站)
+    - [B站](#B站)
 - [鸣谢其他开源项目](#鸣谢其他开源项目)
 
 

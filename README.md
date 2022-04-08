@@ -9,7 +9,7 @@
   <a href="https://mp.weixin.qq.com/s/rmLxiBB1RYr6omVWQMGxpg"><img src="static/common/svg/luoxiaosheng_wechat.svg" alt="微信群" /></a>
 </p>
 <p align="center">
-  <strong>Chinese</strong> | <a href="https://github.com/soonphe/0-1Learning/README_en.md">English</a>
+  <strong>Chinese</strong> | <a href="https://github.com/soonphe/0-1Learning/README_EN.md">English</a>
 </p>
 
 ## 目录
@@ -30,8 +30,6 @@
 ## 项目介绍
 
 `0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
-
-> 英文地址：
 
 
 ### 高可用分布式系统架构(Highly available distributed system architecture)
