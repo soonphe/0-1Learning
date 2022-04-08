@@ -19,6 +19,14 @@
   - 默认情况下bean的名称和方法名称相同，你也可以使用name属性来指定
   例：@Bean(name = "xxx")
 
+### spring中重载bean
+添加配置即可
+```
+spring:
+  main:
+    allow-bean-definition-overriding: true
+```
+
 ### @Bean(initMethod = "init")的作用
 init-method="init"  destroy-method="close" 作用：
 

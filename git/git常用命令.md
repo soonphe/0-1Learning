@@ -202,3 +202,14 @@ git log --pretty='%aN' | sort -u | wc -l
 
 提交数统计：
 git log --oneline | wc -l
+
+
+### gitlab push报错
+git push -u gitlab  --all
+
+> 提示内容：GitLab: You are not allowed to push code to this project. fatal: Could not r
+
+解决
+1. 确认用户名、邮箱
+2. 查看是否存在项目权限
+3. 查看仓库链接方式，如果是SSH，确认是否配置ssh key，建议直接配置http测试推送

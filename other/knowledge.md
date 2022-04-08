@@ -40,11 +40,7 @@ public class CustomMapper {
 }
 ```
 
-### 时间、日期加减：
-```
-Instant.now().minus(50,ChronoUnit.DAYS).toEpochMilli()
-Instant.now().plus(10,ChronoUnit.DAYS).toEpochMilli()
-```
+
 
 ### P6Spy集成：
 文档相关：https://p6spy.readthedocs.io/en/latest/install.html
@@ -102,85 +98,12 @@ Return jpaQueryFactory
 .fetchResults();
 
 
-### 分页为什么不要用offset和limit分页？
-为了实现分页，每次收到分页请求时，数据库都需要进行低效的全表扫描。
-解决：其实很简单，如果有主键，利用主键索引就够了！
-Select * from table where id>10 limit 10
 
-那如果我们的表没有主键，比如是具有多对多关系的表，那么就只能使用传统的 OFFSET/LIMIT 方式，但这样做存在潜在的慢查询问题。完全可以在需要分页的表中使用自动递增的主键，即使只是为了分页。
 
-### maven引入本地jar：
-        <dependency>
-          <groupId>dingding</groupId>
-          <artifactId>dingding</artifactId>
-          <version>2.8</version>
-          <scope>system</scope>
-          <systemPath>${project.basedir}/lib/taobao-sdk-java.jar</systemPath>
-        </dependency>
-处理打包：
-```
- <build>
-   <resources>
-    <resource>
-      <directory>lib</directory>
-      <targetPath>/BOOT-INF/lib/</targetPath>
-      <includes>
-        <include>**/*.jar</include>
-      </includes>
-    </resource>
-   </resources>
- </build>
-```
 
-### maven安装本地jar到本地仓库：
-mvn install:install-file
--Dfile=C:\Users\zw\Downloads\fastjson-1.2.4.jar
--DgroupId=com.alibaba
--DartifactId=fastjson
--Dversion=1.2.4
--Dpackaging=jar
-
-### Mac上有3处可以设置环境变量：
-/etc/profile ：系统全局变量，系统启动即加载该文件的配置（不建议添加）
-/etc/bashrc：所有类型的bash shell 都会读取该文件的配置
-~/.bash_profile：配置用户级环境变量，在系统用户文件夹下创建，当用户登录时，该文件会被执行且仅执行一次
 
 ### mvn -v提示Permission denied
 权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
-
-### Instant.now().toEpochMilli()和System.currentTimeMillis()用法
-Instant.now()：当前时间戳
-System.nanoTime()：当前时间戳（纳秒）
-Instant.now().toEpochMilli()：当前时间戳毫秒
-System.currentTimeMillis()：当前时间戳毫秒
-
-
-### Linux查找文件：
- find / -name war
-
-
-### 关于金额字段为什么不用decimal类型
-主要两个原因：
-	1. 避免不同语言对浮点数麻烦的计算，一不小心非常容易算错（存整数进行计算的话，计算完再除以精度比较方便）
-	2. 对于多个国家，对小数的精度要求是不同的，用 decimal 没办法方便控制
-
-
-
-### mac使用public_key与private_key登录远程服务器：
-1.在mac下生成public_key与private_key，生成的密钥在~/.ssh/下面
-2.把mac下刚生成的public_key "id_rsa.pub"文件拷贝一份到远端服务器即将需要登录用户家目录下的.ssh/目录下，并命名为authorized_keys.
-3. 最后修改本机mac下得配置文件，~/.ssh/config，格式如下图
-Host test1
-Hostname 192.168.35.125
-Port 22
-User root
-IdentityFile ~/.ssh/id_rsa
-4.直接执行 ssh test1即可达到所记录的远端服务器
-
-用Terminus登录则创建Keys，选择私钥id_rsa即可
-
-碰到问题：‘Permissions 0644 for '/Users/liuml/.ssh/id_rsa_tz' are too open.’
-解决：chmod 600 *
 
 ### 解决“Jenkins 主机密钥验证失败”
 1. ssh-keygen命令生成公钥私钥
@@ -222,26 +145,6 @@ sudo chmod -R a+rwx /usr/local/mysql/data/
 1）有参构造方法；
 2）只添加@Value注解，没有其他限制，那么类属性会被编译成final的，因此只有get方法，而没有set方法。
 
-
-### Mysql解决select * from XX group by xxx;报错问题
-select * from user group by age;
-1. ERROR 1055 (42000): Expression #1 of SELECT list is not in GROUP BY clause 
-2. and contains nonaggregated column 'test.user.user_id' which is not 
-3. functionally dependent on columns in GROUP BY clause; this is 
-4. incompatible with sql_mode=only_full_group_by
-
-解决步骤：
-1.查询mysql 相关mode
-select @@global.sql_mode;
-可以看到模式中包含了ONLY_FULL_GROUP_BY，只要没有这个配置即可。
-我的Mysql版本是5.7.21，默认是带了ONLY_FULL_GROUP_BY模式。
-
-ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,
-ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION 
-
-2.重设模式值
-set @@global.sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
-3.重启Mysql即可
 
 ### 在线接口数据示例：
 参考：http://omdbapi.com/
@@ -400,33 +303,6 @@ public class OverTimeConsumerV3 {
 2.如果没有显示为maven，模块的pom.xml上点击Add as maven project
 
 
-
-
-### springboot引入nacos：
-1.依赖
-```
-<dependency>
-    <groupId>com.alibaba.boot</groupId>
-    <artifactId>nacos-config-spring-boot-starter</artifactId>
-    <version>0.2.7</version>
-</dependency>
-```
-2.定义服务地址
-```
-nacos.config.server-addr=127.0.0.1:8848
-```
-3.使用@NacosPropertySource 加载资源
-```
-@SpringBootApplication @NacosPropertySource(dataId = "example", autoRefreshed = true) 
-public class NacosConfigApplication { 
-public static void main(String[] args) { 
-SpringApplication.run(NacosConfigApplication.class, args); } }
-```
-4.使用@NacosValue 指定属性值
-```
-@NacosValue(value = "${useLocalCache:false}", autoRefreshed = true) private boolean useLocalCache;
-```
-
 ### openresty搭建高性能web应用、网关：
 官网地址：http://openresty.org/cn/
 
@@ -436,48 +312,7 @@ dromara官网地址：https://dromara.org/
 soul官网地址：https://github.com/apache/incubator-shenyu
 官网地址：https://shenyu.apache.org/
 
-
-### skywalking接入：
-javaagent参数集成skywalking的agent服务功能，简而言之就是启动项目时一同启动skywalking-agent.jar这个服务
-
-监控服务端启动：
-https://github.com/apache/skywalking
-下载、bin目录启动、http://localhost:8080/访问
-
-客户端接入方式：
-1. 系统配置方式
-使用 -D参数设置应用名称，skywalking.agent.service_name是属性，=后面是值；skywalking.collector.backend_service对应的是收集服务的地址
-```
-java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar
--Dskywalking.agent.service_name=app-service 
--Dskywalking.collector.backend_service=127.0.0.1:11800
--jar app-service.jar &
-```
-
-2. 探针方式
-在skywalking-agent.jar后直接追加 =agent.service_name=应用名称 
-```
-java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=app-service -jar app-service.jar &
-```
-3. 插件使用
-默认情况agent是不支持对spring-cloud-gateway的监控的，需要插件的支持。我们要将optional-plugins下的插件apm-spring-cloud-gateway-2.x-plugin-6.5.0.jar拷贝到plugins下，使agent可以加载到该插件，其他一些需要额外插件支持的中间件和框架也是同理操作。
-
-
-### Nexus接入：
-下载地址：https://www.sonatype.com/products/repository-oss-download
-https://download.sonatype.com/nexus/3/latest-mac.tgz
-1.构建
-```
-git fetch --tags
-git checkout -b release-3.29.2-02 origin/release-3.29.2-02 --
-./mvnw clean install
-```
-2.解压运行
-```
-unzip -d target assemblies/nexus-base-template/target/nexus-base-template-*.zip
-./target/nexus-base-template-*/bin/nexus console
-```
-
+   
 ### jira搭建：
 官网地址：https://www.atlassian.com/
 1.下载安装
@@ -855,12 +690,7 @@ String post(String url, String json) throws IOException {
 /usr/local/bin目录是给用户放置自己的可执行程序的地方，推荐放在这里，不会被系统升级而覆盖同名文件。
 如果两个目录下有相同的可执行程序，谁优先执行受到PATH环境变量的影响。
 
-### maven install和package区别
-Maven install 安装指令，其做了两件事情：
-1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
-2. 同时将上述打包结果放到本地仓库的相应目录中，供其他项目或模块引用
-Maven package 打包指令，其就做了一件事：
-1. 将项目打包（jar/war），将打包结果放到项目下的 target 目录下
+
 
 
 ### IDEA、WebStorm项目无法被识别为Git项目
@@ -906,46 +736,6 @@ npm install -g npm
       return require('@/assets/icon/' + (index) + '.png')
     },
 ```
-
-
-### IDEA打包出现错误，使用mvn调试
-```
-mvn compile
-mvn clean
-mvn compile -X		#打包，发生jar的冲突显示冲突的原因
-mvn spring-boot:run #已springboot方式启动
-
-其他命令：
-mvn dependency:tree 	#显示依赖树
-mvn -e		#查看错误的详细信息
-mvn compile	#编译源代码
-mvn test		#运行测试代码
-mvn package	#打包项目
-mvn clean	#清除项目
-mvn clean install -DskipTests	打包项目到本地仓库
-mvn clean package ****  -DskipTests -DskipRat	打包项目跳过测试
-
-mvn -U 		#强制刷新本地仓库不存在release版和所有的snapshots版本。
-mvn clean install -P test 						#-P test的意思是使用 test profile 进行项目的构建
-mvn clean install -Dmaven.test.skip=true 
-mvn clean package -Dmaven.test.skip=true -P dev	#使用dev环境打包 
-```
-或者查看maven helper插件是否存在、升级
-
-
-### nacos不同服务、同一端口是否可以服务发现
-可以
-
-
-### gitlab push报错
-git push -u gitlab  --all
-
-> 提示内容：GitLab: You are not allowed to push code to this project. fatal: Could not r
-
-解决
-1. 确认用户名、邮箱
-2. 查看是否存在项目权限
-3. 查看仓库链接方式，如果是SSH，确认是否配置ssh key，建议直接配置http测试推送
 
 
 ### Micrometer

@@ -61,6 +61,8 @@ github地址：https://github.com/apache/skywalking
 SkyWalking OAP started successfully!
 ```
 
+http://localhost:8080/访问
+
 ### 使用mysql作为存储介质：
 ```
 storage:
@@ -113,7 +115,9 @@ SkyWalking Web Application started successfully!
 访问：http://localhost:9001/即可
 
 ### 监控实际项目
+
 在实际项目中，启动项只需要配置--javaagent:/Users/xxx/Documents/apache-skywalking-apm-bin/agent/skywalking-agent.jar便可以完成skywalking数据的上报。
+
 
 项目会读取skywalking-apm-bin/agent/config目录下的配置信息。
 
@@ -127,6 +131,8 @@ collector.backend_service=${SW_AGENT_COLLECTOR_BACKEND_SERVICES:127.0.0.1:11800}
 ```
 【注意：实际项目中，每一台服务器中只需要一个agent目录即可】。
 
+客户端接入方式：
+1. 系统配置方式
 service_name的配置可以在启动项中进行动态的配置。
 ```
 -javaagent:/Users/xxx/Documents/apache-skywalking-apm-bin/agent/skywalking-agent.jar  -Dskywalking.agent.service_name=xx
@@ -145,13 +151,30 @@ tomcat添加示例
 JAVA_OPTS="-javaagent:/usr/local/apache-skywalking-apm-bin-es7/agent/skywalking-agent.jar  -Dskywalking.agent.service_name=new-order"
 ```
 
-覆盖优先级
-探针配置 > 系统配置 >系统环境变量 > 配置文件中的值
+示例2，使用 -D参数设置应用名称，skywalking.agent.service_name是属性，=后面是值；skywalking.collector.backend_service对应的是收集服务的地址
+```
+java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar
+-Dskywalking.agent.service_name=app-service 
+-Dskywalking.collector.backend_service=127.0.0.1:11800
+-jar app-service.jar &
+```
 
-探针配置：-javaagent:/path/to/skywalking-agent.jar=[option1]=[value1],[option2]=[value2]
-系统配置：-Dskywalking.agent.service_name=skywalking_mysql
-系统环境变量：agent.service_name=${SW_AGENT_NAME:Your_ApplicationName} ——这里指的是SW_AGENT_NAME
-配置文件中的值：Your_ApplicationName
+2. 探针方式
+   在skywalking-agent.jar后直接追加 =agent.service_name=应用名称
+```
+java -javaagent:/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=app-service -jar app-service.jar &
+```
+3. 插件使用
+   默认情况agent是不支持对spring-cloud-gateway的监控的，需要插件的支持。我们要将optional-plugins下的插件apm-spring-cloud-gateway-2.x-plugin-6.5.0.jar拷贝到plugins下，使agent可以加载到该插件，其他一些需要额外插件支持的中间件和框架也是同理操作。
+
+
+覆盖优先级
+> 探针配置 > 系统配置 >系统环境变量 > 配置文件中的值
+
+- 探针配置：-javaagent:/path/to/skywalking-agent.jar=[option1]=[value1],[option2]=[value2]
+- 系统配置：-Dskywalking.agent.service_name=skywalking_mysql
+- 系统环境变量：agent.service_name=${SW_AGENT_NAME:Your_ApplicationName} ——这里指的是SW_AGENT_NAME
+- 配置文件中的值：Your_ApplicationName
 
 
 ### 获取追踪ID

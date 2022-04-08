@@ -371,7 +371,10 @@ sh startup.sh -p embedded
 sh startup.sh
 ```
 
+### nacos知识拓展 
 
+#### nacos不同服务、同一端口是否可以服务发现
+可以
 
 
 

@@ -23,24 +23,40 @@
 Mac下查看已安装的jdk版本及其安装目录
 ```
 查看JDK信息：/usr/libexec/java_home -V
+JDK bin目录：cd /Library/Java/JavaVirtualMachines/jdk1.8.0_241.jdk/Contents/Home/bin/
 移除Oracle JDK：sudo rm -fr /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
-查看mysql数据库所有信息：show variables 
-查看mysql字符串相关信息：show variables  like "%char%";
 ```
 
 ### JDK相关工具使用
-```
-查看JDK信息：/usr/libexec/java_home -V
-JDK bin目录：cd /Library/Java/JavaVirtualMachines/jdk1.8.0_241.jdk/Contents/Home/bin/
+
+几种常用的内存调试工具：jmap、jstack、jconsole
+
+#### jmap
+
+* jmap（linux下特有，也是很常用的一个命令）观察运行中的jvm物理内存的占用情况。
+  参数如下：  
+  -heap：打印jvm heap的情况  
+  -histo：打印jvm heap的直方图。其输出信息包括类名，对象数量，对象占用大小。  
+  -histo：live ：同上，但是只答应存活对象的情况  
+  -permstat：打印permanent generation heap情况
+
+#### jstack
+
+* jstack（linux下特有）可以观察到jvm中当前所有线程的运行情况和线程当前状态
+
+#### jconsole
 
 jconsole：Jconsole （Java Monitoring and Management Console），一种基于JMX的可视化监视、管理工具。
 JConsole 基本包括以下基本功能：概述、内存、线程、类、VM概要、MBean
-1.3.1 内存监控
-内存页签相对于可视化的jstat 命令，用于监视受收集器管理的虚拟机内存。
-1.3.2 线程监控
-如果上面的“内存”页签相当于可视化的jstat命令的话，“线程”页签的功能相当于可视化的jstack命令，遇到线程停顿时可以使用这个页签进行监控分析。线程长时间停顿的主要原因主要有：等待外部资源（数据库连接、网络资源、设备资
-源等）、死循环、锁等待（活锁和死锁）
 
+- 内存监控
+  内存页签相对于可视化的jstat 命令，用于监视受收集器管理的虚拟机内存。
+
+- 线程监控
+  如果上面的“内存”页签相当于可视化的jstat命令的话，“线程”页签的功能相当于可视化的jstack命令，遇到线程停顿时可以使用这个页签进行监控分析。线程长时间停顿的主要原因主要有：等待外部资源（数据库连接、网络资源、设备资
+  源等）、死循环、锁等待（活锁和死锁）
+
+#### jvisualvm
 jvisualvm：VisualVM（All-in-One Java Troubleshooting Tool）;功能最强大的运行监视和故障处理程序
 - 显示虚拟机进程以及进程的配置、环境信息（jps、jinfo）。
 - 监视应用程序的CPU、GC、堆、方法区(1.7及以前)，元空间（JDK1.8及以后）以及线程的信息（jstat、jstack）。
@@ -49,9 +65,67 @@ jvisualvm：VisualVM（All-in-One Java Troubleshooting Tool）;功能最强大�
 - 离线程序快照：收集程序的运行时配置、线程dump、内存dump等信息建立一个快照
 
 平时启动jvisualvm
-1./usr/libexec/java_home -V
-2.cd /Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/bin
-3.jvisualvm
+1. /usr/libexec/java_home -V
+2. cd /Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/bin
+3. jvisualvm
 
+#### jstat
+* jstat最后要重点介绍下这个命令。这是jdk命令中比较重要，也是相当实用的一个命令，可以观察到classloader，compiler，gc相关信息
+  具体参数如下：
+  -class：统计class loader行为信息  
+  -compile：统计编译行为信息  
+  -gc：统计jdk gc时heap信息  
+  -gccapacity：统计不同的generations（不知道怎么翻译好，包括新生区，老年区，permanent区）相应的heap容量情况  
+  -gccause：统计gc的情况，（同-gcutil）和引起gc的事件  
+  -gcnew：统计gc时，新生代的情况  
+  -gcnewcapacity：统计gc时，新生代heap容量  
+  -gcold：统计gc时，老年区的情况  
+  -gcoldcapacity：统计gc时，老年区heap容量  
+  -gcpermcapacity：统计gc时，permanent区heap容量  
+  -gcutil：统计gc时，heap情况  
+  -printcompilation：不知道干什么的，一直没用过。
+
+
+
+------
+
+### 常见问题处理
+#### * 例:一次排查线上问题进行解答。
+~~~~
+输入jps，获得进程号。
+top -Hp pid 获取本进程中所有线程的CPU耗时性能
+jstack pid命令查看当前java进程的堆栈状态
+或者 jstack -l > /tmp/output.txt 把堆栈信息打到一个txt文件。
+可以使用fastthread 堆栈定位，fastthread.io/
+~~~~
+
+#### 如果发生OOM，日志很多，该如何处理
+查看dump日志
 ```
+java -jar 
+-verbose:gc 
+-XX:+PrintGCDetails 
+-XX:+PrintGCTimeStamps 
+-Xloggc:/usr/local/gclog/gc.log         #gc日志 
+-XX:+HeapDumpOnOutOfMemoryError         #配置在OOM时自动生成dump文件
+-XX:HeapDumpPath=/usr/local/gclog/dump.hprof    #dump存储路径
+```
+
+如果日志过多，几十G上百G，分析起来可能也不太现实，所以可以使用dump分析：
+
+java获取内存dump中的数据的几种方式：
+1. 获取内存详情：jmap -dump:format=b,file=e.bin pid号
+这种方式可以用jvisualvm.exe进行内存分析，或者采用Eclipse Memory Analysis Tools（MAT）这个工具
+
+2. 获取内存dump:jmap -histo:live pid号
+这个方式会先fullgc，如果不希望触发fullgc可以使用jmap -histo pid号
+
+3. 第三种方式：jdk启动加参数
+-XX：+HeapDumpBeforeFullGC
+-XX：HeapDumpPath=/httx/logs/dump
+这种方式会产生dump日志，在通过jvisualvm.exe或者Eclipse Memory Analysis Tools工具进行分析。
+
+最后，可以看一下GC日志，观测老年代溢出，还是元空间溢出。
+老年代溢出需要看dump文件中哪些对象没有释放，从而分析代码。
+元空间溢出排查比较麻烦，dump看不出来，一般是因为重复加载class太多，可以分析问题代码，针对性压测，观察class数量
 

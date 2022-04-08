@@ -8,9 +8,11 @@
   <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="视频学习" /></a>
   <a href="https://mp.weixin.qq.com/s/rmLxiBB1RYr6omVWQMGxpg"><img src="static/common/svg/luoxiaosheng_wechat.svg" alt="微信群" /></a>
 </p>
-<p align="center">
-  <strong>Chinese</strong> | <a href="https://github.com/soonphe/0-1Learning/blob/master/README_EN.md">English</a>
-</p>
+<div align="center">
+  <h3>
+    <strong>Chinese</strong> | <a href="https://github.com/soonphe/0-1Learning/blob/master/README_EN.md">English</a>
+  </h3>
+</div>
 
 ## 目录
 - [项目介绍](#项目介绍)
@@ -22,7 +24,7 @@
 - [在哪里可以免费看我的文章](#在哪里可以免费看我的文章)
   - [github](#github)
   - [公众号](#公众号)
-- [在哪里可以看我的视频](#在哪里可以看我的视频)
+- [在哪里可以免费看我的视频](#在哪里可以免费看我的视频)
   - [B站](#B站)
 - [鸣谢其他开源项目](#鸣谢其他开源项目)
 

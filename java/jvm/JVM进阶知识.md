@@ -115,10 +115,10 @@ Java虚拟机规范将JVM所管理的内存分为以下几个运行时数据区�
 -Xms 的默认值为你当前机器最大内存的 1/64 （这个值要反复测试并通过监控调整一个合适的值，是因为当Heap不够用时，会发生内存抖动，影响程序运行稳定性）
 -Xss 的默认值好像和平台有关（不同平台默认值不同），我们最常用的Linux64位服务器默认值好像是1024k（这个我不确定）。在相同物理内存下，减小这个值能生成更多的线程，这个参数在高并发的情况下对性能影响比较明显，需要花比较长的时间进行严格的测试来定义一个合适的值（如果栈不深128k够用的，大的应用建议使用256k）。
 
+示例
 ```
-java
-    -Xms64m #JVM启动时的初始堆大小
     -Xmx128m #最大堆大小
+    -Xms64m #JVM启动时的初始堆大小
     -Xmn64m #年轻代的大小，其余的空间是老年代
     -XX:MaxMetaspaceSize=128m #
     -XX:CompressedClassSpaceSize=64m #使用 -XX：CompressedClassSpaceSize 设置为压缩类空间保留的最大内存。
@@ -126,7 +126,31 @@ java
     -XX:InitialCodeCacheSize=4m #
     -XX:ReservedCodeCacheSize=8m # 这是由 JIT（即时）编译器编译为本地代码的本机代码（如JNI）或 Java 方法的空间
     -XX:MaxDirectMemorySize=16m
+    -XX:+UseG1GC    #设置使用G1垃圾收集器
     -jar app.jar
+```
+```
+-server
+-Xmx1g              ：设置JVM最大可用内存.默认物理内存的1/4(<1GB)
+-Xms1g              ：置JVM初始内存.默认物理内存的1/64(<1GB)。此值可以设置与-Xmx相同,以避免每次垃圾回收完成后JVM重新分配内存.
+-Xmn256m            ：设置年轻代大小.整个堆大小=年轻代大小 + 年老代大小 + 持久代大小.持久代一般固定大小为64m,所以增大年轻代后,将会减小年老代大小.此值对系统性能影响较大,Sun官方推荐配置为整个堆的3/8.
+-XX:PermSize=128m   ：设置老年代代大小。默认物理内存的1/64
+-Xss256k            ：设置每个线程的堆栈大小
+-XX:+DisableExplicitGC                  ：关闭System.gc()
+-XX:+UseConcMarkSweepGC                 ：设置年老代为并发收集.测试中配置这个以后,-XX:NewRatio=4的配置失效了,原因不明.所以,此时年轻代大小最好用-Xmn设置.
+-XX:+CMSParallelRemarkEnabled           ：降低标记停顿
+-XX:+UseCMSCompactAtFullCollection      ：在FULL GC的时候， 对年老代的压缩
+-XX:LargePageSizeInBytes=128m           ：内存页的大小不可设置过大， 会影响Perm的大小
+-XX:+UseFastAccessorMethods             ：原始类型的快速优化
+-XX:+UseCMSInitiatingOccupancyOnly      ：使用手动定义初始化定义开始CMS收集
+-XX:CMSInitiatingOccupancyFraction=70   ：使用cms作为垃圾回收，使用70％后开始CMS收集
+-Xdebug         ：是通知JVM工作在DEBUG模式下，
+-Xrunjdwp       ：是通知JVM使用(java debug wire protocol)来运行调试环境。该参数同时了一系列的调试选项：
+transport指定了调试数据的传送方式，dt_socket是指用SOCKET模式，另有dt_shmem指用共享内存方式，其中，dt_shmem只适用于Windows平台。
+server参数是指是否支持在server模式的VM中.
+onthrow指明，当产生该类型的Exception时，JVM就会中断下来，进行调式。该参数可选。
+launch指明，当JVM被中断下来时，执行的可执行程序。该参数可选
+suspend指明，是否在调试客户端建立起来后，再执行JVM。
 ```
 
 ---
@@ -197,50 +221,6 @@ jdk1.9 默认垃圾收集器G1
 * Minor GC：通常是指对新生代的回收。指发生在新生代的垃圾收集动作，因为 Java 对象大多都具备朝生夕灭的特性，所以 Minor GC 非常频繁，一般回收速度也比较快
 * Major GC：通常是指对年老代的回收。
 * Full GC：Major GC除并发gc外均需对整个堆进行扫描和回收。指发生在老年代的 GC，出现了 Major GC，经常会伴随至少一次的 Minor GC（但非绝对的，在 ParallelScavenge 收集器的收集策略里就有直接进行 Major GC 的策略选择过程） 。MajorGC 的速度一般会比 Minor GC 慢 10倍以上。
-
-
----
-
-### 几种常用的内存调试工具：jmap、jstack、jconsole
-
-* jmap（linux下特有，也是很常用的一个命令）观察运行中的jvm物理内存的占用情况。
-参数如下：  
--heap：打印jvm heap的情况  
--histo：打印jvm heap的直方图。其输出信息包括类名，对象数量，对象占用大小。  
--histo：live ：同上，但是只答应存活对象的情况  
--permstat：打印permanent generation heap情况
-
-* jstack（linux下特有）可以观察到jvm中当前所有线程的运行情况和线程当前状态
-
-* jconsole一个图形化界面，可以观察到java进程的gc，class，内存等信息
-
-* jvisualvm：图形化界面，VisualVM（All-in-One Java Troubleshooting Tool）;功能最强大的运行监视和故障处理程序
-
-* jstat最后要重点介绍下这个命令。这是jdk命令中比较重要，也是相当实用的一个命令，可以观察到classloader，compiler，gc相关信息
-具体参数如下：
--class：统计class loader行为信息  
--compile：统计编译行为信息  
--gc：统计jdk gc时heap信息  
--gccapacity：统计不同的generations（不知道怎么翻译好，包括新生区，老年区，permanent区）相应的heap容量情况  
--gccause：统计gc的情况，（同-gcutil）和引起gc的事件  
--gcnew：统计gc时，新生代的情况  
--gcnewcapacity：统计gc时，新生代heap容量  
--gcold：统计gc时，老年区的情况  
--gcoldcapacity：统计gc时，老年区heap容量  
--gcpermcapacity：统计gc时，permanent区heap容量  
--gcutil：统计gc时，heap情况  
--printcompilation：不知道干什么的，一直没用过。  
-
-* 例:一次排查线上问题进行解答。
-~~~~
-输入jps，获得进程号。
-top -Hp pid 获取本进程中所有线程的CPU耗时性能
-jstack pid命令查看当前java进程的堆栈状态
-或者 jstack -l > /tmp/output.txt 把堆栈信息打到一个txt文件。
-可以使用fastthread 堆栈定位，fastthread.io/
-~~~~
-
----
 
 ### jvm类的加载机制
 

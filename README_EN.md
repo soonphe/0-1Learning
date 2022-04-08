@@ -8,9 +8,11 @@
   <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="视频学习" /></a>
   <a href="https://mp.weixin.qq.com/s/rmLxiBB1RYr6omVWQMGxpg"><img src="static/common/svg/luoxiaosheng_wechat.svg" alt="微信群" /></a>
 </p>
-<p align="center">
-  <a href="https://github.com/soonphe/0-1Learning/blob/master/README.md">Chinese</a> | <strong>English</strong>
-</p>
+<div align="center">
+  <h3>
+    <a href="https://github.com/soonphe/0-1Learning/blob/master/README.md">Chinese</a> | <strong>English</strong>
+  </h3>
+</div>
 
 ## 目录
 - [Project Introduction](#Project Introduction)
@@ -19,12 +21,12 @@
     - [Continuous delivery pipeline](#Continuous delivery pipeline)
     - [Project structure)](#Project structure)
 - [What the author wants to say](#What the author wants to say)
-- [在哪里可以免费看我的文章](#在哪里可以免费看我的文章)
+- [Where can you watch my articles for free](#Where can you watch my articles for free)
     - [github](#github)
-    - [公众号](#公众号)
-- [在哪里可以看我的视频](#在哪里可以看我的视频)
-    - [B站](#B站)
-- [鸣谢其他开源项目](#鸣谢其他开源项目)
+    - [Wechat public account](#Wechat public account)
+- [Where can you watch my videos for free](#Where can you watch my videos for free)
+    - [bilibili](#bilibili)
+- [Thanks for other people's open source projects](#Thanks for other people's open source projects)
 
 
 ## Project Introduction
