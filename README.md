@@ -9,7 +9,7 @@
   <a href="https://mp.weixin.qq.com/s/rmLxiBB1RYr6omVWQMGxpg"><img src="static/common/svg/luoxiaosheng_wechat.svg" alt="微信群" /></a>
 </p>
 <p align="center">
-  <strong>Chinese</strong> | <a href="https://github.com/soonphe/0-1Learning/README_EN.md">English</a>
+  <strong>Chinese</strong> | <a href="https://github.com/soonphe/0-1Learning/blob/master/README_EN.md">English</a>
 </p>
 
 ## 目录
