@@ -4,7 +4,7 @@
 ![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
-## java总述
+## java-overview总述
 
 ### jdk包结构（linux 1.8版本）
 - **bin目录**: JDK开发工具的可执行文件

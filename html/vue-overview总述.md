@@ -12,6 +12,59 @@
 ### TypeScript 是 JavaScript 的关系
 TypeScript 是 JavaScript 的类型的超集，它可以编译成纯 JavaScript
 
+### 组件介绍
+- element-ui
+  "element-ui": "2.7.0",
+
+- Normalize.css：供了跨浏览器的高度一致性
+  "normalize.css": "7.0.0",
+  import 'normalize.css/normalize.css'
+
+- font-awesome：矢量图标
+  "font-awesome": "4.7.0",
+  import 'font-awesome/css/font-awesome.min.css' // font-awesome
+
+- nprogress：进度条
+  "nprogress": "0.2.0",
+  import 'nprogress/nprogress.css';
+  使用：
+```
+import NProgress from 'nprogress' // Progress 进度条
+import 'nprogress/nprogress.css'// Progress 进度条样式
+router.beforeEach((to, from, next) => {
+  NProgress.start()
+  。。。
+  next()
+})
+router.afterEach(() => {
+  NProgress.done() // 结束Progress
+})
+```
+
+- babel-polyfill：ES6转码ES5
+  "babel-polyfill": "^6.26.0",
+  import "babel-polyfill";
+
+
+### 引入方式
+
+- 完整引入
+```
+/*Element：完整引入*/
+  import ElementUI from 'element-ui';
+  import 'element-ui/lib/theme-chalk/index.css';
+```
+- 按需引入
+```
+/*icon字体路径变量*/
+$--font-path: "~element-ui/lib/theme-chalk/fonts";
+/*按需引入用到的组件的scss文件和基础scss文件*/
+@import "~element-ui/packages/theme-chalk/src/base.scss";
+/*按需引入组件*/
+import {Rate,Row,Button} from 'element-ui'
+```
+
+
 ### 路由Router跳转携带参数
 this.$router.push({
     // 由于动态路由也是传递params的，所以在 this.$router.push() 方法中 path不能和params一起使用，否则params将无效。需要用name来指定页面
@@ -339,5 +392,10 @@ export default {
           })
 ```
 
-
+### vue axios get请求传参：
+示例：
+- 带花括号`{token}`
+  实际参数 `token: admin-token`
+- 不带花括号`token`
+  实际参数 `0:token`
 

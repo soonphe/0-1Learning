@@ -102,8 +102,7 @@ Return jpaQueryFactory
 
 
 
-### mvn -v提示Permission denied
-权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
+
 
 ### 解决“Jenkins 主机密钥验证失败”
 1. ssh-keygen命令生成公钥私钥
@@ -136,14 +135,6 @@ sudo /usr/local/mysql/support-files/mysql.server start
 报错可能是没有权限
 sudo chmod -R a+rwx /usr/local/mysql/data/
 
-### lombok注解：
-@Data注解作用：
-1）生成无参构造方法；
-2）属性的set/get方法；
-3）equals(), hashCode(), toString(), canEqual()方法。
-@Value
-1）有参构造方法；
-2）只添加@Value注解，没有其他限制，那么类属性会被编译成final的，因此只有get方法，而没有set方法。
 
 
 ### 在线接口数据示例：
@@ -151,36 +142,7 @@ sudo chmod -R a+rwx /usr/local/mysql/data/
 搜索列表：http://omdbapi.com/?apikey=682d8365&s=Longest
 详情：http://omdbapi.com/?apikey=682d8365&i=tt2726560
 
-### Ajax：
-Ajax：“Asynchronous JavaScript and XML”，翻译过来就是异步JavaScript和XML。
-要创建Ajax，主角是XMLHttpRequest（下简称XHR）对象。
-第一步：创建XHR对象
-var xhr = new XMLHttpRequest();
-第二步：向服务器发送请求
-方法：open(method,url,async) 和 send(string)
-open()方法传入三参数
-	• method：请求的类型（GET/POST）
-	• url：文件在服务器上的位置
-	• async：布尔值，true表示异步，false表示同步（可选，默认为true）
-1 xhr.open("GET","demo.asp?t=" + Math.random(),true);
-2 xhr.send();
-第三步：服务器响应
-XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形式的响应数据和XML形式的响应数据
-还有三个关于响应状态的属性也经常用到：
-	• readyState：存有XMLHttpRequest的状态。XHR对象会经历5种不同的状态
-		○ 0：请求未初始化（new完后）；
-		○ 1：服务器连接已建立（对象已创建并初始化，尚未调用send方法）；
-		○ 2：请求已接收；
-		○ 3：请求处理中；
-		○ 4：请求已完成，响应就绪；
-	• status：（HTTP状态码很多，请自行了解，举例常见的）
-		○ 200：请求成功
-		○ 404：未找到页面
-	• onreadystatechange：存储函数（或函数名），每当readyState属性改变时，就会调用该函数。
-1 xhr.onreadystatechange = function () {
-2     if (xhr.readyState == 4 && xhr.status == 200) {
-3     console.log(xhr.responseText);
-4 };
+
 
 
 ### spring StateMachine状态机：
@@ -298,11 +260,6 @@ public class OverTimeConsumerV3 {
   }
 ```
 
-### IDEA引入maven项目：
-1.New——Module from Existing Source
-2.如果没有显示为maven，模块的pom.xml上点击Add as maven project
-
-
 ### openresty搭建高性能web应用、网关：
 官网地址：http://openresty.org/cn/
 
@@ -313,156 +270,9 @@ soul官网地址：https://github.com/apache/incubator-shenyu
 官网地址：https://shenyu.apache.org/
 
    
-### jira搭建：
-官网地址：https://www.atlassian.com/
-1.下载安装
-```
-atlassian-jira-software-7.3.8-x64_2.bin
-[root@jira ~]# chmod +x atlassian-jira-software-7.3.8-x64_2.bin  #添加执行权限
-[root@jira ~]# ./atlassian-jira-software-7.3.8-x64_2.bin   #安装
-```
-安装jira时配置指定数据库，jira支持多种数据库
-2.破解jira
-```
-jira7.3 
-├── atlassian-extras-3.2.jar ：和license相关
-└── mysql-connector-java-5.1.39-bin.jar：jira连接mysql数据库相关的jar包
-把破解包里的文件复制到/opt/atlassian/jira/atlassian-jira/WEB-INF/lib/目录下
-[root@jira ~]# \cp -f ~/jira7.3/* /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/ 
-```
-3.开启jira服务
-```
-[root@jira ~]# /opt/atlassian/jira/bin/start-jira.sh 
-```
-访问8080端口 http://192.168.13.142:8080/
 
 
-### springboot使用eventbus：
-事件驱动：
-```
-Google-Eventbus
-        // EventBus对象创建
-        EventBus eventBus = new EventBus("test");
-        // 注册监听者（监听者@Subscribe 订阅时间）
-        eventBus.register(new OrderEventListener());
-        // 发布消息
-        eventBus.post(new OrderMessage());
-// 异步事件消息处理
-EventBusbus=newAsyncEventBus(threadPoolExecutor);
-```
 
-1.依赖
-```
-<dependency>
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>28.1-jre</version>
-</dependency>
-```
-2.EventBusConfig
-```
-/**
- * 事件监听配置
- * 
- * @author soonphe
- * @since 1.0
- */
-@Configuration
-public class EventBusConfig {
-
-  /**
-   * eventbus注册异步监听
-   * @param eventListener
-   * @return
-   */
-  @Bean
-  public EventBus eventBus(AsyncEventListener eventListener) {
-    Builder builder = new Builder().namingPattern("event-bus-threads");
-    //参数：corePoolSize，maximumPoolSize，keepAliveTime，TimeUnit，BlockingQueue等待对了
-    ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 60L,
-        TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(100), builder.build());
-    //同步
-    //EventBus eventBus = new EventBus();
-    //异步
-    EventBus bus = new AsyncEventBus(threadPoolExecutor);
-    bus.register(eventListener);
-    return bus;
-  }
-}
-```
-3.事件监听类
-```
-@Slf4j
-@Component
-@AllArgsConstructor
-public class AsyncEventListener {
-
-/**
-   * 监听操作日志时间
-   * @param event
-   */
-  @Subscribe
-  public void saveOperationRecordEvent(SaveOverTimeOperationRecordEvent event) {
-    OverTimeOperationRecordDto operationRecordDto = OverTimeOperationRecordMapper.INSTANCE.eventToDto(event);
-    try {
-      Long record = operationService.createOverTimeOperationRecord(operationRecordDto);
-      log.info("---event  新增操作记录成功! 记录id为{}", record);
-    } catch (Exception e) {
-      log.error("---event  新增操作记录表出现异常,异常信息为", e);
-    }
-  }
-}
-```
-4.事件bean
-```
-@Getter
-@Builder
-public class SaveOverTimeOperationRecordEvent extends OverTimeOperationRecord {
-
-  private Long operator;
-  private String operatorAccount;
-  private Integer operatorType;
-  private Long operationTableId;
-  private Integer operatorChannel;
-
-}
-```
-5.注入eventbus，post测试发送事件
-```
-  @Autowired
-  private EventBus eventBus;
-
-  eventBus.post(overTimeFeeModelDeleteEvent);
-```
-备注：还可以定义一层handle处理eventbus的注册和注销操作
-```java
-@Component
-@Slf4j
-public class EventHandler {
-
-    @Autowired
-    private EventBus eventBus;
-
-    @Autowired
-    private EventListener eventListener;
-
-    @PostConstruct
-    public void init() {
-        eventBus.register(eventListener);
-    }
-
-    @PreDestroy
-    public void destroy() {
-        eventBus.unregister(eventListener);
-    }
-
-    public void eventPost(){
-        eventBus.post("test");
-        log.info("post event");
-    }
-}
-```
 
 
 ### 责任链实现：
@@ -671,24 +481,7 @@ String post(String url, String json) throws IOException {
 ```
 
 
-### linux 软链接和硬链接区别
-【硬连接】
-硬连接指通过索引节点来进行连接。在Linux的文件系统中，保存在磁盘分区中的文件不管是什么类型都给它分配一个编号，称为索引节点号(Inode Index)。在Linux中，多个文件名指向同一索引节点是存在的。一般这种连接就是硬连接。硬连接的作用是允许一个文件拥有多个有效路径名，这样用户就可以建立硬连接到重要文件，以防止“误删”的功能。其原因如上所述，因为对应该目录的索引节点有一个以上的连接。只删除一个连接并不影响索引节点本身和其它的连接，只有当最后一个连接被删除后，文件的数据块及目录的连接才会被释放。也就是说，文件真正删除的条件是与之相关的所有硬连接文件均被删除。
 
-【软连接】
-另外一种连接称之为符号连接（Symbolic Link），也叫软连接。软链接文件有类似于Windows的快捷方式。它实际上是一个特殊的文件。在符号连接中，文件实际上是一个文本文件，其中包含的有另一文件的位置信息。
-
-硬链接文件有两个限制
-1)、不允许给目录创建硬链接；
-2)、只有在同一文件系统中的文件之间才能创建链接，而且只有超级用户才有建立硬链接权限。
-对硬链接文件进行读写和删除操作时候，结果和软链接相同。但如果我们删除硬链接文件的源文件，硬链接文件仍然存在，而且保留了愿有的内容。
-这时，系统就“忘记”了它曾经是硬链接文件。而把他当成一个普通文件。
-软链接没有硬链接以上的两个限制，因而现在更为广泛使用，它具有更大的灵活性，甚至可以跨越不同机器、不同网络对文件进行链接
-
-### Linux /usr/bin与/usr/local/bin区别: 
-/usr/bin下面的都是系统预装的可执行程序，会随着系统升级而改变。
-/usr/local/bin目录是给用户放置自己的可执行程序的地方，推荐放在这里，不会被系统升级而覆盖同名文件。
-如果两个目录下有相同的可执行程序，谁优先执行受到PATH环境变量的影响。
 
 
 
@@ -696,27 +489,9 @@ String post(String url, String json) throws IOException {
 ### IDEA、WebStorm项目无法被识别为Git项目
 VCS - Enable Version Control Intergration
 
-### mac下-bash: mysql: command not found问题 
-vim ~/.bash_profile 
 
-加入export PATH=$PATH:/usr/local/mysql/bin  保存后关闭
-source ~/.bash_profile 执行修改
 
-### node环境更新
-```
-sudo npm install -g n 
 
-# 最新版本
-n lastest
-# 稳定版本
-n stable
-# 安装指定版本
-n 10.12.0
-```
-npm 更新
-```
-npm install -g npm 
-```
 
 
 ### Vue - 引入本地图片的两种方式
@@ -972,9 +747,7 @@ hudson.plugins.nodejs.tools.NodeJSInstaller
 docker cp ./hudson.plugins.nodejs.tools.NodeJSInstaller jenkins:/var/jenkins_home/updates
 
 
-### 状态的单词有 status 和 state的区别
-status ： 用来描述操作的结果，比如： 成功/失败
-state： 用来描述过程的某个阶段，比如 进行中/ 已发送； 处理完成后 “进行中” 就变成 “已发送” 了
+
 
 ### 域名和IP和端口
 域名是只能80端口吗
@@ -1385,14 +1158,6 @@ RowCallbackHandler：用于处理ResultSet的每一行结果，用户需实现�
 ResultSetExtractor：用于结果集数据提取，用户需实现方法extractData(ResultSet rs)来处理结果集，用户必须处理整个结果集；
 
 
-
-### mac打印
-隔空打印：在“隔空打印”协议下，可通过 Wi-Fi、USB 和以太网络访问打印机的打印和扫描选项（若特定的打印机支持这些功能）。你无需下载或安装打印机软件就能使用支持“隔空打印”的打印机。支持“隔空打印”协议的打印机类型广泛，包括 Aurora、Brother、Canon、Dell、Epson、Fuji、Hewlett Packard、Samsung、Xerox 等等。 
-互联网打印协议 - IPP：现代打印机和打印服务器使用此协议；
-行式打印机监控程序 - LPD：旧式打印机和打印服务器可能使用此协议；
-HP Jetdirect – Socket：HP 和其他许多打印机制造商都使用此协议。
-
-
 ### Spring FactoryBean和BeanFactory 区别
 1. BeanFactory 是ioc容器的底层实现接口，是顶层容器（根容器），不能被实例化，不允许我们直接操作 BeanFactory bean工厂，它定义了所有 IoC 容器 必须遵从 的⼀套原则，具体的容器实现可以增加额外的功能。
 
@@ -1551,15 +1316,6 @@ Box<? extends Food> box2 = new Box<Meat>();
 
 		总结：回到聚合maven上，如果你在root工程中使用了spring-boot-maven-plugin作为builder，那么你的依赖module一定要用解决方案二来设置。否则你不在root工程中用spring-boot-maven-plugin作为builder，而在需要打包的module上使用。
 
-### package-info.java：提供包级别注解、变量、注释
-
-### JdbcTemplate方法详解
-JdbcTemplate主要提供以下五类方法：
-execute方法：可以用于执行任何SQL语句，一般用于执行DDL语句；
-update方法及batchUpdate方法：update方法用于执行新增、修改、删除等语句；batchUpdate方法用于执行批处理相关语句；
-query方法及queryForXXX方法：用于执行查询相关语句；
-call方法：用于执行存储过程、函数相关语句。
-
 ### Okhttp连接超时
 错误日志
 ```
@@ -1578,43 +1334,12 @@ newOkHttpClient.Builder()
 - 参考文档：
 https://blog.csdn.net/Vincent2014Linux/article/details/98881462
 
-
-### java date和LocalDateTime、LocalDate、LocalTime转换
-LocalDateTime只能是日期和时间
-LocalDate是日期
-LocalTime是时间
-```
-DateTimeFormatter df=DateTimeFormatter.ofPattern("HH:mm:ss");
-localTime.format(df)
-```
-
-### datetime转localDatetime
-```
-getPaidTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-```
-localDatetime转datetime:
-```
-Date.from(ordOrderConsume.getCreateTime().atZone(ZoneId.systemDefault()).toInstant())
-```
-LocalDateTime.now()：获取当前时间
-
+  
 
 ### CompletableFuture
 使用Future获得异步执行结果时，要么调用阻塞方法get()，要么轮询看isDone()是否为true，这两种方法都不是很好，因为主线程也会被迫等待。
 
 从Java 8开始引入了CompletableFuture，它针对Future做了改进，可以传入回调对象，当异步任务完成或者发生异常时，自动调用回调对象的回调方法。
-
-### mybatis多数据源
-https://mp.weixin.qq.com/s/qN1b5iSkkIhkA03RtppiJg
-
-### springbatch配置mybatis数据源
-MyBatisCursorItemReader reader = new MyBatisCursorItemReader();
-
-### builder模式如何强制分步调用
-builder已step为过程构造——以接口为返参，分步调用
-
-### node-sass安装失败：
-npm i node-sass --sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
 
 ### litepal操作
 取：
@@ -1625,89 +1350,6 @@ LitePal.findFirst(TAdvert.class) != null) {
 LitePal.deleteAll(TAdvert.class);
 
 存：object.save
-
-
-#### MissingServletRequestParameterException报错
-解决:不要将HttpServletRequest传递到任何异步方法中！
-
-
-#### mysql中int(1)指定的是数据长度么？
-
-不是，其实这个int(1)和varchar(1)是不一样的，对于int型，不管你设计多少长度，它永远需要占用4个字节，默认就是11位，所以其实这个int(1)控制的不是数据的长度，而是数据的显示长度，它指明了mysql最大可能显示的数字个数。
-
-所以如果不是特别必要，数据库的int型不加上长度设计也是可以的。
-
-
-#### MyBatis @Param 注解，使用场景
-
-第一种：方法有多个参数，需要 @Param 注解
-
-例如下面这样：
-
-@Mapper
-public interface UserMapper {
-Integer insert(@Param("username") String username, @Param("address") String address);
-}
-对应的 XML 文件如下：
-```
-<insert id="insert" parameterType="org.javaboy.helloboot.bean.User">
-    insert into user (username,address) values (#{username},#{address});
-</insert>
-```
-这是最常见的需要添加 @Param 注解的场景。
-
-第二种：方法参数要取别名，需要 @Param 注解
-当需要给参数取一个别名的时候，我们也需要 @Param 注解，例如方法定义如下：
-```
-@Mapper
-public interface UserMapper {
-User getUserByUsername(@Param("name") String username);
-}
-```
-对应的 XML 定义如下：
-```
-<select id="getUserByUsername" parameterType="org.javaboy.helloboot.bean.User">
-    select * from user where username=#{name};
-</select>
-```
-
-第三种：XML 中的 SQL 使用了 $ ，那么参数中也需要 @Param 注解
-$ 会有注入漏洞的问题，但是有的时候你不得不使用 $ 符号，例如要传入列名或者表名的时候，这个时候必须要添加 @Param 注解，例如：
-```
-@Mapper
-public interface UserMapper {
-List<User> getAllUsers(@Param("order_by")String order_by);
-}
-```
-对应的 XML 定义如下：
-```
-<select id="getAllUsers" resultType="org.javaboy.helloboot.bean.User">
-    select * from user
- <if test="order_by!=null and order_by!=''">
-        order by ${order_by} desc
- </if>
-</select>
-```
-前面这三种，都很容易懂，相信很多小伙伴也都懂，除了这三种常见的场景之外，还有一个特殊的场景，经常被人忽略。
-
-第四种，那就是动态 SQL ，如果在动态 SQL 中使用了参数作为变量，那么也需要 @Param 注解，即使你只有一个参数。
-如果我们在动态 SQL 中用到了 参数作为判断条件，那么也是一定要加 @Param 注解的，例如如下方法：
-```
-@Mapper
-public interface UserMapper {
-List<User> getUserById(@Param("id")Integer id);
-}
-```
-定义出来的 SQL 如下：
-```
-<select id="getUserById" resultType="org.javaboy.helloboot.bean.User">
-    select * from user
- <if test="id!=null">
-        where id=#{id}
- </if>
-</select>
-```
-这种情况，即使只有一个参数，也需要添加 @Param 注解，而这种情况却经常被人忽略！
 
 
 

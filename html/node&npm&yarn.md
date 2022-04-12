@@ -41,8 +41,7 @@ npm publish/login/logout	yarn publish/login/logout	发布/登录/登出，一系
 npm run/test	yarn run/test	运行某个命令
 ```
 
-
-### 常用命令
+### node常用命令
 node -v               #查看node版本
 npm install -g n      #n模块是专门用来管理nodejs的版本，安装n模块，无权限添加sudo
 n stable // 把当前系统的 Node 更新成最新的 “稳定版本”
@@ -50,6 +49,8 @@ n lts // 长期支持版
 n latest // 最新版
 n 10.14.2 // 指定安装版本
 
+
+### npm常用命令
 npm -v  #查看版本
 npm install express     # 本地安装
 npm install express -g  # 全局安装
@@ -72,20 +73,16 @@ npm audit fix             #检测项目依赖中的漏洞并自动安装需要�
 npm audit fix --force     #强制更新
 npm audit fix --only=prod #只更新dependencies中安装的包，跳过devDependencies中的包
 
+### npm修改仓库地址
+npm仓库默认地址：/usr/local/lib/node_modules/npm/node_modules
 
+npm config list：npm所有配置信息
+npm config ls -l：npm所有配置信息
+npm config get registry：查看镜像源
 
-### package.json中 ^ 和 ~ 的区别
-指定版本号
-(1)普通版本号: 表示安装此版本,比如"classnames": "2.2.5"，表示安装2.2.5的版本
-(2)表示安装大版本的最小最新子版本: ~版本,比如 "babel-plugin-import": "~1.1.0",表示安装1.1.x的最新版本（不低于1.1.0），但是不安装1.2.x，也就是说安装时不改变大版本号和次要版本号
-(3)表示安装大版本的最高中版本: ^版本,比如 "antd": "^3.1.4",，表示安装3.1.4及以上的版本，但是不安装4.0.0，也就是说安装时不改变大版本号。
-
-### devDependencies和dependencies区别
-- devDependencies用于本地环境开发时候。
-  devDependencies用于本地环境开发时候，所以，所有的不会在发布时候打包进线上代码的npm包都放在这里，命令是：npm i -D ***。
-  比如像这些包：babel-core、babel-eslint、等babel系列，autoprefixer、webpack、webpack-dev-server、koa、*-loaderloader系列等等
-- dependencies用户发布环境
-  用户发布环境，所以，不会包含本地开发任何的包,比如：react、react-redux、react-router-dom等
+npm切换淘宝源：npm config set registry http://registry.npm.taobao.org
+npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/repository/npm/
+npm恢复官方源：npm set registry https://registry.npmjs.org/
 
 ### npm install 安装报错解决思路：
 1、删除  package-lock.json文件
@@ -103,27 +100,9 @@ npm set registry https://registry.npmjs.org/
    npm audit fix --force
    npm install
 
-### vue axios get请求传参：
-示例：
-- 带花括号`{token}`
-  实际参数 `token: admin-token`
-- 不带花括号`token`
-  实际参数 `0:token`
+###  package.json
 
-
-### npm修改仓库地址
-npm仓库默认地址：/usr/local/lib/node_modules/npm/node_modules
-
-npm config list：npm所有配置信息
-npm config ls -l：npm所有配置信息
-npm config get registry：查看镜像源
-
-npm切换淘宝源：npm config set registry http://registry.npm.taobao.org
-npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/repository/npm/
-npm恢复官方源：npm set registry https://registry.npmjs.org/
-
-
-### 使用package.json安装模块
+#### 使用package.json安装模块
 每个项目的根目录下面，一般都有一个package.json文件，定义了这个项目所需要的各种模块，以及项目的配置信息（比如名称、版本、许可证等元数据）。
 npm install命令根据这个配置文件，自动下载所需的模块，也就是配置项目所需的运行和开发环境。
 
@@ -141,6 +120,22 @@ main - main 字段指定了程序的主入口文件，require('moduleName') 就�
 keywords - 关键字
 ```
 
+#### package.json中 ^ 和 ~ 的区别
+指定版本号
+(1)普通版本号: 表示安装此版本,比如"classnames": "2.2.5"，表示安装2.2.5的版本
+(2)表示安装大版本的最小最新子版本: ~版本,比如 "babel-plugin-import": "~1.1.0",表示安装1.1.x的最新版本（不低于1.1.0），但是不安装1.2.x，也就是说安装时不改变大版本号和次要版本号
+(3)表示安装大版本的最高中版本: ^版本,比如 "antd": "^3.1.4",，表示安装3.1.4及以上的版本，但是不安装4.0.0，也就是说安装时不改变大版本号。
 
+#### package.json中 devDependencies和dependencies区别
+- devDependencies用于本地环境开发时候。
+  devDependencies用于本地环境开发时候，所以，所有的不会在发布时候打包进线上代码的npm包都放在这里，命令是：npm i -D ***。
+  比如像这些包：babel-core、babel-eslint、等babel系列，autoprefixer、webpack、webpack-dev-server、koa、*-loaderloader系列等等
+- dependencies用户发布环境
+  用户发布环境，所以，不会包含本地开发任何的包,比如：react、react-redux、react-router-dom等
+
+### 其他常见问题
+
+#### node-sass安装失败：
+npm i node-sass --sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
 
 

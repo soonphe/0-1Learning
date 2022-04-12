@@ -104,6 +104,11 @@ mvn install:install-file
 -Dpackaging=jar
 ```
 
+### mvn -v提示Permission denied
+权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
+
+---
+
 ### Nexus接入：
 下载地址：https://www.sonatype.com/products/repository-oss-download
 mac下载地址：https://download.sonatype.com/nexus/3/latest-mac.tgz
