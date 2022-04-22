@@ -7,7 +7,7 @@
 
 ## node & npm & yarn
 - npm: Nodejs下的包管理器。
-- node：
+- node：基于 Chrome V8 引擎的 JavaScript 运行时;
 
 ### node和npm的关系：
 * Node环境：
@@ -83,6 +83,8 @@ npm config get registry：查看镜像源
 npm切换淘宝源：npm config set registry http://registry.npm.taobao.org
 npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/repository/npm/
 npm恢复官方源：npm set registry https://registry.npmjs.org/
+
+npm临时切换下载源：npm install node-sass --registry=http://registry.npm.taobao.org
 
 ### npm install 安装报错解决思路：
 1、删除  package-lock.json文件

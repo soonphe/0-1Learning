@@ -5,6 +5,178 @@
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
+## swagger
+
+### 什么是swagger
+github地址：https://github.com/swagger-api/swagger-ui
+官网地址：https://swagger.io/tools/swagger-ui/
+
+该存储库发布了三个不同的 NPM 模块：
+swagger-ui 是一个传统的 npm 模块，旨在用于能够解析依赖项（通过 Webpack、Browserify 等）的单页应用程序。
+swagger-ui-dist 是一个无依赖的模块，它包含了在服务器端项目或无法解析 npm 模块依赖的单页应用程序中提供 Swagger UI 所需的一切。
+swagger-ui-react 是将 Swagger UI 打包为 React 组件，用于 React 应用程序。
+
+### java使用swagger——springfox
+依赖
+```
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-boot-starter</artifactId>
+    <version>3.0.0</version>
+</dependency>
+```
+从2.0版本迁移
+删除显式依赖springfox-swagger2
+删除@EnableSwagger2注释
+添加springfox-boot-starter依赖
+Springfox 3.x 移除了对 guava 和其他 3rd 方库的依赖（还不是零依赖！依赖于 spring 插件和开放的注解和模型的 api 库），所以如果你使用了 guava 谓词/函数，那些将需要转换到 java 8 函数接口
+如果您正在使用 WebMvc 但尚未使用@EnableWebMvc注解，请添加此注解。
+
+### 自动配置
+引入依赖，添加配置即可
+```
+logging.level.springfox.documentation=DEBUG
+springfox.documentation.swagger-ui.base-url=/documentation
+server.servlet.context-path=/mvc
+springfox.documentation.swagger.v2.use-model-v3=false
+```
+启动类注解bean：
+```
+  @Bean
+  public SecurityConfiguration securityConfiguration() {
+    return SecurityConfigurationBuilder.builder()
+        .enableCsrfSupport(true)
+        .build();
+  }
+```
+
+
+### 手动配置
+启动类或配置类注解添加：
+```
+@EnableSwagger //Enable swagger 1.2 spec
+@EnableSwagger2 //Enable swagger 2.0 spec
+@EnableOpenApi //Enable open api 3.0.3 spec
+```
+
+手动配置
+```
+    //2.0版本
+    @Bean
+    public Docket createRestApi(){
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.sgcc.ywzt.hsf.gateway"))
+                .paths(PathSelectors.any())
+                .build();
+    }
+  
+  //3.0版本  
+  @Bean
+  public Docket openApiPetStore() {
+    return new Docket(DocumentationType.OAS_30)
+        .groupName("open-api-pet-store")
+        .select()
+        .paths(petstorePaths())
+        .build();
+  }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("springfox")
+                .description("springfox")
+                .termsOfServiceUrl("http://springfox.io")
+                .contact(new Contact("springfox", "", ""))
+                .license("Apache License Version 2.0")
+                .version("1.0")
+                .build();
+    }
+```
+Docket参数说明：
+- .groupName("full-petstore-api")：分组名
+- .apis(RequestHandlerSelectors.basePackage("com.xxx.xxx)):匹配路径断言
+- .paths(PathSelectors.any())：路径匹配，PathSelectors.any()为全路径，也可以匹配部分路径：regex(".*/category.*").or(regex(".*/category").or(regex(".*/categories")));
+- .ignoredParameterTypes(ApiIgnore.class)：添加忽略的控制器方法参数类型，以便框架不会为这些特定类型生成 swagger 模型或参数信息
+- .enableUrlTemplating(true);：决定是否对路径使用 url 模板
+- .securitySchemes(Collections.singletonList(oauth()))：security鉴权模块
+- .securityContexts(Collections.singletonList(securityContext()));：security鉴权模块
+
+常见如何定义securitySchemes和securityContexts
+```
+    AuthorizationScope[] authScopes = new AuthorizationScope[1];
+    authScopes[0] = new AuthorizationScopeBuilder()
+        .scope("read")
+        .description("read access")
+        .build();
+    SecurityReference securityReference = SecurityReference.builder()
+        .reference("test")
+        .scopes(authScopes)
+        .build();
+    List<SecurityContext> securityContexts =
+        Collections.singletonList(
+            SecurityContext.builder()
+                .securityReferences(Collections.singletonList(securityReference))
+                .build());
+    ...
+    
+    .securitySchemes(Collections.singletonList(new BasicAuth("test")))
+    .securityContexts(securityContexts)
+```
+
+显示swagger-ui.html文档展示页，还必须注入swagger资源：
+```
+@Component
+public class SwaggerUiWebMvcConfigurer implements WebMvcConfigurer {
+  private final String baseUrl;
+
+  public SwaggerUiWebMvcConfigurer(
+      @Value("${springfox.documentation.swagger-ui.base-url:}") String baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    String baseUrl = StringUtils.trimTrailingCharacter(this.baseUrl, '/');
+    registry.
+        addResourceHandler(baseUrl + "/swagger-ui/**")
+        .addResourceLocations("classpath:/META-INF/resources/webjars/springfox-swagger-ui/")
+        .resourceChain(false);
+  }
+
+  @Override
+  public void addViewControllers(ViewControllerRegistry registry) {
+    registry.addViewController(baseUrl + "/swagger-ui/")
+        .setViewName("forward:" + baseUrl + "/swagger-ui/index.html");
+  }
+
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    registry
+        .addMapping("/api/pet")
+        .allowedOrigins("http://editor.swagger.io");
+    registry
+        .addMapping("/v2/api-docs.*")
+        .allowedOrigins("http://editor.swagger.io");
+  }
+}
+```
+
+关闭Swagger有两种方式
+- 方式一：
+在Swagger2Config上使用@Profile注解标识，@Profile({“dev”,“test”})表示在dev和test环境才能访问swagger-ui.html，prod环境下访问不了。
+
+- 方式二：
+在Swagger2Config上使用@ConditionalOnProperty注解，
+
+@ConditionalOnProperty(name = “swagger.enable”, havingValue = “true”)
+
+表示配置文件中如果swagger.enable =true表示开启。所以只需要在开发环境的配置文件配置为true，生产环境配置为false即可。
+
+推荐第一种方式，因为第二种方式还要在每个环境文件中去配置，并维护；Swagger一般用于开发和测试环境，所以直接限制Swagger启用的环境为dev和test即可，这样也不需要再维护配置文件了。
+
+------
+
 ## knife4j
 
 ### 什么是knife4j？
