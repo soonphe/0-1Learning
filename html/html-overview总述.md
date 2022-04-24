@@ -49,3 +49,5 @@ rem相关布局[请参考](http://www.jianshu.com/p/65f80d4b44bb)*/
       win.addEventListener('orientationchange',change,false);  /* 这个是移动端设备横屏、竖屏转换时触发的事件处理函数 */
     })(window,document);
   </script>
+
+
