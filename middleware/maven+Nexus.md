@@ -6,9 +6,6 @@
 
 ## maven
 
-
-或者查看maven helper插件是否存在、升级
-
 ### maven常用命令
 - mvn clean	对项目进行清理，删除target目录下编译的内容
 - mvn compile	编译项目源代码
@@ -106,6 +103,333 @@ mvn install:install-file
 
 ### mvn -v提示Permission denied
 权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
+
+
+### pom文件
+
+pom文件基础结构
+```xml
+<project xmlns = "http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ 
+    <!-- 模型版本，对于Maven2及Maven 3来说，它只能是4.0.0 -->
+    <modelVersion>4.0.0</modelVersion>
+    <!-- 公司或者组织的唯一标志，也是打包成jar包路径的依据 必填-->
+    <!-- 例如com.companyname.project-group，maven打包jar包的路径：/com/companyname/project-group -->
+    <groupId>com.companyname.project-group</groupId>
+ 
+    <!-- 项目的唯一ID，一个groupId下面可能多个项目，就是靠artifactId来区分的 必填 -->
+    <artifactId>project</artifactId>
+ 
+    <!-- 项目当前版本，格式为:主版本.次版本.增量版本-限定版本号 必填 -->
+    <version>1.0</version>
+ 
+    <!--项目产生的构件类型，包括jar、war、ear、pom等 默认jar，必填 -->
+    <packaging>jar</packaging>
+    <!-- 项目别名 非必填 -->
+    <name>Timber</name>
+
+    <!-- 父类依赖，相当于继承 -->
+    <!--如果项目中没有规定某个元素的值，那么父项目中的对应值即为项目的默认值 -->
+    <parent>
+        <!--被继承的父项目的构件标识符 -->
+        <groupId>org.springframework.boot</groupId>
+        <!--被继承的父项目的全球唯一标识符 -->
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <!--被继承的父项目的版本 -->
+        <version>2.3.0.RELEASE</version>
+
+        <!-- 父项目的pom.xml文件的相对路径,默认值是../pom.xml。 -->
+        <!-- 寻找父项目的pom：构建当前项目的地方--)relativePath指定的位置--)本地仓库--)远程仓库 -->
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <!-- 属性配置 -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+
+        <spring.cloud.version>Hoxton.SR8</spring.cloud.version>
+        ...
+        ...
+    </properties>
+    
+    <!--该元素描述了项目相关的所有依赖。 这些依赖自动从项目定义的仓库中下载 -->
+    <!-- pom文件中通过dependencyManagement来声明依赖，通过dependencies元素来管理依赖。dependencyManagement下的子元素只有一个直接的子元素dependencice，其配置和dependencies子元素是完全一致的；而dependencies下只有一类直接的子元素：dependency。-->
+    <dependencies>
+        <dependency>
+            <!--依赖项目的坐标三元素：groupId + artifactId + version -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>...</version>
+            <!------------------- 依赖传递 ------------------->
+            <!--依赖排除，即告诉maven只依赖指定的项目，不依赖该项目的这些依赖。此元素主要用于解决版本冲突问题 -->
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-core</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+            </exclusions>
+            <!-- 可选依赖，用于阻断依赖的传递性。如果在项目B中把C依赖声明为可选，那么依赖B的项目中无法使用C依赖 -->
+            <optional>true</optional>
+            
+            <!------------------- 依赖范围 ------------------->
+            <!--依赖范围。在项目发布过程中，帮助决定哪些构件被包括进来
+                - compile：默认范围，用于编译;影响编译，测试，运行阶段  - provided：类似于编译，但支持jdk或者容器提供，类似于classpath，它只影响到编译，测试阶段
+                - runtime: 在执行时需要使用;    - systemPath: 仅用于范围为system。提供相应的路径 
+                - test: 用于test任务时使用;    - system: 需要外在提供相应的元素。通过systemPath来取得 
+                - optional: 当项目自身被依赖时，标注依赖是否传递。用于连续依赖时使用 -->
+            <scope>test</scope>
+            <!-- 该元素为依赖规定了文件系统上的路径。仅供scope设置system时使用。但是不推荐使用这个元素 -->
+            <!-- 不推荐使用绝对路径，如果必须要用，推荐使用属性匹配绝对路径，例如${java.home} -->
+            <systemPath>...</systemPath>
+        </dependency>
+        ...
+        ...
+    </dependencies>
+
+    <!-- ...Management被管理的依赖，一般在顶层parent依赖中用到，用于统一依赖版本信息，避免依赖冲突，没有真正引入，需要时可以不传版本号引入 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring.cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            ...
+            ...
+        </dependencies>
+    </dependencyManagement>
+    
+    <!-- 环境变量，可根据环境变量打包 -->
+    <profiles>
+        <profile>
+            <id>jdk-1.8</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <jdk>${java.version}</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>${java.version}</maven.compiler.source>
+                <maven.compiler.target>${java.version}</maven.compiler.target>
+                <maven.compiler.compilerVersion>${java.version}</maven.compiler.compilerVersion>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profiles.active>test</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <properties>
+                <profiles.active>pro</profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
+    <!-- 项目编译构建相关的配置，可配置多种插件，带..Management的也是被管理的插件，没有真正引入 -->
+    <build>
+        <!--------------------- 路径管理（在遵循约定大于配置原则下，不需要配置） --------------------->
+        <!--项目源码目录，当构建项目的时候，构建系统会编译目录里的源码。该路径是相对于pom.xml的相对路径。 -->
+        <sourceDirectory />
+        <!--该元素设置了项目单元测试使用的源码目录。该路径是相对于pom.xml的相对路径 -->
+        <testSourceDirectory />
+        <!--被编译过的应用程序class文件存放的目录。 -->
+        <outputDirectory />
+        <!--被编译过的测试class文件存放的目录。 -->
+        <testOutputDirectory />
+        <!--项目脚本源码目录，该目录下的内容，会直接被拷贝到输出目录，因为脚本是被解释的，而不是被编译的 -->
+        <scriptSourceDirectory />
+        <!--产生的构件的文件名，默认值是${artifactId}-${version}。 -->
+        <finalName>timber-portal</finalName>
+        
+        <!-- 资源管理 -->
+        <resources>
+            <resource>
+                <!-- 描述了资源的目标输出路径。该路径是相对于target/classes的路径 -->
+                <!-- 如果是想要把资源直接放在target/classes下，不需要配置该元素 -->
+                <targetPath />
+                <!--描述存放资源的目录，该路径相对POM路径 -->
+                <directory>src/main/resources</directory>
+                <!--是否使用参数值代替参数名。参数值取自文件里配置的属性，文件在filters元素里列出。 -->
+                <filtering>true</filtering>
+                <!--包含的模式列表，例如**/*.xml，只有符合条件的资源文件才会在打包的时候被放入到输出路径中 -->
+                <includes>
+                    <include>**/*.xml</include>
+                    <include>**/*.properties</include>
+                    <include>**/*.yml</include>
+                    <include>**/*.sql</include>
+                </includes>
+                <!--排除的模式列表，例如**/*.xml，符合的资源文件不会在打包的时候会被过滤掉 -->
+                <excludes />
+            </resource>
+        </resources>
+        
+        <!-- 使用的插件列表 -->
+        <plugins>
+            <!--plugin元素包含描述插件所需要的信息。 -->
+            <plugin>
+                <!--插件在仓库里的group ID -->
+                <groupId />
+                <!--插件在仓库里的artifact ID -->
+                <artifactId />
+                <!--被使用的插件的版本（或版本范围） -->
+                <version />
+                <!-- 是否从该插件下载Maven扩展(例如打包和类型处理器) -->
+                <!-- 由于性能原因，只有在真需要下载时，该元素才被设置成enabled -->
+                <extensions />
+                <!--在构建生命周期中执行一组目标的配置。每个目标可能有不同的配置。 -->
+                <executions>
+                    <!--execution元素包含了插件执行需要的信息 -->
+                    <execution>
+                        <!--执行目标的标识符，用于标识构建过程中的目标，或者匹配继承过程中需要合并的执行目标 -->
+                        <id />
+                        <!--绑定了目标的构建生命周期阶段，如果省略，目标会被绑定到源数据里配置的默认阶段 -->
+                        <phase />
+                        <!--配置的执行目标 -->
+                        <goals />
+                        <!--配置是否被传播到子POM -->
+                        <inherited />
+                        <!--作为DOM对象的配置 -->
+                        <configuration />
+                    </execution>
+                </executions>
+                <!--项目引入插件所需要的额外依赖 -->
+                <dependencies>
+                    <!--参见dependencies/dependency元素 -->
+                    <dependency>
+                        ......
+                    </dependency>
+                </dependencies>
+                <!--任何配置是否被传播到子项目 -->
+                <inherited />
+                <!--作为DOM对象的配置 -->
+                <configuration />
+            </plugin>
+        </plugins>
+        
+        <!-- 插件管理 -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot-maven-verison}</version>
+                </plugin>
+                ...
+                ...
+            </plugins>
+        </pluginManagement>
+
+        <!--------------------- 构建扩展 --------------------->
+        <!--使用来自其他项目的一系列构建扩展 -->
+        <extensions>
+            <!--每个extension描述一个会使用到其构建扩展的一个项目，extension的子元素是项目的坐标 -->
+            <extension>
+                <!--项目坐标三元素：groupId + artifactId + version -->
+                <groupId />
+                <artifactId />
+                <version />
+            </extension>
+        </extensions>
+
+        <!--------------------- 其他配置 --------------------->
+        <!--当项目没有规定目标（Maven2 叫做阶段）时的默认值 -->
+        <defaultGoal />
+        <!--构建产生的所有文件存放的目录 -->
+        <directory />
+        <!--当filtering开关打开时，使用到的过滤器属性文件列表 -->
+        <filters />
+    </build>
+    
+    <!-- 表示的是项目打包成库文件后要上传到什么库地址 -->
+    <distributionManagement>
+        <repository>
+            <id>maven-releases</id>
+            <name>release</name>
+            <url>http://10.10.18.116:8081/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>maven-snapshots</id>
+            <name>snapshot</name>
+            <url>http://10.10.18.116:8081/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!-- 表示从什么库地址可以下载项目依赖的库文件 -->
+    <repositories>
+        <repository>
+            <!-- id，库的ID -->
+            <id>releases</id>
+            <!-- name，库的名称 -->
+<!--            <name>Nexus</name>-->
+            <url>http://10.10.18.116:8081/content/repositories/releases/</url>
+            <!-- releases，库中版本为releases的构件，snapshots，库中版本为snapshots的构件
+                enabled，是否支持更新
+                updatePolicy，构件更新的策略，可选值有daily, always, never, interval:X(其中的X是一个数字，表示间隔的时间，单位min)，默认为daily
+                checksumPolicy，校验码异常的策略，可选值有ignore, fail, warn
+                layout，在Maven 2/3中都是default，只有在Maven 1.x中才是legacy 
+                -->
+<!--            <releases>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--                <checksumPolicy>warn</checksumPolicy>-->
+<!--            </releases>-->
+<!--            <snapshots>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--                <checksumPolicy>warn</checksumPolicy>-->
+<!--            </snapshots>-->
+        </repository>
+        <repository>
+            <id>snapshots</id>
+            <url>http://10.10.18.116:8081/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+    
+    <!-- pluginRepositories中的repository是以pluginRepository表示的，它表示插件从什么库地址下载。 -->
+</project>
+```
+
+### dependencyManagement：
+为了项目的正确运行，必须让所有的子模块使用依赖项的统一版本，必须确保应用的各个项目的依赖项和版本一致，才能保证测试的和发布的是相同的结果。
+
+通过项目dependencyManagement元素来管理jar包的版本，让子项目中引用一个依赖而不用显示的列出版本号。
+
+Maven会沿着父子层次向上走，直到找到一个拥有dependencyManagement元素的项目，然后它就会使用在这个dependencyManagement元素中指定的版本号。
+
+
+### 聚合和继承父POM
+聚合 VS 继承父POM
+虽然聚合通常伴随着父POM的继承关系，但是这两者不是必须同时存在的。
+
+继承父POM是为了抽取统一的配置信息和依赖版本控制，方便子POM直接引用，简化子POM的配置。
+
+聚合（多模块）则是为了方便一组项目进行统一的操作而作为一个大的整体
+
+所以要真正根据这两者不同的作用来使用，不必为了聚合而继承同一个父POM，也不比为了继承父POM而设计成多模块。
+
+
+### 一方库、二方库、三方库说明：
+一方库：本工程中的各模块的相互依赖
+二方库：公司内部的依赖库，一般指公司内部的其他项目发布的jar包
+三方库：公司之外的开源库， 比如apache、ibm、google等发布的依赖
 
 ---
 

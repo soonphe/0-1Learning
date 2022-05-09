@@ -10,23 +10,27 @@
 ### 简介：
 Kafka是最初由Linkedin公司开发，用scala语言编写的，是一个分布式、支持分区的（partition）、多副本的（replica），基于zookeeper协调的分布式消息系统。
 
+Kafka以集群的方式运行，天生就是分布式的，特色在于其负载均衡能力和处理性能、容错能力。
 
 ### kafka组成
-分布式（负载均衡提高处理性能和容错能力）
-* Kafka以集群的方式运行，可以由一个或多个kafka服务(server)组成，每个服务叫做一个broker. 生产者通过网络将消息发送到Kafka集群，集群向消费者提供消息。
-* 每个partition(分区)在Kafka集群的若干服务(server)中都有副本/备份，这样这些持有副本的服务可以共同处理数据和请求，副本数量是可以配置的。
-* 每个分区有一个leader服务器，若干个followers服务器，leader负责处理消息的读和写，followers则去复制leader，如果leader down了，followers中的一台则会自动成为leader。
-
 关键概念：
 1. 生产者Producer：将向Kafka topic发布消息的程序成为producers.
 2. 消费者Consumer：将订阅topics并消费消息的程序成为consumer.
-3. broker：此外kafka集群有多个kafka实例组成，每个实例(server)成为broker（中介）。
-4. Topic：消息的主题或分类，kafka对消息保存时根据Topic进行归类，每条消息都属于且只属于一个topic，生产者在发送消息时、消费者在接收消息时都必须指定消息的topic。一个topic中可以包含多个partition（分区）。
-5. Partition：可以理解为一个partition物理上对应一个文件夹。一个partition只分布于一个broker上（不考虑备份的情况下），每个partition都是一个有序队列，分为多个大小相等的segment（对用户透明）,每个segment对应一个文件，而segment文件由一条条不可变的记录组成（消息发出后就不可变更了），这里面的数据记录就是生产者发送的消息内容。
-补充：
-每个 topic 可以划分多个分区（每个 Topic 至少有一个分区），同一 topic 下的不同分区包含的消息是不同的。
-每个消息在被添加到分区时，都会被分配一个 offset（称之为偏移量），它是消息在此分区中的唯一编号，kafka 通过 offset保证消息在分区内的顺序，offset 的顺序不跨分区，即 kafka只保证在同一个分区内的消息是有序的
+3. broker：由一个或多个kafka服务(server)组成，每个服务叫做一个broker. 生产者通过网络将消息发送到Kafka集群，集群向消费者提供消息。
+4. Topic：消息的主题或分类，kafka对消息保存时根据Topic进行归类，每条消息都属于且只属于一个topic，
+   - 生产者在发送消息时、消费者在接收消息时都必须指定消息的topic。
+   - 一个topic中可以包含多个partition（每个 Topic 至少有一个分区），同一 topic 下的不同分区包含的消息是不同的。
+   - 为Topic创建分区时，分区数最好是broker数量的整数倍，这样才能是一个Topic的分区均匀的分布在整个Kafka集群中，如果不是整数倍，会造成分步不均匀的问题
+5. Partition：
+   - 每个partition(分区)在Kafka集群的若干服务(server)中都有副本/备份，这样这些持有副本的服务可以共同处理数据和请求，副本数量是可以配置的。
+   - 每个分区有一个leader服务器，若干个followers服务器，leader负责处理消息的读和写，followers则去复制leader，如果leader down了，followers中的一台则会自动成为leader。
+   - 可以理解为一个partition物理上对应一个文件夹。
+   - 一个partition只分布于一个broker上（不考虑备份的情况下），每个partition都是一个有序队列，分为多个大小相等的segment（对用户透明）,每个segment对应一个文件，而segment文件由一条条不可变的记录组成（消息发出后就不可变更了），这里面的数据记录就是生产者发送的消息内容。
+   - 每个消息在被添加到分区时，都会被分配一个 offset（称之为偏移量），它是消息在此分区中的唯一编号，kafka 通过 offset保证消息在分区内的顺序，offset 的顺序不跨分区，即 kafka只保证在同一个分区内的消息是有序的
+   - 默认情况下，Kafka根据传递消息的key来进行分区的分配，即hash(key) % numPartitions，这就保证了相同key的消息一定会被路由到相同的分区。
+   - 如果没有指定key，Kafka几乎就是随机找一个分区发送无key的消息，然后把这个分区号加入到缓存中以备后面直接使用——当然了，Kafka本身也会清空该缓存（默认每10分钟或每次请求topic元数据时）
 
+- 补充：
 无论是kafka集群，还是producer和consumer都依赖于zookeeper来保证系统可用性，zookeeper保存kafka集群的meta（元数据）信息（broker/consumer）。
 
 ![alt text](../static/middleware/kafka.png )
@@ -242,18 +246,24 @@ Producer使用push模式将消息发布到broker，Consumer使用pull模式从br
 
 
 ### Kafka中是怎么体现消息顺序性的？
-kafka每个partition中的消息在写入时都是有序的，
+kafka每个partition中的消息在写入时都是有序的。
+
 消费时，每个partition只能被每一个group中的一个consumer消费，不能投递给同组内两个consumer，只是同组内的consumer却可以消费多个partition。
 
 Kafka只能保证一个分区之内消息的有序性，在不同的分区之间是不可以的，这已经可以满足大部分应用的需求。
-如果需要整个topic中所有消息的有序性，那就只能让这个topic只有一个分区，即将partition调整为1，当然也就只有一个consumer组消费它。
 
-然后生产者可以设定一个key，同一个key的可以发送到同一个partition中，这样同一个key的消息在partition中是保序；
-
+如果需要整个topic中所有消息的有序性，有两种方案：
+- 让这个topic只有一个分区，即将partition调整为1，当然也就只有一个consumer组消费它。
+- 生产者可以设定一个key，同一个key的可以发送到同一个partition中，这样同一个key的消息在partition中是保序；
 
 如果kafka在消费端开启多线程,也会出现乱序。
 解决方案：
 可以在消费端加队列，按照业务保序增加内存队列，这样队列中的消息与partition中顺序是一致的，然后多线程从队列中取数据，每次取一个完整顺序的消息进行处理即可。
+
+### kafka是怎么保证消息写入是有序的，即顺序落盘的
+不保证全局有序，只保证partition级别的有序性。
+
+因为是采用尾插法添加消息到分区的。
 
 
 ### 消费者提交消费位移时提交的是当前消费到的最新消息的offset还是offset+1?

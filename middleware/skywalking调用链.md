@@ -5,45 +5,7 @@
 ![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## APM
-APM （Application Performance Management）是对企业的应用系统进行实时监控，它是用于实现对应用程序性能管理和故障管理的系统化的解决方案。
-
-### APM主要解决的问题：
-- 集中式度量系统
-- 分布式全链接追踪系统
-- 集中式日志系统（elk）
-
-### 分布式调用追踪（APM）一览
-1. google的Drapper--未开源，最早的APM
-2. 阿里-鹰眼--未开源
-3. 大众点评——CAT--跨服务的跟踪功能与点评内部的RPC框架集成，这部分未开源且项目在2014.1已经停止维护。服务粒度的监控，通过代码埋点的方式来实现监控，比如： 拦截器，注解，过滤器等，对代码的侵入性较大，集成成本较高。
-4. Hydra-京东: 与dubbo框架集成，对于服务级别的跟踪统计，现有业务可以无缝接入。对于细粒度的兴趣点，需要业务人员手动添加.开源项目已于2013年6月停止维护
-5. PinPoint-naver，字节码探针技术，代码无侵入，体系完善不易修改，支持java,技术栈支持dubbo.其他语言社区支援中
-6. zipkin--java方便集成于springcloud，社区支持的插件也包括dubbo,rabbit,mysql,httpclient等(https://github.com/openzipkin/brave/tree/master/instrumentation)，同时支持php,go,js等语言客户端，界面功能较为简单，本身无告警功能，可能需要二次开发。代码入侵度小。
-7. uber-jaeger， Jaeger支持java/c++/go/node/php，在界面上较为完善（对比zipkin），但是也无告警功能。代码入侵度小。dubbo目前无插件支持，可二次开发。
-8. skywalking -华为，类似于PinPoint，目前还在apache孵化中，网上吞吐量对比中强于pinpoint,实际未验证。本身支持dubbo
-
-### 方案对比
-
-| |pinpoint| zipkin| jaeger |skywalking|
-|---|---|---|---|---|
-|OpenTracing兼容| 否| 是| 是| 是|
-|客户端支持语言 |java、php| java,c#,go,php等| java,c#,go,php等| Java, .NET Core, NodeJS and PHP|
-|存储| hbase| ES，mysql,Cassandra,内存| ES，kafka,Cassandra,内存| ES，H2,mysql,TIDB,sharding sphere|
-|传输协议支持| thrift| http,MQ| udp/http| gRPC|
-|ui丰富程度| 高| 低| 中| 中|
-|实现方式-代码侵入性| 字节码注入，无侵入| 拦截请求，侵入| 拦截请求，侵入| 字节码注入，无侵入|
-|扩展性| 低 |高 |高| 中|
-|trace查询| 不支持| 支持 |支持| 支持|
-|告警支持| 支持| 不支持 |不支持| 支持|
-|jvm监控| 支持| 不支持 |不支持| 支持|
-|性能损失| 高| 中| 中| 低|
-
-
----
-
-
-### skywalking
+## skywalking
 官网下载地址：https://skywalking.apache.org/downloads/
 国内镜像地址：https://mirrors.tuna.tsinghua.edu.cn/apache/skywalking/8.6.0/apache-skywalking-apm-es7-8.6.0.tar.gz
 github地址：https://github.com/apache/skywalking

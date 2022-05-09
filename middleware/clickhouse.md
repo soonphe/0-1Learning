@@ -6,6 +6,8 @@
 
 
 ## clickhouse
+ClickHouse 是俄罗斯的Yandex(类似于百度等在我们国家的地位)于2016年开源的列式存储数据库（DBMS），主要用于在线分析处理查询（OLAP），能够使用SQL查询实时生成分析数据报告(优势:快))。
+
 
 ### 使用docker安装clickhouse
 - 拉取clickhouse-server镜像

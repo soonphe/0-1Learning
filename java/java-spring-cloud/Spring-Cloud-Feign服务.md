@@ -70,18 +70,225 @@
 
 ### 配置文件
 如果不配置，就会使用默认的配置
-```
+```yml
+# 默认为所有的feign client做配置
 feign:
   client:
-    config:                                         
-    # 默认为所有的feign client做配置(注意和上例github-client是同级的)
-      default:                                      
-        connectTimeout: 5000                        # 连接超时时间
+    config:
+      default:
+        connectTimeout: 5000                        # 连接超时时间  默认的连接时间为10s，读取时间为60s，也可以通过重写FeignClient的config配置类文件的Options方法进行配置
         readTimeout: 5000                           # 读超时时间设置
-  # hystrix:
-  #  enabled: true  # 为全局，为所有的hystrix禁用。
+  okhttp:
+    enabled: true   # 默认使用httpClient，也可以使用OkHttp client 作为客户端
+#  hystrix:
+#    enabled: true  # 全局开启feign的fallback功能
+  httpclient:
+    max-connections: 300            # 连接池中最大连接数，默认为200，按需配置。
+    max-connections-per-route: 60   # 每个route最大并发数，默认50，按需配置。
+  compression:
+    request:
+      enabled: true     # 请求压缩，默认关闭，开启时，默认请求内容大于2M时进行压缩，与feign.compression.request.min-request-size配合使用。
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000  #默认hystrix处理超时时长
 ```
 
+其他配置说明：
+```yml
+
+feign: 
+  client: 
+    config: 
+      feignName: 
+        connectTimeout: 5000   # 连接超时时间  默认的连接时间为10s，读取时间为60s，也可以通过重写FeignClient的config配置类文件的Options方法进行配置
+        readTimeout: 5000      # 读取超时时间
+        loggerLevel: full      # 日志等级
+        retryer: com.example.SimpleRetryer # 重试
+        requestInterceptors[0]: com.example.FooRequestInterceptor  # 拦截器
+        requestInterceptors[1]: com.example.BarRequestInterceptor
+        encoder: com.example.SimpleEncoder     # 编码器
+        decoder: com.example.SimpleDecoder     # 解码器
+        contract: com.example.SimpleContract   # 契约
+```
+
+#### 日志配置
+有时候我们遇到 Bug，比如接口调用失败、参数没收到等问题，或者想看看调用性能，就需要配置 Feign 的日志了，以此让 Feign 把请求信息输出来。
+
+首先定义一个配置类，代码如下所示。
+```java
+@Configuration
+public class FeignConfiguration {
+    /**
+     * 日志级别
+     *
+     * @return
+     */
+    @Bean
+    Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
+    }
+}
+```
+通过源码可以看到日志等级有 4 种，分别是：
+- NONE：不输出日志。
+- BASIC：只输出请求方法的 URL 和响应的状态码以及接口执行的时间。
+- HEADERS：将 BASIC 信息和请求头信息输出。
+- FULL：输出完整的请求信息。
+
+配置类建好后，我们需要在 Feign Client 中的 @FeignClient 注解中指定使用的配置类，代码如下所示。
+```java
+@FeignClient(value = "eureka-client-user-service", configuration = FeignConfiguration. class)
+public interface UserRemoteClient {
+  // ...
+}
+```
+在配置文件中执行 Client 的日志级别才能正常输出日志，格式是“logging.level.client 类地址=级别”。
+```
+logging.level.net.biancheng.feign_demo.remote.UserRemoteClient=DEBUG
+```
+
+#### 超时时间配置
+通过 Options 可以配置连接超时时间和读取超时时间（代码如下所示），Options 的第一个参数是连接超时时间（ms），默认值是 10×1000；第二个是取超时时间（ms），默认值是 60×1000。
+
+```java
+@Configuration
+public class FeignConfiguration {
+    @Bean
+    public Request.Options options() {
+        return new Request.Options(5000, 10000);
+    }
+}
+```
+
+#### 客户端组件配置
+Feign 中默认使用 JDK 原生的 URLConnection 发送 HTTP 请求，我们可以集成别的组件来替换掉 URLConnection，比如 Apache HttpClient，OkHttp。
+
+配置 OkHttp 只需要加入 OkHttp 的依赖，代码如下所示。（最新版本已经自带okhttp依赖，直接配置启用就可以了）
+```
+<dependency>
+  <groupId>io.github.openfeign</groupId>
+  <artifactId>feign-okhttp</artifactId>
+</dependency>
+```
+然后修改配置，将 Feign 的 HttpClient 禁用，启用 OkHttp，配置如下：
+```
+#feign 使用 okhttp
+feign.httpclient.enabled=false
+feign.okhttp.enabled=true
+```
+
+源码中默认使用httpclient，就是通过@ConditionalOnProperty注解配置的：
+参见`FeignAutoConfiguration`类：
+```
+@ConditionalOnProperty(value = "feign.httpclient.enabled", matchIfMissing = true)
+	protected static class HttpClientFeignConfiguration {
+
+...
+
+@ConditionalOnProperty("feign.okhttp.enabled")
+	protected static class OkHttpFeignConfiguration {
+```
+
+#### Feign重试机制配置
+feign本身也有重试机制，底层通过Retryer类实现逻辑：
+```java
+public interface Retryer extends Cloneable {
+
+  /**
+   * if retry is permitted, return (possibly after sleeping). Otherwise propagate the exception.
+   */
+  void continueOrPropagate(RetryableException e);
+
+  Retryer clone();
+
+  class Default implements Retryer {
+
+    private final int maxAttempts;
+    private final long period;
+    private final long maxPeriod;
+    int attempt;
+    long sleptForMillis;
+
+    public Default() {
+      this(100, SECONDS.toMillis(1), 5);
+    }
+
+    public Default(long period, long maxPeriod, int maxAttempts) {
+      this.period = period;
+      this.maxPeriod = maxPeriod;
+      this.maxAttempts = maxAttempts;
+      this.attempt = 1;
+    }
+
+    // visible for testing;
+    protected long currentTimeMillis() {
+      return System.currentTimeMillis();
+    }
+
+    public void continueOrPropagate(RetryableException e) {
+      if (attempt++ >= maxAttempts) {
+        throw e;
+      }
+
+      long interval;
+      if (e.retryAfter() != null) {
+        interval = e.retryAfter().getTime() - currentTimeMillis();
+        if (interval > maxPeriod) {
+          interval = maxPeriod;
+        }
+        if (interval < 0) {
+          return;
+        }
+      } else {
+        interval = nextMaxInterval();
+      }
+      try {
+        Thread.sleep(interval);
+      } catch (InterruptedException ignored) {
+        Thread.currentThread().interrupt();
+        throw e;
+      }
+      sleptForMillis += interval;
+    }
+
+    /**
+     * Calculates the time interval to a retry attempt. <br>
+     * The interval increases exponentially with each attempt, at a rate of nextInterval *= 1.5
+     * (where 1.5 is the backoff factor), to the maximum interval.
+     *
+     * @return time in nanoseconds from now until the next attempt.
+     */
+    long nextMaxInterval() {
+      long interval = (long) (period * Math.pow(1.5, attempt - 1));
+      return interval > maxPeriod ? maxPeriod : interval;
+    }
+
+    @Override
+    public Retryer clone() {
+      return new Default(period, maxPeriod, maxAttempts);
+    }
+  }
+}
+```
+默认是重试5次，每次重试间隔100ms，最大重试间隔不超过1s
+可以通过在FeignClient的config配置类中重写Retryer方法，修改Feign的重试方法和间隔时间
+period重试间隔时间ms，maxPeriod最大重试间隔时间ms，maxAttempts最大重试次数（包含第一次请求，即重试次数=maxAttempts-1）
+
+```
+	@Bean
+    public Retryer feignRetryer() {
+        return new Retryer.Default(period, maxPeriod, maxAttempts);
+    }
+```
+feign的重试机制相对来说比较鸡肋，使用Feign 的时候一般会关闭该功能。Ribbon的重试机制默认配置为0，也就是默认是去除重试机制的。
+
+
+---
 
 ### 启用Feign服务流程
 
