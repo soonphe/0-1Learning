@@ -7,8 +7,19 @@
 
 ## Jenkins
 Jenkins是一个开源软件项目，是基于Java开发的一种持续集成工具，用于监控持续重复的工作，旨在提供一个开放易用的软件平台，使软件项目可以进行持续集成. 
+官网：https://www.jenkins.io/zh/
+文档地址：https://www.jenkins.io/zh/doc/
 
 ### 安装部署
+基于brew安装jenkins环境
+```
+安装最新的 LTS 版本： brew install jenkins-lts
+安装特定的 LTS 版本： brew install jenkins-lts@YOUR_VERSION
+启动Jenkins服务：brew services start jenkins-lts
+重启Jenkins服务：brew services restart jenkins-lts
+更新 Jenkins 版本： brew upgrade jenkins-lts
+```
+
 基于Docker安装Jenkins环境
 ```
 docker search jenkins
@@ -35,7 +46,7 @@ systemctl restart  docker    #重启容器
 4. 安装所需的插件（EDAS、Git、Gitlab、NodeJS、Pipeline、Publish Over SSH、SSH plugin、SSH Agent）
 5. 创建第一个管理员用户
 
-### 手动安装
+### 手动安装（不推荐）
 > 下载地址：https://jenkins.io/
 
 **rpm安装：**
@@ -274,11 +285,46 @@ tar -zxvf timber.tar.gz
 
 
 ### 常见问题解析
-- shell脚本执行nohup java -jar 失败，手动执行脚本成功 
+
+#### shell脚本执行nohup java -jar 失败，手动执行脚本成功 
 解决：可能是java环境变量在当前用户找不到，shell脚本添加source /etc/profile
 
 
+#### 解决“Jenkins 主机密钥验证失败”
+1. ssh-keygen命令生成公钥私钥
+   2.去--> cat /var/lib/jenkins/.ssh/id_rsa.pub 从 id_rsa.pub 复制密钥（也可以使用scp命令）
+   3.文本复制
+   ssh登录目标服务器：ssh -l root 192.168.161.168
+   touch /root/.ssh/authorized_keys
+   vi .ssh/authorized_keys  粘贴复制的密钥
 
+4.scp复制
+scp复制公钥：scp /root/.ssh/id_rsa.pub root@192.168.1.181:/root/.ssh/authorized_keys
+由于还没有免密码登录的，所以要输入一次B机的root密码。
+
+5.修改权限
+需要特别注意的是：B主机的.ssh文件的所有者要是root，如果不是要改：
+chown -R root:root .ssh
+同时，B主机的authorized_keys文件，要是600权限的，如果不是，也要改：
+chmod 600 authorized_keys
+如果执行权限不够报错：-bash: ./startup.sh: 权限不够
+使用：chmod u+x *
+
+6.手动登录mercurial服务器
+注意：请手动登录，否则 jenkins 会再次报错“主机验证失败”
+ssh -l root 192.168.1.181
+
+#### jenkins打包vue 全局工具中找不到node版本
+解决办法
+去官网找个文件 （文末带百度云共享文件 2018年12月22日10:20:07）
+
+hudson.plugins.nodejs.tools.NodeJSInstaller
+
+这个文件就是nodejs文件版本信息文件
+
+放在jenkins 的目录下 /var/jenkins_home/updates
+
+docker cp ./hudson.plugins.nodejs.tools.NodeJSInstaller jenkins:/var/jenkins_home/updates
 
 
 

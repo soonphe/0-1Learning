@@ -431,6 +431,32 @@ Maven会沿着父子层次向上走，直到找到一个拥有dependencyManageme
 二方库：公司内部的依赖库，一般指公司内部的其他项目发布的jar包
 三方库：公司之外的开源库， 比如apache、ibm、google等发布的依赖
 
+
+### spring-boot-maven-plugin打两个包jar/exec.jar
+参考文档：https://blog.csdn.net/guduyishuai/article/details/60968728
+
+一、spring-boot-maven-plugin打包出来的jar是不可依赖的
+
+     比如我有一个root工程，type为pom，下面两个spring-boot工程作为它的module，分别为moduleA和moduleB。假如moduleA依赖于moduleB。如果你在moduleB中使用了spring-boot-maven-plugin的默认配置build，或者在root中使用spring-boot-maven-plugin的默认配置build。很遗憾，你在clean package的时候会发现moduleA找不到moduleB中的类。原因就是默认打包出来的jar是不可依赖的。
+
+     解决方案：
+
+    1、调整你的代码，把spring-boot的东西从moduleB中移走。官方文档是这样说的，但是大部分人不会
+
+          这么干吧。
+
+    2、官方告诉我们，你如果不想移代码，好吧，我这样来给你解决，给你打两个jar包，一个用来直接执
+
+          行，一个用来依赖。于是，你需要指定一个属性classifier，这个属性为可执行jar包的名字后缀。比
+
+          如我设置<classifier>exec</classifier>，原项目名为Vehicle-business。
+
+          那么我会得到两个jar：Vehicle-business.jar和Vehicle-bussiness-exec.jar
+
+     官方文档位置：84.5 Use a Spring Boot application as a dependency
+
+    总结：回到聚合maven上，如果你在root工程中使用了spring-boot-maven-plugin作为builder，那么你的依赖module一定要用解决方案二来设置。否则你不在root工程中用spring-boot-maven-plugin作为builder，而在需要打包的module上使用。
+
 ---
 
 ### Nexus接入：

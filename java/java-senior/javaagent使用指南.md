@@ -19,6 +19,12 @@ premain 方法，从字面上理解，就是运行在 main 函数之前的的类
 
 当Java 虚拟机启动时，在执行 main 函数之前，JVM 会先运行-javaagent所指定 jar 包内 Premain-Class 这个类的 premain 方法 。
 
+### 为什么选择javaagent，而不是Aop
+Spring AOP 是基于反射实现的，植入点必须是Bean，且仅支持方法拦截，无论是性能还是功能明显不如 Agent 字节码植入。
+
+AOP局限太多，MQ、ES、Redis、Mongo等怎么做？本地缓存、跨线程？并且推进难度也很大，如果是全链路压测，涉及到的应用起码有大几十个，还有各种历史包袱，各种版本的jar包，业务系统本身有开发任务，升级jar包、配合调试的意愿非常低。
+
+
 ### Javaagent介绍
 在命令行输入 java可以看到相应的参数，其中有 和 java agent相关的：
 ```

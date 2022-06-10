@@ -140,3 +140,200 @@ Error Console::Logger: This is an error information.
 File::Logger: This is an error information.
 Standard Console::Logger: This is an error information.
 ```
+
+### 责任链实现：
+
+虚拟类AbstractOrderFilter判断责任链Seletor处理（doFilter，handle）
+DefaultFilterChain责任链判断实现
+
+1.FilterChain责任链接口
+```
+//OrderFilter作为业务处理
+public interface OrderFilter<T extends OrderContext> {
+  void doFilter(T var1, OrderFilterChain var2);
+}
+
+//OrderFilterChain责任链式处理
+public interface OrderFilterChain<T extends OrderContext> {
+  void handle(T var1);
+
+  void fireNext(T var1);
+}
+```
+2.实现责任链接口
+```
+public class DefaultFilterChain<T extends OrderContext> implements OrderFilterChain<T> {
+  //下一个filterChain引用
+  private OrderFilterChain<T> next;
+  //filter业务处理
+  private OrderFilter<T> filter;
+
+  public DefaultFilterChain(OrderFilterChain chain, OrderFilter filter) {
+    this.next = chain;
+    this.filter = filter;
+  }
+
+  public void handle(T context) {
+    this.filter.doFilter(context, this);
+  }
+
+  public void fireNext(T ctx) {
+    OrderFilterChain nextChain = this.next;
+    if (Objects.nonNull(nextChain)) {
+      nextChain.handle(ctx);
+    }
+
+  }
+}
+```
+3.责任链初始化
+```
+//第一种形式使用Pipline链式添加
+public class FilterChainPipeline<T extends OrderFilter> {
+  private DefaultFilterChain last;
+
+  public FilterChainPipeline() {
+  }
+
+  public DefaultFilterChain getFilterChain() {
+    return this.last;
+  }
+
+  public FilterChainPipeline addFilter(T filter) {
+    DefaultFilterChain newChain = new DefaultFilterChain(this.last, filter);
+    this.last = newChain;
+    return this;
+  }
+
+  public FilterChainPipeline addFilter(String desc, T filter) {
+    DefaultFilterChain newChain = new DefaultFilterChain(this.last, filter);
+    this.last = newChain;
+    return this;
+  }
+}
+//添加引用pipline
+FilterChainPipeline pipeline = new FilterChainPipeline();
+pipeline.addFilter("创建订单附表", orderExtensionAuthFilter(syncService, meterRegistry))
+	.addFilter...
+return new IotCuoHePreAuthProvider(pipeline.getFilterChain(), iotCuoHeAuthReqConverter,
+	producerServer, redisServer);
+
+//第二种形式
+//1.直接使用filterChain链式添加
+FilterChain filterChain7=new DefaultFilterChain(null, orderExtensionAuthFilter);
+FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuthFilter);
+return new IotCuoHePreAuthProvider(filterChain1, iotCuoHeAuthReqConverter, producerServer, redisServer);
+
+```
+4. 添加seletor选择执行责任链
+```
+//Filter选择器
+public interface FilterSelector {
+  //匹配Filter
+  boolean matchFilter(String var1);
+
+  List<String> getFilterNames();
+}
+
+//Filter选择器实现
+public class LocalListBasedFilterSelector implements FilterSelector {
+  private List<String> filterNames = Lists.newArrayList();
+
+  public LocalListBasedFilterSelector() {
+  }
+
+  public boolean matchFilter(String classSimpleName) {
+    return this.filterNames.stream().anyMatch((s) -> {
+      return Objects.equals(s, classSimpleName);
+    });
+  }
+
+  public List<String> getFilterNames() {
+    return this.filterNames;
+  }
+
+  public void addFilter(String clsNames) {
+    this.filterNames.add(clsNames);
+  }
+}
+
+//实际业务使用
+public class FeeItemDomainService {
+
+  private final FilterChainPipeline orderFilterChainPipeline;
+
+  public FeeItemDomainService(
+      FilterChainPipeline orderFilterChainPipeline) {
+    this.orderFilterChainPipeline = orderFilterChainPipeline;
+  }
+
+  /**
+   * 构造context对象
+   * 
+   * @param request
+   * @return
+   */
+  public FeeItemResult getFeeItemResult(OrderCreateRequest request){
+    CalculateContext calculateContext = new CalculateContext(BizEnum.OVER_TIME_ORDER,feeFilter(),request);
+    orderFilterChainPipeline.getFilterChain().handle(calculateContext);
+    return calculateContext.getFeeItemResult();
+  }
+
+  /**
+   * 构造filter选择器
+   *
+   * @param request
+   * @return
+   */
+  private LocalListBasedFilterSelector feeFilter(){
+    LocalListBasedFilterSelector selector = new LocalListBasedFilterSelector();
+    selector.addFilter(OverTimeFeeItemCalculateFilter.class.getSimpleName());
+    selector.addFilter(RequestSaveFilter.class.getSimpleName());
+    return selector;
+  }
+
+}
+```
+5. context对象
+```
+//通用Context对象
+public interface OrderContext {
+  BizEnum getBizCode();
+
+  FilterSelector getFilterSelector();
+
+  List<String> getDynamicCloseFilters();
+}
+
+public abstract class AbstractOrderContext implements OrderContext {
+  private final BizEnum bizEnum;
+  private final FilterSelector selector;
+
+  public AbstractOrderContext(BizEnum bizEnum, FilterSelector selector) {
+    this.bizEnum = bizEnum;
+    this.selector = selector;
+  }
+
+  public BizEnum getBizCode() {
+    return this.bizEnum;
+  }
+
+  public FilterSelector getFilterSelector() {
+    return this.selector;
+  }
+}
+```
+
+### Spring中的责任链
+参考文档：https://blog.csdn.net/ljw761123096/article/details/79591133
+
+#### DispatcherServlet
+DispatcherServlet是Spring MVC的核心，处理请求的主要逻辑在方法doDispatch(request, response):
+通过doDispatch(request, response)源码，我们可以清晰看到拦截器和controler具体实现原理和流程：
+1）、获取HandlerExecutionChain，HandlerExecutionChain是对Controller和它的Interceptors的进行了包装。
+2）、获取HandlerAdapter，即Handler对应的适配器。
+3）、执行拦截器preHandle() 方法
+4）、由HandlerAdapter的handle方法执行Controller的handleRequest,并且返回一个ModelAndView
+5）、执行拦截器postHandle方法
+6）、执行ModelAndView的render(mv, request, response)方法把合适的视图展现给用户;
+7）、执行拦截器afterCompletion() 方法

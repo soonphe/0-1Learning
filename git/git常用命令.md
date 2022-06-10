@@ -152,6 +152,14 @@ git push origin master
 打开github看一下，target目录是不是没有提交了！ 
 如果想把target目录以后都不用提交，可以作如下
 
+### git提交PR
+1. fork别人仓库
+2. clone自己的仓库到本地，并与两个远程仓库分别建立链接;
+3. 将修改提交到自己的远程仓库;
+4. 别的仓库中点击Pull Requests，再点击New pull requests按钮;
+5. Comparing changes界面，Compare需要注意。
+6. 填写相关信息，在点击Create pull request按钮即可。
+
 
 ### merge和rebase的区别
 先说一下：merge和rebase都是合并分支

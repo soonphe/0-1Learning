@@ -38,6 +38,8 @@ MQ 的内核为由阿里巴巴集团捐赠给Apache基金会的顶级项目Rocke
 - 如果您的应用有跨地域使用消息队列RocketMQ版的场景，推荐您使用HTTP协议。
 
 ### 使用HTTP协议的SDK收发消息集成
+参考文档：https://help.aliyun.com/document_detail/44711.html?spm=a2c4g.11186623.6.599.372a35e8LQkvOK
+
 1. 开通消息队列服务并授权（略）
 2. 创建资源实例（根据地域选择创建）
 3. 创建topic（普通消息）

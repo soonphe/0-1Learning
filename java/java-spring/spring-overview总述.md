@@ -95,3 +95,170 @@ public class NacosListener implements ApplicationListener<ApplicationReadyEvent>
         System.out.println("加载onWebServerReady");
     }
 ```
+
+
+
+### Spring JdbcTemplate 方法详解
+JdbcTemplate主要提供以下五类方法：
+- execute方法：可以用于执行任何SQL语句，一般用于执行DDL语句；
+- update方法及batchUpdate方法：update方法用于执行新增、修改、删除等语句；batchUpdate方法用于执行批处理相关语句；
+- query方法及queryForXXX方法：用于执行查询相关语句；
+- call方法：用于执行存储过程、函数相关语句。
+
+JdbcTemplate类支持的回调类：
+预编译语句及存储过程创建回调：用于根据JdbcTemplate提供的连接创建相应的语句；
+PreparedStatementCreator：通过回调获取JdbcTemplate提供的Connection，由用户使用该Conncetion创建相关的PreparedStatement；
+CallableStatementCreator：通过回调获取JdbcTemplate提供的Connection，由用户使用该Conncetion创建相关的CallableStatement；
+预编译语句设值回调：用于给预编译语句相应参数设值；
+PreparedStatementSetter：通过回调获取JdbcTemplate提供的PreparedStatement，由用户来对相应的预编译语句相应参数设值；
+BatchPreparedStatementSetter：；类似于PreparedStatementSetter，但用于批处理，需要指定批处理大小；
+自定义功能回调：提供给用户一个扩展点，用户可以在指定类型的扩展点执行任何数量需要的操作；
+ConnectionCallback：通过回调获取JdbcTemplate提供的Connection，用户可在该Connection执行任何数量的操作；
+StatementCallback：通过回调获取JdbcTemplate提供的Statement，用户可以在该Statement执行任何数量的操作；
+PreparedStatementCallback：通过回调获取JdbcTemplate提供的PreparedStatement，用户可以在该PreparedStatement执行任何数量的操作；
+CallableStatementCallback：通过回调获取JdbcTemplate提供的CallableStatement，用户可以在该CallableStatement执行任何数量的操作；
+结果集处理回调：通过回调处理ResultSet或将ResultSet转换为需要的形式；
+RowMapper：用于将结果集每行数据转换为需要的类型，用户需实现方法mapRow(ResultSet rs, int rowNum)来完成将每行数据转换为相应的类型。
+RowCallbackHandler：用于处理ResultSet的每一行结果，用户需实现方法processRow(ResultSet rs)来完成处理，在该回调方法中无需执行rs.next()，该操作由JdbcTemplate来执行，用户只需按行获取数据然后处理即可。
+ResultSetExtractor：用于结果集数据提取，用户需实现方法extractData(ResultSet rs)来处理结果集，用户必须处理整个结果集；
+
+
+
+### Spring FactoryBean和BeanFactory 区别
+1. BeanFactory 是ioc容器的底层实现接口，是顶层容器（根容器），不能被实例化，不允许我们直接操作 BeanFactory bean工厂，它定义了所有 IoC 容器 必须遵从 的⼀套原则，具体的容器实现可以增加额外的功能。
+
+   BeanFactory 接口又衍生出以下接口
+  - ApplicationContext，ApplicationContext包含BeanFactory的所有功能,同时还进行更多的扩展，
+    - ClassPathXmlApplicationContext 包含了解析 xml 等⼀系列的内容
+    - AnnotationConfigApplicationContext 则是包含了注解解析等⼀系列的内容。Spring IoC 容器继承体系
+
+2. FactoryBean 是spirng提供的工厂bean的一个接口
+   FactoryBean 接口提供三个方法，用来创建对象。
+   FactoryBean 具体返回的对象是由getObject 方法决定的。
+```
+public interface FactoryBean<T> {
+
+	//创建的具体bean对象的类型
+	@Nullable
+	T getObject() throws Exception;
+
+	//工厂bean 具体创建具体对象是由此getObject()方法来返回的
+	@Nullable
+	Class<?> getObjectType();
+	
+ 	//是否单例
+	default boolean isSingleton() {
+		return true;
+	}
+
+}
+```
+
+
+### Java8之Consumer、Supplier、Predicate和Function
+
+这几个接口都在 java.util.function 包下的，分别是
+- Consumer<T>（消费型）
+
+  Consumer<T>接口就是一个消费型的接口，实现 accept 的方法，T：入参类型；没有出参。
+  ```
+  Consumer<String> consumer = new Consumer<String>() {
+	
+                @Override
+                public void accept(String s) {
+                    System.out.println(s);
+                }
+            };
+    //lambda表达式
+	Consumer<String> consumer1 = (s) -> System.out.println(s);//lambda表达式返回的就是一个Consumer接口
+  ```
+
+- Supplier<T>（供给型）
+
+  Supplier<T> 接口是一个供给型的接口，实现 get 方法。T：出参类型；没有入参。可以用来存储数据，然后可以供其他方法使用的这么一个接口
+  ```
+  Supplier<Integer> supplier = () -> new Random().nextInt();
+  ```
+
+- Predicate<T>（谓词型）
+
+  Predicate<T> 接口是一个谓词型接口，实现一个 test 方法。T：入参类型；出参类型是Boolean。作用：类似于 bool 类型的判断的接口。
+  ```
+  Predicate<Integer> predicate = (t) -> t > 5;
+  ```
+
+- Function<T, R> （功能性）
+
+  Function<T, R>  接口是一个功能型接口，实现 apply 方法。T：入参类型，R：出参类型。作用：将输入数据转换成另一种形式的输出数据。
+  ```
+  Function<String, Integer> function = new Function<String, Integer>() {
+            @Override
+            public Integer apply(String s) {
+                return s.length();//获取每个字符串的长度，并且返回
+            }
+        };
+  
+  ```
+
+### <? extends U> 和 <? super U>的区别：
+- <? super U> ：规定元素的最小粒度下限，不影响往里存，但往外取只能放在Object对象里，如Number super Integer。
+```
+Box<? super RedApple> box3 = new Box<Fruit>();
+```
+
+- <? extends U>：规定元素的最大粒度上限，不影响取，存只能存指定类型的变量，如：Integer extends Number。
+```
+Box<? extends Food> box1 = new Box<Fruit>();
+Box<? extends Food> box2 = new Box<Meat>();
+```
+
+### CompletableFuture
+使用Future获得异步执行结果时，要么调用阻塞方法get()，要么轮询看isDone()是否为true，这两种方法都不是很好，因为主线程也会被迫等待。
+
+从Java 8开始引入了CompletableFuture，它针对Future做了改进，可以传入回调对象，当异步任务完成或者发生异常时，自动调用回调对象的回调方法。
+
+
+### 反射操作如何得到对象、方法、参数
+- 反射获取对象
+```
+//注意，要传完整类名，如：com.soonphe.timber.hello.Helloworld
+Class cls = Class.forName("完整类名");
+Object yourObj = cls.newInstance();
+```
+- 反射获取方法
+```
+Method methlist[] = cls.getDeclaredMethods();
+for (int i = 0; i < methlist.length; i++) {
+	Method m = methlist[i];
+}
+```
+- 反射调用方法并参数
+```
+//获取到方法对象,假设方法的参数是一个int,method名为setAge
+Method sAge = cls.getMethod("setAge", new Class[] {int.class});
+//构造参数Object
+Object[] arguments = new Object[] { new Integer(37)};
+//执行方法
+sAge.invoke(yourObj , arguments);
+```
+
+
+### 反射时getConstructor()与getDeclaredConstructor()方法的区别及setAccessible()方法的作用
+```
+	@Test
+	void testName() throws Exception {
+		HelloWorld world=null;
+		String className="hello.HelloWorld";
+		Constructor con=Class.forName(className).getConstructor();
+		//设置不检查是否可以访问
+		con.setAccessible(true);
+		Object obj=con.newInstance();
+		world=(HelloWorld) obj;
+		world.sayHello();
+	}
+```
+**getConstructor()** 和 **getDeclaredConstructor()** 的作用：获取类的构造器
+
+不同点：
+- Class类的getConstructor()方法,无论是否设置setAccessible(),都不可获取到类的私有构造器.
+- Class类的getDeclaredConstructor()方法,可获取到类的私有构造器(包括带有其他修饰符的构造器），但在使用private的构造器时，必须设置setAccessible()为true,才可以获取并操作该Constructor对象。
