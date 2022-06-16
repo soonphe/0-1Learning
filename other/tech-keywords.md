@@ -30,7 +30,7 @@ Github排行榜：https://www.githubs.cn/top
 - web API支持：swagger2
 - RPC解析：fastjson
 - 日志工具：logback
-- alibab微服务组件：dubbo，Nacos：服务发现，配置管理 seata：分布式事务 Sentinel：熔断降级
+- alibaba微服务组件：dubbo，Nacos：服务发现，配置管理 seata：分布式事务 Sentinel：熔断降级
 - springcloud微服务组件：gateway网关 eureka服务发现 feign服务调用 ribbon hystrix断路器  config配置中心
 - 异步Nio框架：netty(封装Java nio api)    Mina
 

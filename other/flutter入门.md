@@ -1,3 +1,9 @@
+# 0-1Learning
+
+![alt text](../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../static/common/svg/luoxiaosheng_wechat.svg "微信")
+
 
 ### 1.安装
 #### 选择安装 Flutter 的操作系统：
@@ -5,6 +11,7 @@
 * macOS
 * Linux
 * Chrome OS
+
 这里选择macOS作为示例
 https://flutterchina.club/setup-macos/
 
@@ -20,6 +27,7 @@ https://flutterchina.club/setup-macos/
 https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.2.3-stable.zip
 
 对于其他发布渠道和旧版本，请参阅 SDK 发布页面
+
 2. 在所需位置提取文件，例如：
 ```
  cd ~/development
@@ -58,8 +66,12 @@ export PATH="$PATH:[PATH_OF_FLUTTER_GIT_DIRECTORY]/bin"
       visit https://flutter.dev/setup/#android-setup for detailed instructions.
 ```
 
+3. ios需要特别设置：brew安装flutter工具
 
-3.ios需要特别设置：brew安装flutter工具
+4. flutter 更新版本
+```
+$ flutter upgrade
+```
 
 ### 2.设置编辑器
 安装 Android Studio
@@ -68,22 +80,19 @@ Android Studio, version 3.0 or later
 
 安装 Flutter 和 Dart 插件（安装说明因平台而异。）
 
-Mac
-对 macos 使用以下说明：
-1. Start Android Studio.
-2. Open plugin preferences (Preferences > Plugins as of v3.6.3.0 or later).
-3. Select the Flutter plugin and click Install.
-4. Click Yes when prompted to install the Dart plugin.
-5. Click Restart when prompted.
+要安装这些:
+1. 启动Android Studio.
+2. 打开插件首选项 (Preferences>Plugins on macOS, File>Settings>Plugins on Windows & Linux).
+3. 选择 Browse repositories…, 选择 Flutter 插件并点击 install.
+4. 重启Android Studio后插件生效.
 
-### 3. 试驾
+### 3. 体验
 创建应用程序
-Open the IDE and select Create New Flutter Project.
-Select Flutter Application as the project type. Then click Next.
-Verify the Flutter SDK path specifies the SDK’s location (select Install SDK… if the text field is blank).
-Enter a project name (for example, myapp). Then click Next.
-Click Finish.
-Wait for Android Studio to install the SDK and create the project.
+1. 选择 File>New Flutter Project
+2. 选择 Flutter application 作为 project 类型, 然后点击 Next
+3. 输入项目名称 (如 myapp), 然后点击 Next
+4. 点击 Finish
+5. 等待Android Studio安装SDK并创建项目.
 
 运行应用程序
 1. 找到主 Android Studio 工具栏：
