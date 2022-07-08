@@ -37,8 +37,8 @@ destroy-method="close" 是指bean被销毁时执行的方法   Spring容器关�
 ### @Component默认是单例还是多例？
 @Component注解默认实例化的对象是单例，如果想声明成多例对象可以使用@Scope("prototype")
 @Repository默认单例
-@Service默认单例
-@Controller默认多例
+@Service默认单例（注解由@Component组成）
+@Controller默认单例（注解就是由@Component组成） 
 
 ### SpringMVC 默认创建 Bean 是单例的，在高并发情况下是如何保证性能的？
 spring中的bean默认是单例的，通常对单例进行多线程访问时，为了线程安全而采用同步机制，以时间换空间的方式，而Spring中是利用ThreadLocal来以空间换取时间，为每一个线程提供变量副本，来保证变量副本对于某一线程都是线程安全的。

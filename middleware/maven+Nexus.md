@@ -81,7 +81,9 @@ Maven install 安装指令，其做了两件事情：
  <build>
    <resources>
     <resource>
+      <!-- 文件夹名称 -->
       <directory>lib</directory>
+      <!-- 模板输出路径，spring为WEB-INF目录，spring-boot为BOOT-INF -->
       <targetPath>/BOOT-INF/lib/</targetPath>
       <includes>
         <include>**/*.jar</include>
@@ -261,6 +263,7 @@ pom文件基础结构
         
         <!-- 资源管理 -->
         <resources>
+            <!-- 这里的resource可以配多个 -->
             <resource>
                 <!-- 描述了资源的目标输出路径。该路径是相对于target/classes的路径 -->
                 <!-- 如果是想要把资源直接放在target/classes下，不需要配置该元素 -->

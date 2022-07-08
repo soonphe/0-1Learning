@@ -162,15 +162,19 @@ git push origin master
 
 
 ### merge和rebase的区别
-先说一下：merge和rebase都是合并分支
+merge和rebase都是合并分支
 
-Merge：合并，分支就不存在了，但是在Git的所有分支历史中还能看到身影
-git checkout bugfix; 切换到bugfix分支，
-git merge master：因为master继承自bugfix，git就会直接将bugfix指向master所指向的提交记录
+- Merge：合并，会把公共分支和你当前的commit 合并在一起，形成一个新的 commit 提交，这个提交会有一个新的ID，成为目标分支的最新提交
+git checkout master; 切换分支，
+git merge bugfix：合并bugfix分支，同时生成一条merge的记录
 
-Rebase：所有的分支依然存在
+- Rebase：所有的分支依然存在，将当前分支的 commit 放到目标分支的最后面,所以叫变基。就好像你从公共分支又重新拉出来这个分支一样。
 git rebase 实际上就是取出一系列的提交记录，“复制”它们，然后在另外一个地方逐个的放下去（更加线性化）
 git rebase master：假如当前分支在bugfix上，命令后，bugfix在master的顶端，
+
+优缺点对比：
+- merge合并分支操作简单，但不够整洁
+- rebase合并分支后更加整洁，由于父节点改变，每次提交都需要解决一次冲突，因此会大大增加分支合并的难度。
 
 
 ### github上的.gitignore和.gitattributes这两个文件区别：

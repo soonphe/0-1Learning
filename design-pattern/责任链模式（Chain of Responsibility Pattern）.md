@@ -142,118 +142,210 @@ Standard Console::Logger: This is an error information.
 ```
 
 ### 责任链实现：
-
+步骤如下：
+1. 分别定义不同的业务放在Filter中实现
+2. 定义pipline去编排Filter该如何执行
+3. 定义上下文对象context用于保存入参、过程值、出参
+4. 
 虚拟类AbstractOrderFilter判断责任链Seletor处理（doFilter，handle）
 DefaultFilterChain责任链判断实现
 
-1.FilterChain责任链接口
+#### 1. FilterChain责任链接口（用于处理所有的业务）
 ```
-//OrderFilter作为业务处理
-public interface OrderFilter<T extends OrderContext> {
-  void doFilter(T var1, OrderFilterChain var2);
-}
+public interface IFilter<T extends IFilterContext> {
 
-//OrderFilterChain责任链式处理
-public interface OrderFilterChain<T extends OrderContext> {
-  void handle(T var1);
-
-  void fireNext(T var1);
+  /**
+   * Filter 唯一方法,执行过滤器任务
+   * @param context Filter上下文对象
+   */
+  FilterHandleResultEnum doFilter(T context);
 }
 ```
-2.实现责任链接口
-```
-public class DefaultFilterChain<T extends OrderContext> implements OrderFilterChain<T> {
-  //下一个filterChain引用
-  private OrderFilterChain<T> next;
-  //filter业务处理
-  private OrderFilter<T> filter;
 
-  public DefaultFilterChain(OrderFilterChain chain, OrderFilter filter) {
+#### 2. FilterChainNode链式接口实现（用于控制所有的业务执行）
+
+```
+public interface IFilterChainNode<T extends IFilterContext> {
+
+  /**
+   * 业务逻辑处理
+   * @param context Filter上下文对象
+   */
+  void handle(T context);
+
+  /**
+   * 执行下一个Filter
+   * @param context Filter上下文对象
+   */
+  void handleNext(T context);
+
+}
+```
+
+链式接口默认实现方案：Filter放入节点中，每个节点都有指向下一个节点FilterChainNode
+- 这里的handler方法判断了selector，用于选择是否执行当期那Filter
+- 同时判断了Filter的返回值，用于选择是否继续链式执行或者跳出当前执行链。（如果不需要返回值也可以去掉）
+```
+/**
+ * Filter Chain 链式接口默认实现
+ *
+ * @author soonphe
+ * @since 1.0
+ */
+public class DefaultFilterChainNode<T extends IFilterContext> implements IFilterChainNode<T>{
+
+  /**
+   * chain名称
+   */
+  String chainName = "";
+  /**
+   * Filter Chain 下一个节点
+   */
+  private IFilterChainNode<T> next;
+  /**
+   * Filter Chain 当前接口节点Filter对象
+   */
+  private IFilter<T> filter;
+
+  public DefaultFilterChainNode(IFilterChainNode chain, IFilter filter){
     this.next = chain;
     this.filter = filter;
   }
 
-  public void handle(T context) {
-    this.filter.doFilter(context, this);
+  public DefaultFilterChainNode(String chainName, IFilterChainNode chain, IFilter filter){
+    this.chainName = chainName;
+    this.next = chain;
+    this.filter = filter;
   }
 
-  public void fireNext(T ctx) {
-    OrderFilterChain nextChain = this.next;
-    if (Objects.nonNull(nextChain)) {
+  public void setChainName(String name){
+    this.chainName = name;
+  }
+
+  public String getChainName(){
+    return this.chainName;
+  }
+
+  @Override
+  public void handle(T context) {
+    FilterHandleResultEnum resultEnum = FILTER_HANDLE_RESULT_FAIL;
+    if(context.getFilterSelector().matchFilter(this.filter.getClass().getSimpleName())) {
+      resultEnum = filter.doFilter(context);
+    }else{
+      resultEnum = FILTER_HANDLE_RESULT_NOT_MATCH;
+      context.getNotMatchSuccessFilters().add(this.filter.getClass().getSimpleName());
+    }
+    if (FILTER_HANDLE_RESULT_SUCCESS.getCode().equals(resultEnum.getCode())){
+      context.getExecutedSuccessFilters().add(this.filter.getClass().getSimpleName());
+    }
+    if (FILTER_HANDLE_RESULT_FAIL.getCode().equals(resultEnum.getCode())){
+      context.getExecutedFailFilters().add(this.filter.getClass().getSimpleName());
+    }
+    if(!FILTER_HANDLE_RESULT_BREAK_CHAIN.getCode().equals(resultEnum.getCode())){
+      this.handleNext(context);
+    }
+  }
+
+  @Override
+  public void handleNext(T ctx) {
+    IFilterChainNode nextChain = this.next;
+    if(Objects.nonNull(nextChain)){
       nextChain.handle(ctx);
     }
-
   }
 }
 ```
-3.责任链初始化
-```
-//第一种形式使用Pipline链式添加
-public class FilterChainPipeline<T extends OrderFilter> {
-  private DefaultFilterChain last;
+#### 3. pipline（用于编排Filter业务）
+```java
+public class FilterChainPipeline<T extends IFilter> {
 
-  public FilterChainPipeline() {
+  public DefaultFilterChainNode getFilterChain() {
+    return last;
   }
 
-  public DefaultFilterChain getFilterChain() {
-    return this.last;
-  }
+  private DefaultFilterChainNode last;
 
+  /**
+   * Filter Chain 添加Filter
+   * @param filter filter对象
+   * @return
+   */
   public FilterChainPipeline addFilter(T filter) {
-    DefaultFilterChain newChain = new DefaultFilterChain(this.last, filter);
-    this.last = newChain;
+    DefaultFilterChainNode newChain = new DefaultFilterChainNode(last, filter);
+    last = newChain;
     return this;
   }
 
+  /**
+   * Filter Chain 添加Filter
+   * @param desc filter描述
+   * @param filter filter对象
+   * @return
+   */
   public FilterChainPipeline addFilter(String desc, T filter) {
-    DefaultFilterChain newChain = new DefaultFilterChain(this.last, filter);
-    this.last = newChain;
+    DefaultFilterChainNode newChain = new DefaultFilterChainNode(desc, last, filter);
+    last = newChain;
     return this;
   }
+
 }
-//添加引用pipline
-FilterChainPipeline pipeline = new FilterChainPipeline();
-pipeline.addFilter("创建订单附表", orderExtensionAuthFilter(syncService, meterRegistry))
-	.addFilter...
-return new IotCuoHePreAuthProvider(pipeline.getFilterChain(), iotCuoHeAuthReqConverter,
-	producerServer, redisServer);
-
-//第二种形式
-//1.直接使用filterChain链式添加
-FilterChain filterChain7=new DefaultFilterChain(null, orderExtensionAuthFilter);
-FilterChain filterChain6=new DefaultFilterChain(filterChain7, orderExtensionAuthFilter);
-return new IotCuoHePreAuthProvider(filterChain1, iotCuoHeAuthReqConverter, producerServer, redisServer);
-
 ```
-4. 添加seletor选择执行责任链
-```
-//Filter选择器
-public interface FilterSelector {
-  //匹配Filter
-  boolean matchFilter(String var1);
 
+#### 4. 构造seletor选择执行责任链（可选）
+```
+public interface IFilterSelector {
+
+  /**
+   * filter 匹配
+   * @param currentFilterName
+   * @return
+   */
+  boolean matchFilter(String currentFilterName);
+
+  /**
+   * 获取所有的filterNames
+   * @return
+   */
   List<String> getFilterNames();
+
 }
 
-//Filter选择器实现
-public class LocalListBasedFilterSelector implements FilterSelector {
-  private List<String> filterNames = Lists.newArrayList();
+public class DefaultFilterSelector implements IFilterSelector{
 
-  public LocalListBasedFilterSelector() {
-  }
+  /**
+   * Filter名称List
+   */
+  private List<String> filterNames = new ArrayList<>();
 
+  @Override
   public boolean matchFilter(String classSimpleName) {
-    return this.filterNames.stream().anyMatch((s) -> {
-      return Objects.equals(s, classSimpleName);
-    });
+    if (Objects.nonNull(filterNames)||filterNames.size()>0){
+      return filterNames.stream().anyMatch(s -> Objects.equals(s,classSimpleName));
+    }
+    return true;
   }
 
+  @Override
   public List<String> getFilterNames() {
-    return this.filterNames;
+    return filterNames;
   }
 
-  public void addFilter(String clsNames) {
-    this.filterNames.add(clsNames);
+  public void addFilter(String clsNames){
+    filterNames.add(clsNames);
+  }
+
+  public void addFilters(List<String> filterNames){
+    filterNames.addAll(filterNames);
+  }
+
+  public DefaultFilterSelector(){}
+
+  /**
+   * 需要实例化，传入list以实例化Selector选择器
+   * @param filterNames
+   */
+  public DefaultFilterSelector(List<String> filterNames){
+    this.filterNames = filterNames;
   }
 }
 
@@ -294,33 +386,251 @@ public class FeeItemDomainService {
 
 }
 ```
-5. context对象
+
+#### 5. context对象
 ```
-//通用Context对象
-public interface OrderContext {
-  BizEnum getBizCode();
+public interface IFilterContext {
 
-  FilterSelector getFilterSelector();
+  /**
+   * 获取过滤器选择器
+   * @return
+   */
+  IFilterSelector getFilterSelector();
 
-  List<String> getDynamicCloseFilters();
+  /**
+   * 获取chain执行成功的Filter Name list
+   * @return
+   */
+  List<String> getExecutedSuccessFilters();
+
+  /**
+   * 获取chain执行失败的Filter Name list
+   * @return
+   */
+  List<String> getExecutedFailFilters();
+
+  /**
+   * 获取chain执行不满足条件的Filter Name list
+   * @return
+   */
+  List<String> getNotMatchSuccessFilters();
+
+
+
 }
 
-public abstract class AbstractOrderContext implements OrderContext {
-  private final BizEnum bizEnum;
-  private final FilterSelector selector;
+public abstract class AbstractFilterContext implements IFilterContext {
 
-  public AbstractOrderContext(BizEnum bizEnum, FilterSelector selector) {
-    this.bizEnum = bizEnum;
+  /**
+   * Selector选择执行Filter对象
+   */
+  private IFilterSelector selector;
+  /**
+   * 执行成功Filter对象
+   */
+  private List<String> successFilters;
+  /**
+   * 不满足执行条件Filter对象
+   */
+  private List<String> notMatchFilters;
+  /**
+   * 执行失败Filter对象
+   */
+  private List<String> failFilters;
+
+  public AbstractFilterContext(IFilterSelector selector) {
     this.selector = selector;
+    this.successFilters = new ArrayList<>();
+    this.failFilters = new ArrayList<>();
+    this.notMatchFilters = new ArrayList<>();
   }
 
-  public BizEnum getBizCode() {
-    return this.bizEnum;
+  @Override
+  public IFilterSelector getFilterSelector() {
+    return selector;
   }
 
-  public FilterSelector getFilterSelector() {
-    return this.selector;
+  public void setFilterSelector(IFilterSelector filterSelector) {
+    this.selector = filterSelector;
   }
+
+  @Override
+  public List<String> getExecutedSuccessFilters(){
+    return successFilters;
+  }
+
+  @Override
+  public List<String> getExecutedFailFilters(){
+    return failFilters;
+  }
+
+  @Override
+  public List<String> getNotMatchSuccessFilters(){
+    return notMatchFilters;
+  }
+}
+
+```
+
+#### 6. provider对象
+```
+public interface IProvider {
+
+  /**
+   * 执行filter
+   * @param context 上下文对象
+   */
+  AbstractFilterContext handleFilter(AbstractFilterContext context);
+
+  /**
+   * 执行filter
+   * @param context 上下文对象
+   * @param filterChainPipeline pipline
+   * @return
+   */
+  AbstractFilterContext handleFilter(AbstractFilterContext context, FilterChainPipeline filterChainPipeline);
+
+  /**
+   * 执行filter
+   * @param context 上下文对象
+   * @param filterChainPipeline pipline
+   * @param selector selector
+   * @return
+   */
+  AbstractFilterContext handleFilter(AbstractFilterContext context, FilterChainPipeline filterChainPipeline, DefaultFilterSelector selector);
+
+
+}
+
+
+public class DefaultProvider implements IProvider{
+
+  private final FilterChainPipeline pipeline;
+
+  public DefaultProvider() {
+    this.pipeline = null;
+  }
+
+  public DefaultProvider(FilterChainPipeline pipeline) {
+    this.pipeline = pipeline;
+  }
+
+  @Override
+  public AbstractFilterContext handleFilter(AbstractFilterContext context){
+    if (Objects.nonNull(pipeline)){
+      pipeline.getFilterChain().handle(context);
+    }
+    return context;
+  }
+
+  @Override
+  public AbstractFilterContext handleFilter(AbstractFilterContext context, FilterChainPipeline filterChainPipeline){
+    filterChainPipeline.getFilterChain().handle(context);
+    return context;
+  }
+
+  @Override
+  public AbstractFilterContext handleFilter(AbstractFilterContext context, FilterChainPipeline filterChainPipeline, DefaultFilterSelector selector){
+    context.setFilterSelector(selector);
+    filterChainPipeline.getFilterChain().handle(context);
+    return context;
+  }
+
+}
+```
+
+#### 7. 责任链初始化
+```
+  public FilterChainPipeline getFilterChainPipeline() {
+    FilterChainPipeline filterChainPipeline = new FilterChainPipeline();
+    // TODO: 添加filter
+    filterChainPipeline.addFilter("ONE", new OneFilter());
+    filterChainPipeline.addFilter("TWO", new TwoFilter());
+    filterChainPipeline.addFilter("THREE",new ThreeFilter());
+    return filterChainPipeline;
+  }
+```
+补充：也可以使用new方法添加，添加对应的ChainNode放入pipline中
+
+#### 8. 执行责任链
+```
+  public void testProvider(){
+    List<String> filterNames = new ArrayList<>();
+    filterNames.add("OneFilter");
+//    filterNames.add("TwoFilter");
+    filterNames.add("ThreeFilter");
+    // 1.构造selector
+    DefaultFilterSelector defaultFilterSelector = new DefaultFilterSelector(filterNames);
+    // 2.构造context
+    TestFilterContext testFilterContext = new TestFilterContext(BizEnum.BIZ_ENUM_ONE, defaultFilterSelector);
+    // 3.构造pipline
+    FilterChainPipeline filterChainPipeline = new TestPipeline().getFilterChainPipeline();
+    // 4.构造provider（无参/有参构造）
+    DefaultProvider defaultProvider = new DefaultProvider();
+    // 5.执行pipline
+    AbstractFilterContext abstractFilterContext = defaultProvider.handleFilter(testFilterContext, filterChainPipeline);
+
+    System.out.println("All:" + abstractFilterContext.getFilterSelector().getFilterNames().size());
+    System.out.println("Success:" + abstractFilterContext.getExecutedSuccessFilters().size());
+    System.out.println("Fail:" + abstractFilterContext.getExecutedFailFilters().size());
+
+  }
+```
+
+### 简单的链式编程
+这个例子也是一种责任链思路
+```
+public interface Flow<I, O> {
+
+    O execute(I input);
+
+}
+
+public interface Stage<I,O,C> {
+
+    void process(Pipeline<I, O, C> pipeline);
+
+}
+
+@Order(1)
+@Component
+public class AStage implements Stage<Request, Response, Context> {
+
+    @Override
+    public void process(Pipeline<Request, Response, Context> pipeline) {
+        System.out.println("A stage execute...");
+    }
+}
+
+@Order(2)
+@Component
+public class BStage implements Stage<Request, Response, Context> {
+
+    @Override
+    public void process(Pipeline<Request, Response, Context> pipeline) {
+        System.out.println("B stage execute...");
+    }
+}
+
+@Component
+public class OrderService implements Flow<Request, Response> {
+
+    @Resource
+    private List<Stage<Request, Response, Context>> stageList;
+
+    @Override
+    public Response execute(Request input) {
+        Pipeline<Request, Response, Context> pipeline = new Pipeline<>();
+        pipeline.setParam(input);
+        pipeline.setContext(new Context());
+        pipeline.setResult(new Response());
+
+        for (Stage<Request, Response, Context> stage : stageList) {
+            stage.process(pipeline);
+        }
+
+        return pipeline.getResult();
+    }
 }
 ```
 
