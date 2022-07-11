@@ -277,6 +277,28 @@ jdk1.9 默认垃圾收集器G1
 #### 怎么打破双亲委派模型？
 * 打破双亲委派机制则不仅要继承ClassLoader类，还要重写loadClass和findClass方法。
 
+
+#### 学jvm的时候遇到一个问题。双亲委派模式是为了搜索类，但是为什么jdbc加载的时候，要破坏这个模式呢？
+
+DriverManager的类位于jre/lib/rt.jar下，是由启动类加载器Bootstrap Classloader加载。
+但是它的实现类是放在classpath目录下的，也就是说它的实现类需要通过应用加载器App Classloader来加载。
+在JVM中有一条隐含的规则，默认情况下，如果一个类由类加载器A加载，那么这个类的依赖类也是由相同的类加载器加载。
+因而，加载DriverManager类的Bootstrap Classloader是无法加载到classpath目录下DriverManager的实现类的。
+因此，在加载DriverManager的类同时，需要通过App Classloader去加载其实现类，这样就打破了双亲委派机制。
+
+双亲委派模型很好的解决了各个类记载器的基础类统一问题（越基础的类由越上层的类加载器加载）。双亲委派是做类的分级加载，理论上类的依赖关系也是按分级从下到上。
+启动类加载器作为应用程序类加载器的上级，启动类加载器加载的类 对应用程序类加载器是可见的。
+然而应用程序类加载器加载的类对启动类加载器却是不可见的。
+
+jdbc是ext依赖app的实现，需要逆向的查找接口实现，需要打破模型。这也是为什么SPI破坏了双亲委派模型，也有了种说法：spi就是妥协的产物.
+Java的类加载器结构：Bootstrap ClassLoader > Extension ClassLoader > Application ClassLoader
+
+根据可见性原则，java.sql.DriverManager是启动类加载器负责的，启动类加载器加载的 DriverManager 是不可能拿到系统应用类加载器加载的实现类(也就是spi的实现类)。
+
+App Classloader加载器如何获得？于是，ThreadContext Classloader线程上下文加载器登场了，它其实是一种类加载器传递机制。
+因为这个类加载器保存在线程私有数据里，只要是同一个线程，一旦设置了线程上下文加载器，在线程后续执行过程中就能把这个类加载器取出来用。
+
+
 #### 反射机制
 * 反射技术：其实就是动态加载一个指定的类，并获取该类中所有的内容。并将字节码文件中的内容都封装成对象，这样便于操作这些成员。简单说：反射技术可以对一个类进行解剖。
 * 反射的好处：大大增强了程序的扩展性。
