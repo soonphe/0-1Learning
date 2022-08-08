@@ -576,7 +576,7 @@ public class JobMain {
     }
     
     private static JobConfiguration createJobConfiguration() {
-        JobConfiguration jobConfiguration = JobConfiguration.newBuilder("test", 2)
+        JobConfiguration jobConfiguration = JobConfiguration.newBuilder("test.md", 2)
                                 .jobListenerTypes("simpleListener", "distributeListener").build();
     }
 }

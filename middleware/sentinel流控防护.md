@@ -125,7 +125,7 @@ public class TestService {
 
     // 这里单独演示 blockHandlerClass 的配置.
     // 对应的 `handleException` 函数需要位于 `ExceptionUtil` 类中，并且必须为 public static 函数.
-    @SentinelResource(value = "test", blockHandler = "handleException", blockHandlerClass = {ExceptionUtil.class})
+    @SentinelResource(value = "test.md", blockHandler = "handleException", blockHandlerClass = {ExceptionUtil.class})
     public void test() {
         System.out.println("Test");
     }

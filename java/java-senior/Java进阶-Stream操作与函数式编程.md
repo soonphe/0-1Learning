@@ -157,11 +157,51 @@ Map<Long, UmsPermission> permissionMap = permissionList.stream()
 ```
 转换加去重：
 ```
-List<PrincipalDTO>list1=list.stream()
-.map(e->newPrincipalDTO(e.getUserId(),e.getUserName()))
-.distinct()
-.collect(Collectors.collectingAndThen(Collectors.toCollection(()->newTreeSet<>(Comparator.comparing(b->b.getId()))),ArrayList::new));
+List<PrincipalDTO> list = list.stream()
+    .map(e->newPrincipalDTO(e.getUserId(), e.getUserName()))
+    .distinct()
+    .collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(b -> b.getId()))), ArrayList::new));
 ```
+collectingAndThen()根据属性进行去重的操作，进行结果集的收集，收集到结果集之后再进行下一步的处理。操作中还用到了toCollection、TreeSet两个操作。
+```
+public static<T,A,R,RR> Collector<T,A,RR> collectingAndThen(Collector<T,A,R> downstream,
+                                                                Function<R,RR> finisher)
+```
+
+
+collectingAndThen参数有两个:
+- 第一个参数是Collector的子类，所以Collectors类中的大多数方法都能使用，Collectors.toCollection是Collectors通用的方法，其他类似方法还有：toList(),toSet(),toMap()等。去重的关键是使用了TreeSet作为结构体收集集合，同时传入Comparator.comparing比较器，根据某个属性进行比较去重校验。
+- 第二个参数是一个Function函数，用到的ArrayList::new调用到了ArrayList的有参构造。 Function函数是R apply(T t)，在第一个参数downstream放在第二个参数Function函数的参数里面，将结果设置为t。
+
+补充说明：
+set三个子类的底层其实都是Map的。我们也知道Map是key-value键值对出现的。
+```
+    public TreeSet(Comparator<? super E> comparator) {
+        this(new TreeMap<>(comparator));
+    }
+```
+set添加方法是set.add(“xxx”)。参数只有一个，不是键值对的，那么底层Map怎么存储的呢？
+
+从源码中，我们可以看到，把传递的参数作为key处理的。那么，value又是什么呢？
+```
+    // Dummy value to associate with an Object in the backing Map
+    private static final Object PRESENT = new Object();
+
+    ...
+
+    public boolean add(E e) {
+        return m.put(e, PRESENT)==null;
+    }
+```
+其实就是new了个object对象。
+
+问题来了：set为什么不能不能存放重复值，而list就可以了呢？
+
+从上面add的源码中，我们可以看出，add的数据是作为map的key来存放的。在Map中，Key是不能重复的。所以，set里面的数据不能有重复的
+
+TreeMap在添加时，如果指定的元素尚不存在，则将其添加到此集合中。如果该集合已包含该元素，则调用将保持该集合不变并返回 false。
+
+Hashmap在添加时，将指定的值与此映射中的指定键相关联。如果映射先前包含键的映射，则替换旧值。
 
 #### 分组获取
 Collectors.groupingBy根据一个或多个属性对集合中的项目进行分组。

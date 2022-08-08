@@ -143,8 +143,9 @@ pom文件基础结构
         <!--被继承的父项目的版本 -->
         <version>2.3.0.RELEASE</version>
 
-        <!-- 父项目的pom.xml文件的相对路径,默认值是../pom.xml。 -->
-        <!-- 寻找父项目的pom：构建当前项目的地方--)relativePath指定的位置--)本地仓库--)远程仓库 -->
+        <!-- 父项目的pom.xml文件的相对路径,默认值是../pom.xml。表示将始终从父级仓库中获取，不从本地路径获取 -->
+        <!-- 查找顺序为：构建当前项目的地方--)relativePath指定的位置--)本地仓库--)远程仓库 -->
+        <!-- 如果默认../pom.xml 没找到父元素的pom，会去本地仓库进行查找，如果本地找不到，会去远程仓库找，如果远程仓库也没有 ，不配置 relativePath 指向父项目的pom则会报错 -->
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -182,7 +183,7 @@ pom文件基础结构
             <!--依赖范围。在项目发布过程中，帮助决定哪些构件被包括进来
                 - compile：默认范围，用于编译;影响编译，测试，运行阶段  - provided：类似于编译，但支持jdk或者容器提供，类似于classpath，它只影响到编译，测试阶段
                 - runtime: 在执行时需要使用;    - systemPath: 仅用于范围为system。提供相应的路径 
-                - test: 用于test任务时使用;    - system: 需要外在提供相应的元素。通过systemPath来取得 
+                - test.md: 用于test任务时使用;    - system: 需要外在提供相应的元素。通过systemPath来取得 
                 - optional: 当项目自身被依赖时，标注依赖是否传递。用于连续依赖时使用 -->
             <scope>test</scope>
             <!-- 该元素为依赖规定了文件系统上的路径。仅供scope设置system时使用。但是不推荐使用这个元素 -->

@@ -40,7 +40,7 @@ function ajax(type, url, data) {
 }
 
 // 虽然 ajax 这个函数非常通用，但在重复调用的时候参数冗余
-ajax('POST', 'www.test.com', "name=kevin")
+ajax('POST', 'www.test.md.com', "name=kevin")
 ajax('POST', 'www.test2.com', "name=kevin")
 ajax('POST', 'www.test3.com', "name=kevin")
 
@@ -49,10 +49,10 @@ var ajaxCurry = curry(ajax);
 
 // 以 POST 类型请求数据
 var post = ajaxCurry('POST');
-post('www.test.com', "name=kevin");
+post('www.test.md.com', "name=kevin");
 
-// 以 POST 类型请求来自于 www.test.com 的数据
-var postFromTest = post('www.test.com');
+// 以 POST 类型请求来自于 www.test.md.com 的数据
+var postFromTest = post('www.test.md.com');
 postFromTest("name=kevin");
 ```
 

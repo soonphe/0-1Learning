@@ -128,7 +128,7 @@ public class EventHandler {
     }
 
     public void eventPost(){
-        eventBus.post("test");
+        eventBus.post("test.md");
         log.info("post event");
     }
 }

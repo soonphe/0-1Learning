@@ -7,7 +7,7 @@
 
 ## Java常用注解
 
-## 依赖注入方式
+### 依赖注入方式
     依赖注入的方式：  
     1.constructor-arg：通过构造函数注入。   
     2.property：通过setxx方法注入。
@@ -38,14 +38,33 @@ spring-boot支持mybatis组件的一个注解，通过此注解指定mybatis接�
 * @ImportResource @Import @PropertySource 
 资源导入注解，这三个注解都是用来导入自定义的一些配置文件。
 
+- @Required：注解检查 但他只检查属性是否已经设置而不会测试属性是否非空
+- @Primary：优先加载
+- @Qualifier：注入bean时，以变量名为为beanName进行查找
 
-* 补充：
-* @Autowired 与@Resource的区别：
+#### @Autowired实现原理
+简单来说：重点讲几个方面
+- 反射：java的注解实现的核心技术是反射。
+- @Autowired注解用途：应用于构造函数，@Autowired默认根据类型注入，通过类型装配，如果集合是一个的话，就是这个了，如果多个，根据name再过滤一次，如果没匹配就抛异常了，spring是多个bean可以是同一个类，但是名字不能相同。
+- ioc部分内容（这部分太长省略了）
+- jvm虚拟机栈和虚拟机使用到的本地方法栈
+
+IOC重点：
+- Spring对autowire注解的实现逻辑位于：后置处理器AutowiredAnnotationBeanPostProcessor，基本上所有spring的特性都是由相应的后置处理器实现的。
+  - AutowiredAnnotationBeanPostProcessor中的方法：postProcessMergedBeanDefinition()方法会对标注了@Autowired进行预处理，然后调用postProcessProperties()进行注入，这里分两步，预处理和真正注入
+- getbean流程：
+  - 通过反射获取该类所有的字段，并遍历每一个字段，并通过方法findAutowiredAnnotation遍历每一个字段的所用注解，并如果用autowired修饰了，则返回auotowired相关属性，用@Autowired修饰的注解可能不止一个，因此都加在currElements这个容器里面，一起处理。有了目标类，与所有需要注入的元素集合之后，我们就可以实现autowired的依赖注入逻辑了
+  - 它调用的方法是InjectionMetadata中定义的inject方法(逻辑就是遍历，然后调用inject方法)
+  - inject也使用了反射技术并且依然是分成字段和方法去处理的。在代码里面也调用了makeAccessible这样的可以称之为暴力破解的方法，但是反射技术本就是为框架等用途设计的，这也无可厚非。
+  - 获取注入点：populateBean方法以及后续后置处理器的执行。中间夹杂着三级缓存一起说
+
+
+#### @Autowired 与@Resource的区别：
     1、 @Autowired与@Resource都可以用来装配bean.都可以写在字段上,或写在setter方法上。
     2、 @Autowired默认按类型装配
     3、 @Resource（这个注解属于J2EE的），默认安装名称进行装配
 
-* @Controller和@RestController的区别
+#### @Controller和@RestController的区别
 ~~~~
 官方文档：
 @RestController is a stereotype annotation that combines @ResponseBody and @Controller.
@@ -55,6 +74,15 @@ spring-boot支持mybatis组件的一个注解，通过此注解指定mybatis接�
 如果只是使用@RestController注解Controller，则Controller中的方法无法返回jsp页面，配置的视图解析器InternalResourceViewResolver不起作用，返回的内容就是Return 里的内容。
 例如：本来应该到success.jsp页面的，则其显示success.
 ~~~~
+
+#### @service，@component，@repository区别
+@component是通用性的注解，@service 和@repository则是在@component的基础上添加了特定的功能。
+
+所以@component可以替换为@service和@repository，但是为了规范，服务层bean用@service，dao层用@repository。就好比代码规范，变量、方法命名一样。还有一点，正如文档描述那样：
+
+@Repository的工作是捕获特定于平台的异常，并将它们作为Spring统一未检查异常的一部分重新抛出。为此，提供了PersistenceExceptionTranslationPostProcessor。
+
+如果在dao层使用@service，就不能达到这样的目的。
 
 
 
@@ -67,8 +95,6 @@ spring-boot支持mybatis组件的一个注解，通过此注解指定mybatis接�
 注：@Controller @Service @Repository是@Component的子注解
 自动装配原理：将META-INF/spring.factories里面配置的所有EnableAutoConfiguration的值加入溶氧仪
 ```
-
-### 类注解
 
 ### 属性注解
 * @DatetimeFormat是将String转换成Date，一般前台给后台传值时用

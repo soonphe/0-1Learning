@@ -146,12 +146,28 @@ Redis的PUSH/POP机制：利用的Redis的列表(lists)数据结构。
 
 4、GETSET key value：将给定 key 的值设为 value ，并返回 key 的旧值(old value)，key 不存在时，返回 null
 
+### Redis到底是多线程还是单线程？
 
-### 常见问题
-1.Redis从客户端登录服务器
+我们通常说的 Redis 单线程指的是「接收客户端请求->解析请求 ->进行数据读写等操作->发送数据给客户端」这个过程是由一个线程（主线程）来完成的，这也是我们常说 Redis 是单线程的原因。
+
+但是，Redis 程序并不是单线程的，Redis 在启动的时候，是会启动后台线程（BIO）的：
+
+Redis 在 2.6 版本，会启动 2 个后台线程，分别处理关闭文件、AOF 刷盘这两个任务；
+Redis 在 4.0 版本之后，新增了一个新的后台线程，用来异步释放 Redis 内存，也就是 lazyfree 线程。例如执行 unlink key / flushdb async / flushall async 等命令，会把这些删除操作交给后台线程来执行，好处是不会导致 Redis 主线程卡顿。因此，当我们要删除一个大 key 的时候，不要使用 del 命令删除，因为 del 是在主线程处理的，这样会导致 Redis 主线程卡顿，因此我们应该使用 unlink 命令来异步删除大key。
+
+之所以 Redis 为「关闭文件、AOF 刷盘、释放内存」这些任务创建单独的线程来处理，是因为这些任务的操作都是很耗时的，如果把这些任务都放在主线程来处理，那么 Redis 主线程就很容易发生阻塞，这样就无法处理后续的请求了。
+
+后台线程相当于一个消费者，生产者把耗时任务丢到任务队列中，消费者（BIO）不停轮询这个队列，拿出任务就去执行对应的方法即可。
+
+关闭文件、AOF 刷盘、释放内存这三个任务都有各自的任务队列：
+- BIO_CLOSE_FILE，关闭文件任务队列：当队列有任务后，后台线程会调用 close(fd) ，将文件关闭；
+- BIO_AOF_FSYNC，AOF刷盘任务队列：当 AOF 日志配置成 everysec 选项后，主线程会把 AOF 写日志操作封装成一个任务，也放到队列中。当发现队列有任务后，后台线程会调用 fsync(fd)，将 AOF 文件刷盘，
+- BIO_LAZY_FREE，lazy free 任务队列：当队列有任务后，后台线程会 free(obj) 释放对象 / free(dict) 删除数据库所有对象 / free(skiplist) 释放跳表对象；
+
+
+### Redis从客户端登录服务器
 本地客户端访问192.168.56.56远程数据库服务 (主机为 192.168.56.56，端口为 6379 ，密码为aabbcc 的 redis 服务上)
 [root@localhost src]# ./redis-cli -h  192.168.56.56 -p 6379 -a "aabbcc"
-
 
 注1：设置redis服务的密码，详见：http://blog.csdn.net/fly43108622/article/details/52972308
 
