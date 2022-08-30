@@ -4,9 +4,8 @@
   <img src="static/common/0-1Learning.png" width=1100 />
 </p>
 <p align="center">
-  <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI4MjM3MTA2Mw==#wechat_redirect"><img src="static/common/svg/luoxiaosheng.svg" alt="公众号" /></a>
-  <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="视频学习" /></a>
-  <a href="https://mp.weixin.qq.com/s/rmLxiBB1RYr6omVWQMGxpg"><img src="static/common/svg/luoxiaosheng_wechat.svg" alt="微信群" /></a>
+  <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI4MjM3MTA2Mw==#wechat_redirect"><img src="static/common/svg/luoxiaosheng.svg" alt="Wechat public account" /></a>
+  <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="video" /></a>
 </p>
 <div align="center">
   <h3>
@@ -25,37 +24,39 @@
     - [github](#github)
     - [Wechat public account](#Wechat public account)
 - [Where can you watch my videos for free](#Where can you watch my videos for free)
-    - [bilibili](#bilibili)
+  - [YouTube](#YouTube)
+  - [tiktok](#tiktok)
+  - [bilibili](#bilibili)
 - [Thanks for other people's open source projects](#Thanks for other people's open source projects)
 
 
 ## Project Introduction
 
-`0-1Learning` 项目致力于帮助开发者跨越外行到内行的技术屏障，实现 **0-1** 的技术突破。
+`0-1Learning` The project is committed to helping developers cross the technical barriers from layman to layman and achieve **0-1** technological breakthroughs.
 
 
 ### Highly available distributed system architecture
-分布式早已不是一个新鲜词汇了，一个成熟的分布式系统必然会涉及到高可用设计，在有限的资源情况下保证服务的高可用运行
+Distributed is no longer a new vocabulary. A mature distributed system will inevitably involve high-availability design to ensure high-availability of services under limited resources.
 
-如下，这些技术也许你已经不是很陌生，但也许你还是一个新手，还没接触过以下这些，那么请记住以下这些，以后免不了会打很多交道。
+As follows, these technologies may not be very unfamiliar to you, but maybe you are still a novice and have not been exposed to the following, so please remember the following, and you will inevitably have a lot of dealings in the future.
 
 ![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
 
-> 这张图基本涵盖了现阶段一个分布式系统所涉及的各个核心组件，对可拓展的组件也可以直接进行添加。图中只有一个组件的并不是指只有一个单节点，各组件可以单节点也可以组成集群对外提供服务。
+> This picture basically covers the core components involved in a distributed system at this stage, and the expandable components can also be directly added. The fact that there is only one component in the figure does not mean that there is only one single node. Each component can be a single node or a cluster to provide external services.
 
 
 ### System Technology Stack
 
 ![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
 
-> 本来还有画一个`学习路线图`（Learning roadmap），帮助新手朋友快速找到一条通往技术大神之路，想了想有些和技术栈重叠太多，索性就合二为一，路线图直接参照下图即可。
+> Originally, I also drew a `Learning roadmap` (Learning roadmap) to help novice friends quickly find a road to the technology god. After thinking about it, there is too much overlap with the technology stack, so I simply combined the two into one, and the roadmap is directly referred to. Just follow the picture below.
 
 
 ### Continuous delivery pipeline
 ![持续交付流水线图](static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
 
-> 比起一般的`项目开发流程图`千人前面，我觉得持续交付这张图更有意义，项目流程怎么开发，最终还是要落到人身上去实现，而人恰恰是不能当做一个稳定节点去进行计算的。
-> 对于持续开发交付，应该有这么样一个自动化的过程。在不断的需求迭代中，版本控制，做好持续集成赋能，自动打包和部署，环境初始化完成再分配，最后再形式一个可视化的操作面板，流程可控透明，直接呈现给用户。
+> Compared with the general `project development flow chart` in front of thousands of people, I think this picture of continuous delivery is more meaningful. How to develop the project process ultimately depends on people, and people can't be regarded as a stable node. computational.
+> For continuous development delivery, there should be such an automated process. In the continuous iteration of requirements, version control, continuous integration and empowerment, automatic packaging and deployment, environment initialization and redistribution, and finally a visual operation panel is formed. The process is controllable and transparent, and it is directly presented to users.
 
 
 ### Project structure
@@ -187,11 +188,7 @@
     ├── mongodb -- nosql数据库
     ├── redis -- redis缓存
     └── zookeeper -- 分布式调度
-├── orther -- 其他
-    ├── 0-1life -- 一点点生活感悟
-    ├── thinking -- 一点点个人思考
-    ├── knowledge -- 零散知识点
-    └── tech-keywords -- 常见技术关键词
+├── other -- 其他
 ├── tools -- 工具整理
     ├── Mac-homebrew使用
     ├── Mac-IDEA快捷键
@@ -210,29 +207,29 @@
 ## Where can you watch my articles for free
 
 ### github
-唯一链接：https://github.com/soonphe/0-1Learning
+connection address：https://github.com/soonphe/0-1Learning
 
 
 ### Wechat public account
 
-`0-1Learning`项目全套学习教程连载中，关注公众号「**罗晓胜**」第一时间获取。
-
-加微信群交流，公众号后台回复「**加群**」即可。
+The public account has published some articles of `0-1Learning`, and there are more good articles, waiting for your exploration, pay attention to the public account "**Luo Xiaosheng**" to get it as soon as possible.
 
 ![公众号图片](static/common/luoxiaosheng_wechat_common.jpg)
 
 
 ## Where can you watch my videos for free
 
-文字终究表达有限，视频效果会比文字好很多。
+After all, the expression of text is limited, and the effect of video will be much better than that of text.
 
-**视频内容会不仅仅局限技术方面，想到哪就拍到哪了，什么好玩就拍什么了，也不想给自己规定个什么圈子了，以后的事，谁说得准呢！**
+**The content of the video can be shot wherever you want, whatever is fun, and you don’t want to set a content for yourself. Who knows what will happen in the future! **
 
-尽量会在全平台投稿，B站、抖音、快手等，关注「**罗晓胜**」第一时间获取。
+Try to contribute on all platforms, Youtube, tiktok, station B, etc., pay attention to "**罗晓胜**" to get it as soon as possible.
 
-如有任何疑问给我留言吧，能力范围内都会回复！记得一键三连喔！
+If you have any questions, leave me a message and I will reply to the best of my ability! Remember to interact and support!
 
-`注意，作者不会主动联系任何人`，**任何冒充作者主动联系你都是骗子！！！**
+> `Attention, the author will not take the initiative to contact anyone`, **Anyone who pretends to be the author takes the initiative to contact you is a liar! ! ! **
+>
+> `Attention, if it involves money transactions, please verify and then operate after verification, so as not to be deceived`
 
 
 ## Thanks for other people's open source projects

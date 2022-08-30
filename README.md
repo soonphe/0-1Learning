@@ -5,8 +5,7 @@
 </p>
 <p align="center">
   <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI4MjM3MTA2Mw==#wechat_redirect"><img src="static/common/svg/luoxiaosheng.svg" alt="公众号" /></a>
-  <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="视频学习" /></a>
-  <a href="https://mp.weixin.qq.com/s/rmLxiBB1RYr6omVWQMGxpg"><img src="static/common/svg/luoxiaosheng_wechat.svg" alt="微信群" /></a>
+  <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="视频" /></a>
 </p>
 <div align="center">
   <h3>
@@ -25,7 +24,9 @@
   - [github](#github)
   - [公众号](#公众号)
 - [在哪里可以免费看我的视频](#在哪里可以免费看我的视频)
-  - [B站](#B站)
+  - [YouTube](#YouTube)
+  - [tiktok](#tiktok)
+  - [bilibili](#bilibili)
 - [鸣谢其他开源项目](#鸣谢其他开源项目)
 
 
@@ -187,11 +188,7 @@
     ├── mongodb -- nosql数据库
     ├── redis -- redis缓存
     └── zookeeper -- 分布式调度
-├── orther -- 其他
-    ├── 0-1life -- 一点点生活感悟
-    ├── thinking -- 一点点个人思考
-    ├── knowledge -- 零散知识点
-    └── tech-keywords -- 常见技术关键词
+├── other -- 其他
 ├── tools -- 工具整理
     ├── Mac-homebrew使用
     ├── Mac-IDEA快捷键
@@ -210,12 +207,10 @@
 ## 在哪里可以免费看我的文章
 
 ### github
-唯一链接：https://github.com/soonphe/0-1Learning
+链接地址：https://github.com/soonphe/0-1Learning
 
 ### 公众号
-`0-1Learning`项目全套学习教程连载中，关注公众号「**罗晓胜**」第一时间获取。
-
-加微信群交流，公众号后台回复「**加群**」即可。
+公众号已发布 `0-1Learning` 部分文章，另有更多好文，等待你的探索，关注公众号「**罗晓胜**」第一时间获取。
 
 ![公众号图片](static/common/luoxiaosheng_wechat_common.jpg)
 
@@ -224,13 +219,15 @@
 
 文字终究表达有限，视频效果会比文字好很多。
 
-**视频内容会不仅仅局限技术方面，想到哪就拍到哪了，什么好玩就拍什么了，也不想给自己规定个什么圈子了，以后的事，谁说得准呢！**
+**视频内容想到哪就拍到哪了，什么好玩就拍什么了，也不想给自己规定个什么内容了，以后的事，谁说得准呢！**
 
-尽量会在全平台投稿，B站、抖音、快手等，关注「**罗晓胜**」第一时间获取。
+尽量会在全平台投稿，Youtube、tiktok、B站等，关注「**罗晓胜**」第一时间获取。
 
-如有任何疑问给我留言吧，能力范围内都会回复！记得一键三连喔！
+如有任何疑问给我留言吧，能力范围内都会回复！记得互动支持喔！
 
-`注意，作者不会主动联系任何人`，**任何冒充作者主动联系你都是骗子！！！**
+> `注意，作者不会主动联系任何人`，**任何冒充作者主动联系你都是骗子！！！**
+> 
+> `注意，涉及金钱交易的，请核实再核实后操作，以免上当受骗`
 
 
 ## 鸣谢其他开源项目
