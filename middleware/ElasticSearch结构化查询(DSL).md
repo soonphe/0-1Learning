@@ -12,6 +12,145 @@ es中的查询请求有两种方式，一种是简易版的查询，另外一种
 由于DSL查询更为直观也更为简易，所以大都使用这种方式。
 DSL查询是POST过去一个json，由于post的请求是json格式的，所以存在很多灵活性，也有很多形式
 
+### 示例
+- 生成Index：curl -X PUT 'localhost:9200/_index?pretty'
+  
+- 创建索引、setting和mapping：分片20，副本1，type为text进行分词，type为keyword不进行分词
+
+请求地址：http://127.0.0.1:9200/order_core_log
+```
+{
+    "settings": {
+        "number_of_shards": 20,
+        "number_of_replicas": 1
+    },
+   "mappings": {
+        "properties": {
+            "measureInfo": {
+                "type": "text"
+            },
+            "extraOtherInfo": {
+                "type": "text"
+            }
+        }
+    }
+}
+```
+
+- 创建索引、setting和mapping：不进行分词
+
+请求地址：http://127.0.0.1:9200/order_core_log
+```
+{
+    "settings": {
+        "number_of_shards": 20,
+        "number_of_replicas": 1
+    },
+   "mappings": {
+        "properties": {
+            "measureInfo": {
+                "type": "keyword"
+            },
+            "extraOtherInfo": {
+                "type": "keyword"
+            }
+        }
+    }
+}
+```
+
+查询DSL：http://127.0.0.1:9200/order_core_log/_search
+
+range：范围
+term：匹配
+match：多条件匹配
+prefix：前缀匹配
+wildcard：通配符
+aggs：聚合查询，sum为累加
+size：分页大小
+sort：排序字段
+```
+{
+  "query": {
+    "bool": {
+      "must": [  
+         {"range": { "createTime": { "gte":  "2021-09-01T19:54:30","lte":  "2021-09-13T19:59:30"} }},
+         {"term": { "orderState": 20 }},
+         {"term": { "userId": 114773809 }},
+         {"match": {"stationName": "顺义 red"}},
+         {"prefix": {"stationName.keyword": "北京市朝阳"}},
+        {"wildcard": {"stationName.keyword": "北京市朝阳*"}}
+      ]
+    }
+  },
+  "aggs" : {
+    "total_amount" : { "sum" : { "field" : "amount" } },
+    "total_act_amount" : { "sum" : { "field" : "actAmount" } }
+  },
+  "size" : 1,
+  "sort": [
+    {
+      "createTime": {
+        "order": "desc"
+      },
+      "_id": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+```
+
+查询全部
+```
+curl -H "Content-Type: application/json" -X POST '172.17.40.33:9200/logtype-10011/_search?pretty' -d '
+{
+  "query": { "match_all": {} }
+}'
+```
+
+分页查询第10-20的文档
+curl -H "Content-Type: application/json" -X POST '172.17.40.33:9200/logtype-10010/_search?pretty' -d '
+```
+{
+  "query": { "match_all": {} },
+  "from": 10,
+  "size": 10
+}'
+```
+
+根据attributes查询
+```
+curl -H "Content-Type: application/json" -X POST '172.17.40.33:9200/logtype-10010/_search?pretty' -d '
+{
+  "query": { "match_phrase":{"attributes": "DM201105161142001"}},
+  "sort": { "@timestamp": { "order": "desc" } }
+}'
+```
+根据typeId和attributes查询
+```
+curl -H "Content-Type: application/json" -X POST '172.17.40.33:9200/logtype-10010/_search?pretty' -d '
+{
+	"query": {
+		"bool": {
+			"must": [{
+				"match_phrase": {
+					"typeId": "CHECK_SECOND_ENTRY"
+				}
+			}, {
+				"match_phrase": {
+					"attributes": "DM201105161142001"
+				}
+			}]
+		}
+	},
+	"sort": {
+		"@timestamp": {
+			"order": "desc"
+		}
+	}
+}'
+```
 
 ### 1. 获取所有
 

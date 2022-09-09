@@ -5,25 +5,167 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## 数据库进阶知识
+## database-overview
 
-### 规则
+### 目录
+- [基础规则](#索引是什么)
+- [存储过程和定时器](#存储过程和定时器)
+- [查询](#查询)
+
+
+### 基础规则
 传统数据库遵循ACID规则：Atomic（原子性)Consistency（一致性）Isolation（隔离性）Durability（持久性）
 NoSql一般为分布式，遵循CAP定理：一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance）
 
-### 常用操作数据库语句
-查看mysql数据库所有信息：show variables
+### 存储过程和定时器
+- 存储过程（创建存储过程，这里的存储过程主要提供给mysql的定时器event来调用去执行）
+```
+create procedure mypro()
+BEGIN
+insert into mytable (name,introduce,createtime) values ('1111','inner mongolia',now());
+end;
+```
+
+- 定时器
+```
+create event if not exists eventJob
+on schedule every 1 second
+on completion PRESERVE
+do call mypro();
+```
+
+- mysql开启定时器和事件：
+```
+SET GLOBAL event_scheduler = 1;  -- 启动定时器
+SET GLOBAL event_scheduler = 0;  -- 停止定时器
+
+ALTER EVENT eventJob ON  COMPLETION PRESERVE ENABLE;   -- 开启事件
+ALTER EVENT eventJob ON  COMPLETION PRESERVE DISABLE;  -- 关闭事件
+
+SHOW VARIABLES LIKE '%sche%'; -- 查看定时器状态
+```
+系统会每隔一秒去表mytable插入一条数据
+
+### 查询
+显示系统变量的名称和值：show variables;
 查看mysql字符串相关信息：show variables  like "%char%";
 
-### 修改字段及属性
-数据库中修改字段名：
-  mysql中：alter table adminuser change AU_name（列名） namee（新列名） varchar(255)（原始列名属性）
-	 注：数据类型的修改可以  使列名不变，只修改后面的列名属性
-  oracle中：使用rename关键字来实现字段名的修改:alter table 表名 rename column 旧的字段名 to 新的字段名名;
-	    使用modify关键字来实现对数据类型的修改:alter table 表名 modify 字段名 数据类型;
-  sqlserver：改变字段名：ALTER TABLE table_name RENAME COLUMN old_name to new_name;
-	  改变数据类型：ALTER TABLE table_name ALTER COLUMN column_name datatype
-	  增加或删除列：ALTER TABLE table_name ADD（删除使用drop） column_name datatype（删除没有datatype）
+#### left(right) join和inner join的区别
+
+inner join和left join区别为：返回不同、数量不同、记录属性不同。
+
+一、返回不同
+1、inner join：inner join只返回两个表中联结字段相等的行。
+2、left join：left join返回包括左表中的所有记录和右表中联结字段相等的记录。
+
+二、数量不同
+1、inner join：inner join的数量小于等于左表和右表中的记录数量。
+2、left join：left join的数量以左表中的记录数量相同。
+**补充说明：LEFT JOIN 的是以左边表为根据查询，注意右边表与左边表on的字段一定要是唯一的，
+不然查询出来的条数，就是一对多的关系，一定比左边表多**
+
+三、记录属性不同
+1、inner join：inner join不足的记录属性会被直接舍弃。
+2、left join：left join不足的记录属性用NULL填充。
+
+案例
+````
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for student
+-- ----------------------------
+DROP TABLE IF EXISTS `student`;
+CREATE TABLE `student`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT '' COMMENT '姓名',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = MyISAM AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS `score`;
+CREATE TABLE `score`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `score` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT '' COMMENT '分数',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = MyISAM AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+
+
+-- ----------------------------
+-- Records of student
+-- ----------------------------
+INSERT INTO `student` VALUES (1, '张三');
+INSERT INTO `student` VALUES (2, '李四');
+INSERT INTO `student` VALUES (3, '王五');
+
+-- ----------------------------
+-- Records of score
+-- ----------------------------
+INSERT INTO `score` VALUES (2, '70');
+INSERT INTO `score` VALUES (3, '80');
+INSERT INTO `score` VALUES (4, '90');
+````
+
+1. left join
+````
+select 
+    * 
+from 
+    student
+left join score on student.id = score.id
+
+结果集：
+1 张三 null null
+2 李四 2 70
+3 王五 3 80
+
+````
+
+2. right join
+````
+select 
+    * 
+from 
+    student
+right join score on student.id = score.id
+
+结果集：
+2 李四 2 70
+3 王五 3 80
+null null 4 90
+````
+
+3. inner join（可简写为join）
+````
+select 
+    * 
+from 
+    student
+inner join score on student.id = score.id
+
+结果集：
+2 李四 2 70
+3 王五 3 80
+````
+
+#### 分页为什么不要用offset和limit分页？
+为了实现分页，每次收到分页请求时，数据库都需要进行低效的全表扫描。
+解决：其实很简单，如果有主键，利用主键索引就够了！
+Select * from table where id>10 limit 10
+
+那如果我们的表没有主键，比如是具有多对多关系的表，那么就只能使用传统的 OFFSET/LIMIT 方式，但这样做存在潜在的慢查询问题。
+完全可以在需要分页的表中使用自动递增的主键，即使只是为了分页。
+
+
+---
+
+### Mysql常见的优化手段
+- 增加索引，索引是直观也是最快速优化检索效率的方式。
+- 基于Sql语句的优化，比如最左匹配原则，用索引字段查询、降低sql语句的复杂度等。
+- 表的合理设计，比如符合三范式、或者为了一定的效率破坏三范式设计等。
+- 数据库参数优化，比如并发连接数、数据刷盘策略、调整缓存大小。
+- 数据库服务器硬件升级。
+- mysql主从复制方案，实现读写分离。
 
 ### 什么是SQL注入，该如何防止
 一般使用单引号‘ 测试SQL注入
@@ -33,7 +175,6 @@ NoSql一般为分布式，遵循CAP定理：一致性（Consistency）、可用�
 PreparedStatement st = conn.prepareStatement(sql);
 st.setString(1, "儿童"); // 参数赋值  ——这里做了字符转义
 ```
-
 
 PreparedStatement也有漏洞：
 比如Like查询中：
@@ -264,12 +405,10 @@ InnoDB 的Page Size一般是16KB，其数据校验也是针对这16KB来计算�
 - 然后马上调用fsync函数，同步到磁盘上，避免缓冲带来的问题。
 
 在这个过程中，doublewrite是顺序写，开销并不大，在完成doublewrite写入后，在将double write buffer写入各表空间文件，这时是离散写入。如果发生了极端情况（断电），InnoDB再次启动后，发现了一个Page数据已经损坏，那么此时就可以从doublewrite buffer中进行数据恢复了。
-两次写需要额外添加两个部分：
 
+两次写需要额外添加两个部分：
 - 内存中的两次写缓冲（doublewrite buffer），大小为2MB
 - 磁盘上共享表空间中连续的128页，大小也为2MB。其中120个用于批量写脏页，另外8个用于Single Page Flush。做区分的原因是批量刷脏是后台线程做的，不影响前台线程。而Single page flush是用户线程发起的，需要尽快的刷脏页并替换出一个空闲页出来。
-
-
 
 ---
 
@@ -361,6 +500,318 @@ SET read_rnd_buffer_size = 1024*1024;
 3. 如果是连接紧张导致的慢SQL可以加从库缓解顶一下
 4. o如果是索引问题该加索引直接加就好了，没啥影响。当然如果是大表的话那特么就很操蛋需要考虑在这个期间优化SQL上线可能来得更快
 
+
+
+### Redis与DB的双写一致性
+```
+一致性就是数据保持一致，在分布式系统中，可以理解为多个节点中数据的值是一致的。
+
+- 强一致性：这种一致性级别是最符合用户直觉的，它要求系统写入什么，读出来的也会是什么，用户体验好，但实现起来往往对系统的性能影响大
+- 弱一致性：这种一致性级别约束了系统在写入成功后，不承诺立即可以读到写入的值，也不承诺多久之后数据能够达到一致，但会尽可能地保证到某个时间级别（比如秒级别）后，数据能够达到一致状态
+- 最终一致性：最终一致性是弱一致性的一个特例，系统会保证在一定时间内，能够达到一个数据一致的状态。这里之所以将最终一致性单独提出来，是因为它是弱一致性中非常推崇的一种一致性模型，也是业界在大型分布式系统的数据一致性上比较推崇的模型
+```
+首先多线程问题无法避免：
+- 假设a.b两个线程先后操作了。不管是先删除缓存还是先更新数据库，并发问题需要解决。
+- 使用乐观锁，或更新加锁，失败回滚，牺牲性能换取一致性
+
+一般我们在更新数据库数据时，需要同步redis中缓存的数据，所以存在两种方法：
+- 方案一：先执行缓存清除，再执行update操作。
+- 方案二：先执行update操作，再执行缓存清除。
+
+方案一：先删除缓存，再更新数据库
+缓存删除失败，就不更新数据库，缓存和数据库都是旧数据，数据一致。
+缓存删除成功，数据库更新失败，那么数据库是旧数据，缓存是空的，数据一致。
+
+方案一问题：
+- 先删除缓存效率太低，期间所有的请求都将穿过缓存，并发较高的情况下将会出现风险。
+- 当请求1执行清除缓存后，还未进行update操作，此时请求2进行查询到了旧数据并写入了redis（redis脏数据将会一直存在）
+- 如果以缓存优先的话，缓存崩溃的风险要远远大于数据库（内存溢出、宕机问题）
+
+方案二：先更新数据库，再删除缓存
+
+方案二问题：
+- 当请求1执行update操作后，还未来得及进行缓存清除，此时请求2查询到并使用了redis中的旧数据（风险存在于未删除的这一段时间）
+- 如果数据库更新成功，缓存删除失败，数据会不一致（redis脏数据将会一直存在），需要考虑数据库回滚方案
+
+方案三：延迟双删（保证最终一致）
+
+先进行缓存清除，再执行update，最后（延迟N秒）再执行缓存清除。
+
+上述中（延迟N秒）的时间要大于一次写操作的时间，一般为3-5秒。
+
+原因：如果延迟时间小于写入redis的时间，会导致请求1清除了缓存，但是请求2缓存还未写入的尴尬。。。
+
+ps:一般写入的时间会远小于5秒
+
+延迟双删策略是分布式系统中数据库存储和缓存数据保持一致性的常用策略，但它不是强一致。其实不管哪种方案，都避免不了Redis存在脏数据的问题，只能减轻这个问题，要想彻底解决，得要用到同步锁和对应的业务逻辑层面解决。
+
+建议先更新数据库，再删除缓存：
+- 使用队列消费、补偿事务，mq+job+binlog等，保证最终一致
+
+
+### MySQL中的各种自增ID
+MySQL中有各种各样的自增ID。例如我们最常见的表的主键自增ID，Xid，事务的ID，线程的ID，表的编号ID，binlog日志文件的ID等等。
+
+这些ID都是有它自己的增长规律的，并不是随机生成的。MySQL的整体功能设计，有很多地方都依赖于这些ID的增长规律。
+
+总结：
+- 表的自增id达到上限后，再申请时它的值就不会改变，进而导致继续插入数据时报主键冲突的错误。
+- row_id达到上限后，则会归0再重新递增，如果出现相同的row_id，后写的数据会覆盖之前的数据。
+- Xid只需要不在同一个binlog文件中出现重复值即可。虽然理论上会出现重复值，但是概率极小，可以忽略不计。InnoDB的max_trx_id递增值每次MySQL重启都会被保存起来，所以我们文章中提到的脏读的例子就是一个必现的bug，好在留给我们的时间还很充裕。
+- thread_id是我们使用中最常见的，而且也是处理得最好的一个自增id逻辑了。
+
+#### 主键自增ID
+定义自增ID字段的类型为int，而int类型是一个大类，它有可以细分为`tinyint`、`smallint`、`mediumit`、`int`、`bigint`5中类型
+
+|类型	|大小	|范围（有符号）	|范围（无符号）	|用途|
+|---|---|---|---|---|
+|TINYINT|	1 byte|	(-128，127)|	(0，255)	|小整数值|
+|SMALLINT|	2 bytes|	(-32 768，32 767)|	(0，65 535)	|大整数值|
+|MEDIUMINT|	3 bytes	(-8 388 608，8 388 607)|	(0，16 777 215)	|大整数值|
+|INT或INTEGER|	4 bytes|	(-2 147 483 648，2 147 483 647)|	(0，4 294 967 295)	|大整数值|
+|BIGINT|	8 bytes|	(-9,223,372,036,854,775,808，9 223 372 036 854 775 807)|	(0，18 446 744 073 709 551 615)	|极大整数值|
+|FLOAT|	4 bytes|	(-3.402 823 466 E+38，-1.175 494 351 E-38)，0，(1.175 494 351 E-38，3.402 823 466 351 E+38)|	0，(1.175 494 351 E-38，3.402 823 466 E+38)	|单精度、浮点数值|
+|DOUBLE|	8 bytes|	(-1.797 693 134 862 315 7 E+308，-2.225 073 858 507 201 4 E-308)，0，(2.225 073 858 507 201 4 E-308，1.797 693 134 862 315 7 E+308)|	0，(2.225 073 858 507 201 4 E-308，1.797 693 134 862 315 7 E+308)	|双精度、浮点数值|
+|DECIMAL|	对DECIMAL(M,D) ，如果M>D，为M+2否则为D+2|	|依赖于M和D的值|	依赖于M和D的值
+
+- 单位换算规则
+  不同的整型数据类型所占用的磁盘存储空间是不同的。具体的换算用到的单位如下：
+```
+1PB(拍字节)=1024TB(太字节)，简写为T
+1TB=1024GB(吉字节)，简写为G
+1GB=1024MB(兆字节)，简写为M
+1MB=1024KB(千字节)，简写为K
+1KB=1024Byte(字节)，简写为B
+1Byte=8Bit(位)，简写为b
+1Bit=1个二进制数字，值为0或者1
+```
+
+**tinyint**（tinyint占用1个byte，也就是8个bit，1byte=8bit，即为：一个字节等于8位）
+
+- 无符号位的计算方式
+
+一个8位的无符号二进制能存放的二进制数值范围是[00000000~11111111]，将其转换为十进制就是[0,255]，一共可以表示256个数。00000000为最小的二进制数，11111111为最大的二进制数。
+
+- 有符号位的计算方式
+
+在二进制中，正号用0表示，负号用1表示，并且需要把正负号放在二进制的最高位，也就是最左边的位置，剩余右边的7个位置用来表示二进制的具体数值。那么一个有正负号的8位二进制取值范围就是[11111111,01111111]。
+> 去掉左侧第一位用来标记正负号的位置，还剩余7个位置，这7个位置都是1的时候是最大的二进制数。
+> 如果前面使用一个负号(此时用1表示)就是最小的二进制数，如果前面增加一个正号(此时用0表示)就是最大的二进制数。
+> 所以一个有正负号的8位的二进制数的取值范围为：[11111111,01111111]。即取值[-127,127]
+
+那么问题就来了，怎么有符号的最小值是-127，而不是-128呢（这与我们印象中[-128，127]范围值不符啊），而且负的127个数+0+正的127个数=共255个数，少了一个去哪了？
+
+那是因为，在计算机中，表示负值是用补码（正码取反再+1），正值的补码还是自身。
+
+正0和负0在我们看来都是同一个数，但在有符号的二进制中却是不同的数，正0`00000000`，负0正码`10000000`，负0补码`10000000`
+
+虽然“-0”也是“0”，但根据正、反、补码体系，“-0”的补码和“+0”是不同的，这样就出现两个补码代表一个数值的情况。为了将补码与数字一一对应，所以人为规定“0”一律用“+0”代表。同时为了充分利用资源，就将原来本应该表示“-0”的补码规定为代表-128。
+
+**int**
+
+- int和int(11)有什么区别（很多人在创建表的时候，习惯性的对int类型的字段指定一个长度单位，例如：int(11)是他们经常使用的方式，那你知道是为什么吗，那写成int和int(11)有什么区别？）
+
+> int(11)中的11表示int类型所能存储的最小值的显示宽度。显示宽度只用于显示，并不能限制取值范围和占用空间。
+> 如：int(3)、int(4)、int(8) 在磁盘上都是占用 4 bytes 的存储空间，int(3)它它允许的最大值也不会是999，他们的取值范围也都是[-2147483648,2147483647]有符号或者[0,4294967295]无符号，和int不指定长度一样。
+
+- UNSIGNED ZEROFILL关键字
+
+UNSIGNED：指定无符号取值范围
+
+ZEROFILL：0填充（在使用ZEROFILL时，会自动添加UNSIGNED属性），表示不够M位时，用0在左边填充，如果超过M位，只要不超过数据存储范围即可
+
+定义了一个int(11)类型字段后，如果后面不指定UNSIGNED ZEROFILL关键字，这个字段和int是一样的。只有指定的UNSIGNED ZEROFILL之后，这个int(11)中的11才起到作用。他起到的作用就是和UNSIGNED ZEROFILL配合使用，将我们插入的数据，在不满足长度的情况下，在前面补0。
+
+比如我们定义了int(5)UNSIGNED ZEROFILL，那么当我们插入的数据值1234的时候，它会在1234前面补上0，显示为01234，仅此而已。如果整数值超过M位，就按照实际位数存储。只是无须再用字符 0 进行填充。
+
+所以我们使用int类型的变量的时候，直接使用tinyint、smallint、mediumit、int、bigint中的某一种就可以，具体使用哪一种根据自己的业务量来定，而不需要指定长度。 除非你的业务需求中需要在不足数据位数的时候，在前面补0，但是这个功能需要在定义字段的时候结合UNSIGNED ZEROFILL关键字一起使用才有效果。
+
+> 当自增主键的值，达到最大值之后，我们再次向表中插入数据的时候，会出现主键冲突，自增键的自增值将不会再次增加，一直保持最大值不在变化，我们获取到的自增值也一直是最大值
+
+例如在mysql中int类型占四个字节，有符号书的话，最⼤值就是(2^31)-1，也就是2147483647，⼆⼗多亿。然后如果这个⾃增主键达到最⼤值，是会报错的
+```
+Duplicate entry '2147483647' for key 'PRIMARY'
+```
+解决⽅法：
+
+- 修改id字段类型，int改为bigint，8个byte的bigint，这个类型的值，在理论上是不会用完的，但是与此同时，你要付出的存储空间也会别int大一倍。
+- 分库分表
+- 将int类型设置为⽆符号的可以扩⼤⼀倍，关键字`UNSIGNED`
+- 也可以使用mysql重置自增id
+  - 方法一：使用truncate命令（截断表）：truncate table tableName; 注：使用truncate命令会把表中数据全部删除，并且无法恢复，表和索引所占的空间会恢复到初始大小
+  - 方法二：delete from tableName; alter tableName auto_increment=1;
+
+#### row_id
+我们在创建表的时候，如果不为表指定任何主键，那么MySQL会给这个表创建一个隐藏的自增ID主键，并且这个隐藏的自增ID的取值是从一个全局变量dict_sys.row_id中获取。这个变量是所有没有主键的表共享的。
+
+这个变量占用6个byte，它的取值范围是2481，因为这个值对所有没有主键的表共享，如果你的MySQL数据库中，有很多没有主键的表，并且有很多的数据在这些表中，那么这个值是有可能达到最大值的。
+
+如果这个全局变量的值达到了最大值，它就会从0开始从新开始计算。这就导致了没有主键的表中的数据可能会被覆盖的可能性。试想一下，如果一个表没有主键只有一列varchar类型的字段col_a，我们想里面插入数据的时候。当插入到最大行的时候，它会从0开始计算，此时我们插入an+1的时候，就会回到第一行a1的这个行上，会把a1这个行的数据内容被覆盖为an+1，以此类推，a2会被an+2覆盖掉。
+
+所以建议所有的表都要设置一个主键，避免这个隐藏的全局自增值到达最大的2481之后会覆盖掉之前插入的数据。有了自增主键，即便是超过了自增值，在插入数据的时候，会有主键冲突的错误，这比不通知我们直接把数据给覆盖掉要好很多。
+
+#### Xid
+在MySQL的innodb数据表进行更新操作的时候，会涉及到redolog的两阶段提交和binlog日志的配合。以此来达到数据在逻辑上的一致性，从而保证了在MySQL数据库崩溃异常重启后，innodb表可以恢复已经正常提交的事务，这也就是我们经常所说的innodb的crash-safe的能力。
+
+Xid是有MySQL的Server层维护的。
+
+Xid是binlog文件中常见的一个ID，因为binlog是server层维护的日志，所以Xid也是由MySQL的Server层维护的。它在binlog文件中标识一个唯一的事务。
+
+但是在不同的binlog文件中，这个Xid是有可能相同的。因为这个ID是来自于MySQL执行各种SQL语句的时候的查询编号，MySQL在为所有的SQL语句会分配一个唯一的编号，这个编号来自于全局变量：global_query_id。而global_query_id，它是维护在内存当中。它是占8个字节的bigint类型，最大值为：2的64次方减1。这就意味着，如果MySQL重启了，那么这个变量的值将会丢失，重启后这个值将会重新从0开始累加。
+
+所以SQL语句的编号将会重新从0开始累加，这个查询语句的编号会赋值给对应的事务编号，但是binlog文件再MySQL重启后，会重新使用新的binlog日志文件。所以在同一个日志文件中，Xid是不可能相同的。
+
+说Xid在同一个binlog日志文件中不可能相同的说法也不算太严谨，因为如果这个global_query_id达到最大值2的64次方减1之后，从新从0累计也有可能导致同一个binlog文件中的Xid的值重复。但是这个可能性几乎为0，因为我们的binlog日志文件在达到一定的大小后也会重新开启一个新的binlog日志文件。这个是有参数max_binlog_size控制的。
+
+#### Innodb的事务ID
+InnoDB的事务ID是指：trx_id。
+
+和Xid不同，trx_id是由InnoDB引擎自己维护的。它的最大值为2的48次方减1。如果到达它的最大值之后，会从0开始累加。这个值再MySQL重启之后不会清零，它做了持久化的操作，所以重启后的MySQL事务ID是可以累积上一次的值的。
+
+这可能潜在的隐藏一个bug，如果trx_id到达最大之后，重新从0累加，这就导致了事务的id重复了，这样在MySQL的MVCC多版本数据控制和一致性事务读取的时候，就可能会发生脏读。但是可以忽略这个bug，因为这个值已经很大了，不会那么快就出现这个bug。
+
+trx_id的值来自于innodb内部自己维护的max_trx_id全局变量。每次需要申请新的trx_id的时候，就获得当前max_trx_id的值，然后再把max_trx_id的值加1为下次准备。注意：只读事务不会占用max_trx_id的值。
+
+对于正在执行的事务，可以在information_schema.innodb_trx表中看到对应的事务信息，已经当前事务trx_id的值。
+
+在MySQL的MVCC多版本控制的一致性事务视图在实现的过程中，就依赖于这个trx_id的值，因为它代表了每一行被修改数据的版本号，在每一行数据被修改后，都会拿当前修改这一行数据的事务的trx_id作为当前数据的版本号。当一个事务读到一行数据的时候，判断这个数据是否可见的方法，就是通过事务的一致性视图与这行数据的trx_id做对比。
+
+#### 线程ID
+线程ID是指：thread_id，我们平时执行showprocesslist;命令的时候就可以显示出这个线程ID。
+
+thread_id的取值来自于系统保存的一个全局变量thread_id_counter，每新建一个连接，就将thread_id_counter赋值给这个新连接的线程变量。
+
+它的大小是4个字节，最大值为：2的32次方减1，到达最大值之后，他会重新从0累加。但是它也不会重复，因为他们使用了唯一数组的设计理念，如下：
+
+do{new_id=thread_id_counter++;}while(!thread_ids.insert_unique(new_id).second);
+
+
+#### mysql sequences
+前提：分布式场景使用，满足一定的并发要求
+
+能想到的最简单的实现方式，一条数据库记录，不断update它的值。然后大部分的实现方案，都用到了函数。
+```
+CREATE TABLE `t_sequence` (
+
+`sequence_name` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '序列名称' ,
+
+`value` int(11) NULL DEFAULT NULL COMMENT '当前值' ,
+
+PRIMARY KEY (`sequence_name`)
+
+)
+
+ENGINE=InnoDB
+
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+
+ROW_FORMAT=COMPACT
+
+;
+```
+获取当前值的函数：
+```
+CREATE DEFINER = `root`@`localhost` FUNCTION `currval`(sequence_name varchar(64))
+ RETURNS int(11)
+BEGIN
+    declare current integer;
+    set current = 0;
+    select t.value into current from t_sequence t where t.sequence_name = sequence_name;
+    return current;
+end;
+```
+获取下一个值：
+```
+CREATE DEFINER = `root`@`localhost` FUNCTION `nextval`(sequence_name varchar(64))
+ RETURNS int(11)
+BEGIN
+    declare current integer;
+    set current = 0;
+    
+    update t_sequence t set t.value = t.value + 1 where t.sequence_name = sequence_name;
+    select t.value into current from t_sequence t where t.sequence_name = sequence_name;
+
+    return current;
+end;
+```
+
+
+---
+
+
+### 数据库备份
+1.编写sh脚本(文件目录需要提前创建)
+mysqldump -uusername -ppassword DatabaseName > /home/dbback/DatabaseName_$(date +%Y%m%d_%H%M%S).sql
+2.对脚本添加可执行权限
+chmod u+x bkDatabase.sh
+
+3.安装crontab定时任务模块（已完成）
+crontab -u //设定某个用户的cron服务，一般root用户在执行这个命令的时候需要此参数
+crontab -l //列出某个用户cron服务的详细内容
+crontab -r //删除没个用户的cron服务
+crontab -e //编辑某个用户的cron服务
+
+使用crontab -e编写命令：*/1 * * * * /home/backup/bkDatabaseName.sh	//每分钟执行一次
+
+cron:表达式
+* * * * *——分 时 天 月 星期
+* */2 * * *——每两小时
+  0 23-7/2，8 * * *——晚上11点到早上8点每两个小时，和早上8点
+  0 11 4 * 1-3 command line——每个月的4号和每个礼拜一到礼拜三的早上11点
+
+* 表示该字段中的每个可能值。 ?意味着你不在乎价值。当您有两个可能相互矛盾的字段时使用它。
+  常见的例子是月中的某一天和星期几字段。例如，考虑在每个月的第一天上午 10 点运行的 cron 规范：
+  0 0 10 1 * ? *
+
+
+### 数据库安全考虑
+
+- 如何设计一个合理的DB：
+用户表与密码表分开，表名加密，数据加密
+同密码的hash码不同，防止字典攻击，
+密码：使用动态salt
+
+- 常见的破解方式
+暴力攻击：给定长度，尝试每一种可能性
+字典攻击：将常用的都放在一个文件中，不停的hash对比（取决字典大小以及字典是否合理）
+查表破解：预先计算出密码字典中每一个密码的hash（设计查询器，提高查询效率）
+反向查表破解：根据获取的数据库数据 做一个与用户名对应的hash表，然后将常用的字典密码hash之后跟这个表对比
+彩虹表：使用空间换时间的技术，与查表破解相似，牺牲一些时间来达到更小的存储空间（已经能够破解8位任意字符的md5hash）
+
+————————————————————————————————————————————————————————
+哈希定律：只需要知道首尾，中间推算
+————————————————————————————————————————————————————————
+
+加盐：add salt
+查表破解和彩虹表之所以能够有效，因为每一个密码都使用相同的方式hash
+解决：每一个hash随机化，加 salt，同一个密码hash两次
+
+错误用法： 一个salt在多个hash中使用或使用的salt很短
+
+短的盐：例，3位ASCII码，一共 95×95×95=857,375可能，再为每一个salt制作一个包含1MB的常见密码表，一共才837G，所以。。。
+
+注：不要用用户名做salt
+盐的大小要跟hash函数一致，如：
+SHA26的输出是256bits（32bytes），所以的salt的长度也应该为32位随机字符串
+
+salt要使用密码上可靠些的伪随机数生成器
+如：java：java.security。
+
+——————————————————————————————————————
+存储一个密码：
+1.生成一个随机Salt
+2.salt和密码拼接，使用标准hash函数加密
+3.将salt和hash记录在数据库
+
+验证一个密码：
+1.从数据库取出用户的salt和hash
+2.用密码和salt用相同的方式拼接在一起，使用相同的hash
+3.比对
+
+客户端hash
+1.客户端密码并不是https（SSL/TLS）的替代品
+2.部分浏览器可能不支持javascript，要判断模拟客户端的hash
+3.客户端hash也要加盐，但不能是请求服务器得到用户的盐（防止验证）
 
 
 

@@ -407,7 +407,7 @@ public interface SendService {
 ```
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = {"com.sgcc.ywzt.adminauth.api"})
+@EnableFeignClients(basePackages = {"com.soonphe.ywzt.adminauth.api"})
 @EnableBinding({Sink.class, Source.class})
 public class BootstrapApplication {
 

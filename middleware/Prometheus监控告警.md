@@ -227,7 +227,7 @@ scrape_configs:
   - job_name: mysql
     basic_auth:
       username: root
-      password: "Sgcc_1234"
+      password: "soonphe_1234"
     static_configs:
       - targets: ['192.168.160.178:3306']
         labels:

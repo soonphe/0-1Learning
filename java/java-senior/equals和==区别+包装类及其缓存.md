@@ -5,19 +5,96 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
+## equals和==的区别
+
+### java当中的数据类型和“==”的含义：
+基本类型：byte,short,char,int,long,float,double,boolean。比较的就是值是否相同
+引用类型：比较的就是内存地址是否相同(也就是说，除非引用指向的是同一个new出来的对象，此时他们使用`==`去比较得到true，否则，得到false)
+
+## equals 的作用:
+引用类型：默认情况下，比较的是内存地址值（为什么说默认，因为很多子类都对equals方法进行了重写）
+
+equals追根溯源，是Object类中的一个方法，在该类中，equals的实现也仅仅只是比较两个对象的内存地址是否相等，但在一些子类中，如：String、Integer 等，该方法将被重写。
+
+> equals与==的主要区别是：
+1. 基本型和基本型封装型进行“==”运算符的比较，基本型封装型将会自动拆箱变为基本型后再进行比较，
+2. 两个包裝类型的对象进行“==”比较时，如果有一方的对象是new获得的，返回false，因为引用地址不同。
+3. 两个基本型的包装类型进行equals()比较，首先equals()会比较类型，如果类型相同，则继续比较值，如果值也相同，返回true，否则返回false。
+4. 包装类型调用equals()方法,但是参数是基本类型，这时候，先会进行自动装箱，将基本型转换为其包装类型,若类型不同返回false,
+
+注意：如果==和equals()用于比较对象，当两个引用地址相同，==返回true。而equals()可以返回true或者false主要取决于重写实现。
+
+最常见的一个例子，字符串的比较，不同情况==和equals()返回不同的结果。
+equals()方法最重要的一点是，能够根据业务要求去重写，按照自定义规则去判断两个对象是否相等。
+重写equals()方法的时候，要注意一下hashCode是否会因为对象的属性改变而改变，否则在使用散列集合储存该对象的时候会碰到坑！！
+
+Object中的equals方法：
+```
+    public boolean equals(Object obj) {
+        return (this == obj);
+    }
+```
+
+String中重写equals方法：
+```
+public boolean equals(Object anObject) {
+        if (this == anObject) {
+            return true;
+        }
+        if (anObject instanceof String) {
+            String anotherString = (String)anObject;
+            int n = value.length;
+            if (n == anotherString.value.length) {
+                char v1[] = value;
+                char v2[] = anotherString.value;
+                int i = 0;
+                while (n-- != 0) {
+                    if (v1[i] != v2[i])
+                        return false;
+                    i++;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+```
+
+Integer中重写equals方法：
+```
+    public boolean equals(Object obj) {
+        if (obj instanceof Integer) {
+            return value == ((Integer)obj).intValue();
+        }
+        return false;
+    }
+```
+
+测试代码如下：
+```
+int intData =2 ;
+String stringData ="2" ;
+Integer integerData =2 ;
+System.out.println(integerData.equals(stringData) );// false 类型不同
+System.out.println(stringData.equals(integerData) );// false 类型不同
+System.out.println(stringData.equals(integerData.toString()) );// true
+System.out.println(integerData.equals(Integer.valueOf(stringData)) );// true
+System.out.println(integerData.equals(intData) );// true
+System.out.println(integerData.equals(1) );// false 数值不同
+System.out.println(stringData.equals(1) );// false  类型不同,数值不同
+```
+
 ## 包装类
 
 ### 包装类的缓存
-之前在网上看到一道笔试题，以下五行代码输出的结果依次是什么？
+以下五行代码输出的结果依次是什么？
+```
 System.out.println(Integer.valueOf("1000")==Integer.valueOf("1000"));
 System.out.println(Integer.valueOf("128")==Integer.valueOf("128"));
 System.out.println(Integer.valueOf("127")==Integer.valueOf("127"));
 System.out.println(Integer.valueOf("-128")==Integer.valueOf("-128"));    
 System.out.println(Integer.valueOf("-1000")==Integer.valueOf("-1000"));
-Integer类的valueOf(String s)方法的作用是将字符串转化为Integer类的对象，源码如下：
-public static Integer valueOf(String s) throws NumberFormatException {
-       return Integer.valueOf(parseInt(s, 10));
-}
+```
 
 ### 我的答案
 当时看到这段代码，我给出的答案依次是：false、false、false、false、false。

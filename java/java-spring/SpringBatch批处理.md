@@ -273,14 +273,14 @@ INSERT INTO BATCH_JOB_SEQ (ID, UNIQUE_KEY) select * from (select 0 as ID, '0' as
 spring:
   batchDatasource:
     username: root
-    password: Sgcc_1234
+    password: soonphe_1234
     url: jdbc:mysql://192.168.160.178:3306/batch?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.jdbc.Driver
     hikari:
       maximum-pool-size: 50
   datasource:
     username: testgroup
-    password: Sgcc_1234
+    password: soonphe_1234
     url: jdbc:mysql://192.168.102.115:3306/testgroup?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.jdbc.Driver
     hikari:

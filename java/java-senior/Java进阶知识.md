@@ -183,7 +183,7 @@ final方法，获得运行时类型。
 
 
 ### Java相关问题
-~~~~
+```
 问：八种基本数据类型的大小，以及他们的封装类
 答：
 八种基本数据类型，int ,double ,long ,float, short,byte,character,boolean
@@ -191,18 +191,6 @@ final方法，获得运行时类型。
 
 问：Switch能否用string做参数？
 答：在Java 5以前，switch(expr)中，expr只能是byte、short、char、int。从Java 5开始，Java中引入了枚举类型，expr也可以是enum类型，从Java 7开始，expr还可以是字符串（String），但是长整型（long）在目前所有的版本中都是不可以的。
-
-问：==与equals的主要区别是：
-答：
-==常用于比较原生类型，而equals()方法用于检查对象的相等性。
-另一个不同的点是：如果==和equals()用于比较对象，当两个引用地址相同，==返回true。
-而equals()可以返回true或者false主要取决于重写实现。最常见的一个例子，字符串的比较，不同情况==和equals()返回不同的结果。equals()方法最重要的一点是，能够根据业务要求去重写，按照自定义规则去判断两个对象是否相等。重写equals()方法的时候，要注意一下hashCode是否会因为对象的属性改变而改变，否则在使用散列集合储存该对象的时候会碰到坑！！理解equals()方法的存在是很重要的。
-1. 使用==比较有两种情况：
-        比较基础数据类型(Java中基础数据类型包括八中：short,int,long,float,double,char,byte,boolen)：这种情况下，==比较的是他们的值是否相等。
-        引用间的比较：在这种情况下，==比较的是他们在内存中的地址，也就是说，除非引用指向的是同一个new出来的对象，此时他们使用`==`去比较得到true，否则，得到false。
-2. 使用equals进行比较：
-        equals追根溯源，是Object类中的一个方法，在该类中，equals的实现也仅仅只是比较两个对象的内存地址是否相等，但在一些子类中，如：String、Integer 等，该方法将被重写。
-
 
 问：String、StringBuffer与StringBuilder的区别
 答：其中String是只读字符串，也就意味着String引用的字符串内容是不能被改变的。
@@ -226,3 +214,5 @@ StringBuilder是JDK1.5引入的，它和StringBuffer的方法完全相同，
 slf4j是打日志的，可以使用各种日志系统存储，
 Log4j和logback就是那个日志存储系统(它自带打日志，因为自己本身就是一个日志系统。所以不能够切换日志系统)。
 但是slf4j 是可以随时切换到任何日志系统
+```
+

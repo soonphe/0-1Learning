@@ -67,7 +67,7 @@ springfox.documentation.swagger.v2.use-model-v3=false
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sgcc.ywzt.hsf.gateway"))
+                .apis(RequestHandlerSelectors.basePackage("com.soonphe.ywzt.hsf.gateway"))
                 .paths(PathSelectors.any())
                 .build();
     }
