@@ -7,22 +7,17 @@
 
 ## Zookeeper
 官方资源包：http://zookeeper.apache.com/
-国内压缩包地址：
-```
-https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz
-```
+国内压缩包地址：https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz
 
-### jdk环境
-```
-vim ~/.bash_profile
+### brew 安装zookeeper
+brew install zookeeper
 
-export JAVA_HOME=/opt/edas/jdk/jdk1.8.0_65
-export JRE_HOME=${JAVA_HOME}/jre
-export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
-export PATH=.:${JAVA_HOME}/bin:$PATH
+启动文件： /usr/local/Cellar/zookeeper/3.4.10/bin/
+配置文件： /usr/local/etc/zookeeper/
 
-source ~/.bash_profile
-```
+启动zookeeper：nohup zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties &
+
+查看zookeeper启动状态： ps -ef|grep zookeeper
 
 ### 单机环境搭建
 操作

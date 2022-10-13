@@ -56,6 +56,7 @@ brew有很多使用的工具，如搜索、安装、更新等，都是可以一�
 
 
 ### 使用示例：
+* 帮助：brew –help
 
 * 搜索(会搜索formula（软件包）和cask（应用包）)
   - brew search mysql:
@@ -84,6 +85,19 @@ brew有很多使用的工具，如搜索、安装、更新等，都是可以一�
   - brew install --cask visual-studio-code
   - brew install --cask docker 
 
+* brew list            #显示已经安装软件列表	
+* brew list --versions #列出所有已安装的formula（软件包）和cask（应用包）及版本。
+* brew uninstall git   #卸载
+* brew outdated	    #查看那些已安装的程序需要更新
+* brew update	    #更新软件，把所有的Formula目录更新，并且会对本机已经安装并有更新的软件用*标明。
+* brew upgrade git  #更新某具体软件
+* brew cleanup git  #单个软件删除，和upgrade一样
+* brew cleanup      #删除所有
+* brew home git     #用浏览器打开git主页
+* brew info git	    #显示软件内容信息
+* brew deps git	    #显示包依赖
+* brew config	    #查看brew配置
+
 * 启动：
   - 启动 mysql, 并设置为开机启动
   - brew services start mysql 
@@ -103,10 +117,27 @@ brew有很多使用的工具，如搜索、安装、更新等，都是可以一�
   - which mysql
 
 ### brew更换源
+**查看当前镜像源的信息**
+```
+# 查看brew镜像源
+git -C "$(brew --repo)" remote -v
 
-国内镜像地址
-科大: https://mirrors.ustc.edu.cn
-阿里: https://mirrors.aliyun.com/homebrew/
+# 查看homebrew-core镜像源
+git -C "$(brew --repo homebrew/core)" remote -v
+
+# 查看homebrew-cask镜像源（需要安装后才能查看）
+git -C "$(brew --repo homebrew/cask)" remote -v 
+```
+
+执行 brew 命令安装应用的时候，跟以下 3 个仓库地址有关。
+- brew.git （源代码仓库）
+- homebrew-core.git （核心软件仓库）
+- homebrew-bottles （预编译二进制软件包）
+
+**国内镜像地址**
+- 科大: https://mirrors.ustc.edu.cn
+- 阿里: https://mirrors.aliyun.com/homebrew/
+- 清华：https://mirrors.tuna.tsinghua.edu.cn/git/homebrew
 
 ```
 # brew.git镜像源
@@ -131,8 +162,7 @@ fi
 brew update
 ```
 
-如果需要恢复原有镜像源的话（国内镜像源突然不能用了或版本不够新）
-
+**如果需要恢复原有镜像源的话（国内镜像源突然不能用了或版本不够新）**
 ```
 git -C "$(brew --repo)" remote set-url origin https://github.com/Homebrew/brew.git
 
@@ -145,9 +175,7 @@ git -C "$(brew --repo homebrew/cask)" remote set-url origin https://github.com/H
 brew update
 ```
 
-如果可以了下面的就不用看了
-如果不行的话可以依次尝试以下命令
-
+**如果恢复不成功或有其他系统问题可以依次尝试以下命令**
 ```
 brew doctor
 brew update-reset
