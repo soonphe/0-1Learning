@@ -7,6 +7,228 @@
 
 ## spring-overview总述
 
+### Spring中bean生命周期
+以注解类变成Spring Bean为例，Spring会扫描指定包下面的Java类，然后根据Java类构建beanDefinition对象，然后再根据beanDefinition来创建Spring的bean，特别要记住一点，Spring是根据beanDefinition来创建Spring bean的，关于beanDefinition下文会进行分析。
+
+beanDefinition所包含的内容：
+- constructorArgumentValues 
+- beanClass：在对象实例化时，会根据beanClass来创建对象
+- primary：是否是首要的
+- lazyInit：在Spring中有一个@Lazy注解，用来标识其这个bean是否为懒加载的
+- scope ：@scope注解来标识这个bean其作用域，是单例还是多例
+- factoryMethodName
+- initMethodName ：初始化方法
+- destroyMethodName：销毁方法
+- abstractFlag 
+- dependsOn
+- autowireMode：这个属性用于记录使用怎样的注入模型，注入模型常用的有根据名称和根据类型、不注入三种注入模型；
+- autowireCandidate
+- qualifiers 
+- propertyValues
+
+说明：
+我们在beanDefinition指定其根据类型进行属性注入，那么在创建这个bean时，会将其beanClass中的所有属性都拿到，然后排除掉基本属性（如类型String、Double、Boolean、Object），然后对于剩下的进行属性注入，记住一点，在beanDefinition指定其根据类型进行属性注入，即使不在属性上面使用@Autowired注解也会对其进行属性注入。
+
+在我们写注解类的时候为什么不使用@Autowired时，其属性就注入不进来呢？那是因为注解类在变成beanDefinition时，其注入类型是不注入，所以此时只有使用@Autowired注解进行标记的属性，才会完成依赖注入。
+
+为什么不直接使用对象的class对象来创建bean，而要使用Spring中beanDefinition来完成bean的创建？
+
+因为在class对象仅仅能描述一个对象的创建，它不足以用来描述一个Spring bean，而对于是否为懒加载、是否是首要的、初始化方法是哪个、销毁方法是哪个，这个Spring中特有的属性在class对象中并没有，所有Spring就定义了beanDefinition来完成bean的创建。
+
+
+**java类 -> beanDefinition对象**
+
+如果要说Bean的生命周期，那就不能不说Java类是在那一步变成beanDefinition的，我们先来看一下Spring中AbstractApplicationContext类中的refresh方法。
+```
+    @Override
+	public void refresh() throws BeansException, IllegalStateException {
+		synchronized (this.startupShutdownMonitor) {
+			// Prepare this context for refreshing.
+			准备工作包括设置启动时间，是否激活标识位，
+			// 初始化属性源(property source)配置
+			prepareRefresh();
+ 
+			// Tell the subclass to refresh the internal bean factory.
+			//返回一个factory 为什么需要返回一个工厂
+			//因为要对工厂进行初始化
+			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+ 
+			// Prepare the bean factory for use in this context.
+			//准备工厂
+			prepareBeanFactory(beanFactory);
+ 
+			try {
+				// Allows post-processing of the bean factory in context subclasses.
+				//这个方法在当前版本的spring是没用任何代码的
+				//可能spring期待在后面的版本中去扩展吧
+				postProcessBeanFactory(beanFactory);
+ 
+				// Invoke factory processors registered as beans in the context.
+				//在spring的环境中去执行已经被注册的 factory processors
+				//设置执行自定义的ProcessBeanFactory 和spring内部自己定义的
+				invokeBeanFactoryPostProcessors(beanFactory);
+ 
+				// Register bean processors that intercept bean creation.
+				//注册beanPostProcessor
+				registerBeanPostProcessors(beanFactory);
+ 
+				// Initialize message source for this context.
+				initMessageSource();
+ 
+				// Initialize event multicaster for this context.
+				//初始化应用事件广播器
+				initApplicationEventMulticaster();
+ 
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+ 
+				// Check for listener beans and register them.
+				registerListeners();
+ 
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+ 
+				// Last step: publish corresponding event.
+				finishRefresh();
+			}
+ 
+			catch (BeansException ex) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Exception encountered during context initialization - " +
+							"cancelling refresh attempt: " + ex);
+				}
+ 
+				// Destroy already created singletons to avoid dangling resources.
+				destroyBeans();
+ 
+				// Reset 'active' flag.
+				cancelRefresh(ex);
+ 
+				// Propagate exception to caller.
+				throw ex;
+			}
+ 
+			finally {
+				// Reset common introspection caches in Spring's core, since we
+				// might not ever need metadata for singleton beans anymore...
+				resetCommonCaches();
+			}
+		}
+	}
+```
+
+有关Spring Bean生命周期最主要的方法有三个invokeBeanFactoryPostProcessors、registerBeanPostProcessors和finishBeanFactoryInitialization。
+
+- invokeBeanFactoryPostProcessors方法会执行BeanFactoryPostProcessors后置处理器及其子接口BeanDefinitionRegistryPostProcessor，执行顺序先是执行BeanDefinitionRegistryPostProcessor接口的postProcessBeanDefinitionRegistry方法，然后执行BeanFactoryPostProcessor接口的postProcessBeanFactory方法。 对于BeanDefinitionRegistryPostProcessor接口的postProcessBeanDefinitionRegistry方法，该步骤会扫描到指定包下面的标有注解的类，然后将其变成BeanDefinition对象，然后放到一个Spring中的Map中，用于下面创建Spring bean的时候使用这个BeanDefinition
+
+- registerBeanPostProcessors方法根据实现了PriorityOrdered、Ordered接口，排序后注册所有的BeanPostProcessor后置处理器，主要用于Spring Bean创建时，执行这些后置处理器的方法，这也是Spring中提供的扩展点，让我们能够插手Spring bean创建过程。
+
+**beanDefinition对象 -> Spring中的bean**
+
+- finishBeanFactoryInitialization是完成非懒加载的Spring bean的创建的工作，在该步骤中会有8个后置处理的方法4个后置处理器的类贯穿在对象的实例化、属性赋值、初始化、和销毁的过程中
+
+关于每个后置处理的作用如下：
+
+先看一下继承关系，InstantiationAwareBeanPostProcessor、SmartInstantiationAwareBeanPostProcessor、MergedBeanDefinitionPostProcessor直接或间接的继承BeanPostProcessor，而SmartInitializingSingleton则是单独的一个接口。
+
+**一、InstantiationAwareBeanPostProcessor**
+InstantiationAwareBeanPostProcessor接口继承BeanPostProcessor接口，它内部提供了3个方法，再加上BeanPostProcessor接口内部的2个方法，所以实现这个接口需要实现5个方法。InstantiationAwareBeanPostProcessor接口的主要作用在于目标对象的实例化过程中需要处理的事情，包括实例化对象的前后过程以及实例的属性设置
+
+在org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#createBean()方法的Object bean = resolveBeforeInstantiation(beanName, mbdToUse);方法里面执行了这个后置处理器
+
+**二、SmartInstantiationAwareBeanPostProcessor**
+智能实例化Bean后置处理器（继承InstantiationAwareBeanPostProcessor）
+
+**三、MergedBeanDefinitionPostProcessor**
+
+**四、SmartInitializingSingleton**
+智能初始化Singleton，该接口只有一个方法，是在所有的非懒加载单实例bean都成功创建并且放到Spring IOC容器之后进行执行的。
+
+下面按照图中的顺序进行说明每个后置处理的作用：
+
+1、InstantiationAwareBeanPostProcessor# postProcessBeforeInstantiation
+
+在目标对象实例化之前调用，方法的返回值类型是Object，我们可以返回任何类型的值。由于这个时候目标对象还未实例化，所以这个返回值可以用来代替原本该生成的目标对象的实例(一般都是代理对象)。如果该方法的返回值代替原本该生成的目标对象，后续只有postProcessAfterInitialization方法会调用，其它方法不再调用；否则按照正常的流程走
+
+2、SmartInstantiationAwareBeanPostProcessor# determineCandidateConstructors
+
+检测Bean的构造器，可以检测出多个候选构造器
+
+3、MergedBeanDefinitionPostProcessor# postProcessMergedBeanDefinition
+
+缓存bean的注入信息的后置处理器，仅仅是缓存或者干脆叫做查找更加合适，没有完成注入，注入是另外一个后置处理器的作用
+
+4、SmartInstantiationAwareBeanPostProcessor# getEarlyBeanReference
+
+循环引用的后置处理器，这个东西比较复杂， 获得提前暴露的bean引用。主要用于解决循环引用的问题，只有单例对象才会调用此方法，以后如果有时间，我会写一篇关于Spring是怎么处理循环依赖的，会将这个，现在你就只需要知道他能提前暴露bean就行了。
+
+5、InstantiationAwareBeanPostProcessor# postProcessAfterInstantiation
+
+方法在目标对象实例化之后调用，这个时候对象已经被实例化，但是该实例的属性还未被设置，都是null。如果该方法返回false，会忽略属性值的设置；如果返回true，会按照正常流程设置属性值。方法不管postProcessBeforeInstantiation方法的返回值是什么都会执行
+
+6、InstantiationAwareBeanPostProcessor# postProcessPropertie
+
+方法对属性值进行修改(这个时候属性值还未被设置，但是我们可以修改原本该设置进去的属性值)。如果postProcessAfterInstantiation方法返回false，该方法不会被调用。可以在该方法内完成对属性的自动注入（注意：在Spring5.1之前，完成属性自动注入的方法是postProcessPropertyValues方法，在5.1就开始使用postProcessPropertie方法了，如果发现不同也不必惊慌，就是改了一下方法名，内部逻辑一样的）（在这一步，会完成标注了@Autowired、@Resource注解的自动装配）
+
+7.BeanPostProcessor# postProcessBeforeInitialization
+
+该方法会在初始化之前进行执行，其中有一个实现类比较重要ApplicationContextAwareProcessor，该后置处理的一个作用就是当应用程序定义的Bean实现ApplicationContextAware接口时注入ApplicationContext对象
+
+看到这里你可能恍然大悟，原来调用BeanFactoryAware和ApplicationContextAware时，相应的处理是不同的，所以，你如果把这个不同点说出来，那么面试官就会认为你是看过源码的人。ApplicationContextAware是在一个BeanPostProcessor后置处理器的postProcessBeforeInitialization方法中进行执行的。
+
+8.BeanPostProcessor# postProcessAfterInitialization
+
+该后置处理器的执行是在调用init方法后面进行执行，主要是判断该bean是否需要被AOP代理增强，如果需要的话，则会在该步骤返回一个代理对象。
+
+9.SmartInitializingSingleton# afterSingletonsInstantiated
+
+该方法会在所有的非懒加载单实例bean都成功创建并且放到Spring IOC容器之后，依次遍历所有的bean，如果当前这个bean是SmartInitializingSingleton的子类，那么就强转成SmartInitializingSingleton类，然后调用SmartInitializingSingleton的afterSingletonsInstantiated方法。
+
+对于SmartInitializingSingleton# afterSingletonsInstantiated方法，是在所有的bean完成之后进行调用的，这个扩展点可以让我们自己很轻松的自定义注解，完成我们想要实现的逻辑，比如使用@EventListener注解实现事件监听，其底层就是通过 SmartInitializingSingleton# afterSingletonsInstantiated来实现的，所以对于这个重点说一下。
+
+**总结**
+1. 普通Java类是在哪一步变成beanDefinition的：AbstractApplicationContext类中的refresh中invokeBeanFactoryPostProcessors方法，执行BeanDefinitionRegistryPostProcessor接口中的postProcessBeanDefinitionRegistry方法，该方法会扫描到指定包下面的标有注解的类，然后将其变成BeanDefinition对象，然后放到一个Spring中的Map中，用于下面创建Spring bean的时候使用这个BeanDefinition
+2. 有8个后置处理器方法4个后置处理器，贯穿了对象的创建->属性赋值->初始化->销毁
+3. 处理器方法执行的时机和作用
+4. invokeInitMethods执行的Aware和BeanPostProcessor# postProcessBeforeInitialization方法执行的aware
+
+Spring Bean的生命周期分为四个阶段和多个扩展点。扩展点又可以分为影响多个Bean和影响单个Bean。整理如下：
+
+四个阶段：
+- 实例化 Instantiation
+- 属性赋值 Populate
+- 初始化 Initialization
+- 销毁 Destruction
+
+多个扩展点：
+- 影响多个Bean
+  - BeanPostProcessor
+    - postProcessBeforeInitialization
+    - postProcessAfterInitialization
+  - InstantiationAwareBeanPostProcessor
+    - postProcessBeforeInstantiation
+    - postProcessAfterInstantiation
+    - postProcessPropertyValues
+  - MergedBeanDefinitionPostProcessor
+    - postProcessMergedBeanDefinition
+  - SmartInstantiationAwareBeanPostProcessor
+    - determineCandidateConstructors
+    - getEarlyBeanReference
+- 影响单个Bean
+  - Aware
+    - Aware Group1（调用invokeInitMethods方法）
+      - BeanNameAware
+      - BeanClassLoaderAware
+      - BeanFactoryAware
+    - Aware Group2（调用Aware和BeanPostProcessor# postProcessBeforeInitialization方法）
+      - EnvironmentAware
+      - EmbeddedValueResolverAware
+      - ApplicationContextAware(ResourceLoaderAware\ApplicationEventPublisherAware\MessageSourceAware)
+  - 生命周期
+    - InitializingBean
+    - DisposableBean
+
+
 ### 如何在spring启动之后做一些操作
 我们可能会有这样的需求：要在spring启动之后初始化一些bean，或者自动运行一些业务代码。
 
