@@ -47,5 +47,10 @@
 * 端口号是443
 * 是由SSL+Http协议构建的可进行加密传输、身份认证的网络协议。
 
+https=http+ssl/tls，即加密的http
+
+ssl(Secure Socket Layer,安全套接字层)和tls(Transport Layer Security)都是用来加密的协议，可简单理解为加密算法不同
+
+
 
 

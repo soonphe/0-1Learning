@@ -16,6 +16,7 @@
 /etc/profile：系统全局变量，系统启动即加载该文件的配置（不建议添加）
 /etc/bashrc：所有类型的bash shell 都会读取该文件的配置
 ~/.bash_profile：配置用户级环境变量，在系统用户文件夹下创建，当用户登录时，该文件会被执行且仅执行一次
+~/.bashrc：配置用户级bash环境变量
 ~/.zshrc：配置用户级zshrc环境变量，默认终端是bash，如果配置zshrc则也可以引入~/.bash_profile 本机bash
 
 ### mac命令行启动mysql

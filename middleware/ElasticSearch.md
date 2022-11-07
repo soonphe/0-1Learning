@@ -100,9 +100,8 @@ Elasticsearch是面向文档的，这意味着索引和搜索数据的最小单�
 注意：可以在任何时候改变每个分片的副本分片的数量，因为副本分片总是可以被创建和移除的。这并不适用于索引划分为主分片的数量，在创建索引之前，必须决定主分片的数量。过少的分片将限制可扩展性，但是过多的分片会影响性能。默认设置的5份是一个不错的开始。
 
 
-### Elasticsearch查询配置信息
-127.0.0.1:9200 打开可获取Elasticsearch配置信息
-
+### Elasticsearch查询配置、集群信息
+http://127.0.0.1:9200 打开可获取Elasticsearch配置信息
 ````
 {
   "name" : "sc-stable-new-luban-001",   //节点名
@@ -123,7 +122,6 @@ Elasticsearch是面向文档的，这意味着索引和搜索数据的最小单�
 }
 ````
 
-### Elasticsearch查询集群状态
 1.查看集群的健康状态。
 http://127.0.0.1:9200/_cat/health?v
 
@@ -222,111 +220,42 @@ http://127.0.0.1:9200/_cat/
 |---|抽取类型|percolator|
 
 说明：
-字符串类型ElasticSearch对字符串拥有两种完全不同的搜索方式. 你可以按照整个文本进行匹配, 即关键词搜索(keyword search), 也可以按单个字符匹配, 即全文搜索(full-text search).
-- Text：
-会分词，然后进行索引
-支持模糊、精确查询
-不支持聚合
-
-- keyword：
-不进行分词，直接索引
-支持模糊、精确查询
-支持聚合
-
-- text用于全文搜索的, 而keyword用于关键词搜索.
-说明：ES5.0及以后的版本取消了string类型，将原先的string类型拆分为text和keyword两种类型。它们的区别在于text会对字段进行分词处理而keyword则不会。
-
-
-
-### Index和Type的主要区别
-Index 是什么
-Index 存储在多个分片中，其中每一个分片都是一个独立的 Lucene Index。这就应该能提醒你，添加新 index 应该有个限度：每个 Lucene Index 都需要消耗一些磁盘，内存和文件描述符。因此，一个大的 index 比多个小 index 效率更高：Lucene Index 的固定开销被摊分到更多文档上了。
-另一个重要因素是你准备怎么搜索你的数据。在搜索时，每个分片都需要搜索一次， 然后 ES 会合并来自所有分片的结果。例如，你要搜索 10 个 index，每个 index 有 5 个分片，那么协调这次搜索的节点就需要合并 5x10=50 个分片的结果。这也是一个你需要注意的地方：如果有太多分片的结果需要合并，或者你发起了一个结果巨大的搜索请求，合并任务会需要大量 CPU 和内存资源。这是第二个让 index 少一些的理由。
-
-Type 是什么
-使用 type 允许我们在一个 index 里存储多种类型的数据，这样就可以减少 index 的数量了。在使用时，向每个文档加入 _type 字段，在指定 type 搜索时就会被用于过滤。使用 type 的一个好处是，搜索一个 index 下的多个 type，和只搜索一个 type 相比没有额外的开销 —— 需要合并结果的分片数量是一样的。
-但是，这也是有限制的：
-
-- 不同 type 里的字段需要保持一致。例如，一个 index 下的不同 type 里有两个名字相同的字段，他们的类型（string, date 等等）和配置也必须相同。
-- 只在某个 type 里存在的字段，在其他没有该字段的 type 中也会消耗资源。这是 Lucene Index 带来的常见问题：它不喜欢稀疏。由于连续文档之间的差异太大，稀疏的 posting list 的压缩效率不高。这个问题在 doc value 上更为严重：为了提高速度，doc value 通常会为每个文档预留一个固定大小的空间，以便文档可以被高速检索。这意味着，如果 Lucene 确定它需要一个字节来存储某个数字类型的字段，它同样会给没有这个字段的文档预留一个字节。未来版本的 ES 会在这方面做一些改进，但是我仍然建议你在建模的时候尽量避免稀疏。[1]
-- 得分是由 index 内的统计数据来决定的。也就是说，一个 type 中的文档会影响另一个 type 中的文档的得分。
-
-这意味着，只有同一个 index 的中的 type 都有类似的映射 (mapping) 时，才应该使用 type。否则，使用多个 type 可能比使用多个 index 消耗的资源更多。
-
+ES5.0及以后的版本取消了string类型，将原先的string类型拆分为text和keyword两种类型。它们的区别在于text会对字段进行分词处理而keyword则不会。
+ElasticSearch对字符串拥有两种完全不同的搜索方式. 你可以按照整个文本进行匹配, 即关键词搜索(keyword search), 也可以按单个字符匹配, 即全文搜索(full-text search).
+- text： 会分词，然后进行索引；支持模糊、精确查询；不支持聚合；text用于全文搜索的
+- keyword： 不进行分词，直接索引； 支持模糊、精确查询；支持聚合；而keyword用于关键词搜索
 
 ### Elasticsearch创建索引、删除索引、设置mapping、增加数据、查询数据
-1. 创建索引：
-```
-curl -X PUT 'localhost:9200/_index?pretty'
-指定分片数据和副本数量（application/json）
-{
-	"settings": {
-		"number_of_shards": 3,
-		"number_of_replicas": 2
-	}
-}
 
-说明：如果指定到index级别，只需要put就行，如果是type级别，则为post请求，如果指定id，则为添加数据
-```
+#### 索引创建
+请求结构说明：**http://localhost:9200/{_index}/{_type}/{_id}**
 
-2. 单条写入put/post：
+- 参数选填示例1-PUT请求-只创建索引：指定index为log_index，指定分片数据和副本数量（请求头为application/json）(分片20，副本1)
 ```
-put，需要设定数据ID（同一条数据首次插入是created，再次插入会updated）
-post，可选择设定数据ID（不指定id情况下：同一条数据首次插入是created，再次插入还是created，但_id会变；指定id若id不变第二次插入失败）
-_doc:同一条数据首次插入是created，再次插入会updated
-_create:同一条数据首次插入是created，再次插入会报错
-
-PUT compyan-starff-001/_doc/1
-{
-  ...
-}
-PUT compyan-starff-001/_create/1
-{
-  ...
-}
-```
-批量写入_bulk:
-```
-POST _bulk
-{index:{"_index":"company-staff-001", "_id": "1"}}
-...
-{index:{"_index":"company-staff-001", "_id": "2"}}
-...
-{index:{"_index":"company-staff-001", "_id": "3"}}
-...
-```
-
-2. 删除索引：
-```
-删除索引：curl -XDELETE localhost:9200/_index
-
-删除数据：curl -XDELETE localhost:9200/_index/_doc/_id
-
-根据条件删除数据：
-POST localhost:9200/_index?requests_per_second
-{
-  "slice":{   #手动分片删除
-    "id":1,    #两次删除需要修改id
-    "max":2 #分为两批次删除
-  }
-  "query": { 
-    "match_all": {}
-  }
-}
-```
-
-3. 设置类型、设置mapping
-同时创建索引和mapping：
-```
-curl -XPUT localhost:9200/log_index
-
+https://localhost:9200/log_index?pretty
 {
 	"settings": {
 		"number_of_shards": 5,
-		"number_of_replicas": 2
-	},
+		"number_of_replicas": 1
+	}
+}
+```
+- 参数选填示例2-PUT请求-创建索引和mapping：指定index为log_index，指定分片数据和副本数量(分片20，副本1，type为text进行分词，type为keyword不进行分词)，mapping分别定义；
+```
+https://localhost:9200/log_index?pretty
+{
+    "settings": {
+        "number_of_shards": 20,
+        "number_of_replicas": 1
+    },
    "mappings": {
         "properties": {
+            "measureInfo": {
+                "type": "text"
+            },
+            "extraOtherInfo": {
+                "type": "text"
+            },
             "commodity_id": {
                 "type": "long"
             },
@@ -340,41 +269,46 @@ curl -XPUT localhost:9200/log_index
                 "type": "double"
             }
         }
+    }
+}
+```
+说明：如果指定到index级别，只需要put就行，如果是type级别，则为post请求，如果指定id，则为添加数据；
+elasticsearch 7.x相较于elasticsearch 6.x在有所不同：7.x中设置mapping删去了_type，如果在7.x中用6.x的方法定义会出现错误
+> "error": "Incorrect HTTP method for uri [/log_index/_type] and method [PUT], allowed: [POST]"
+
+- 参数选填示例3-POST请求-添加mapping字段：指定type则必须为post请求，如果type创建时没有指定，则默认为_doc，否则报错
+> 如指定为_type："reason": "mapping type name [_type] can't start with '_' unless it is called [_doc]"
+> 如指定为type1："reason": "Rejecting mapping update to [log_index] as the final mapping would have more than 1 type: [_doc, type1]"
+```
+http://localhost:9200/log_index/_doc
+{  	
+  "createTime" : {
+    "type" : "long"
+  },
+  "name" : {
+    "type" : "text"
+  }
+}
+```
+
+- 参数选填示例4-POST请求-指定ID更新mapping：指定id为1，若原来的id存在，则会覆盖原来的mapping数据，若不存在指定id数据，则新建一条数据，并指定mapping
+```
+http://localhost:9200/log_index/_doc/1
+{
+
+	"properties" : {
+	  "createTime" : {
+		"type" : "long"
+	  },
+	  "name" : {
+		"type" : "text"
+	  }
 	}
 }
 ```
-elasticsearch 7.x相较于elasticsearch 6.x在有所不同：7.x中设置mapping删去了_type，如果在7.x中用6.x的方法定义会出现以下的错误
-
-如果指定type则必须为post请求，es会自动创建保存一条随机ID数据
-```
-curl -XPOST http://localhost:9200/{_index}/{_type} -d '{
-  
-	"properties" : {
-	  "createTime" : {
-		"type" : "long"
-	  },
-	  "name" : {
-		"type" : "text"
-	  }
-	}
-}'
-```
-
-指定ID创建mapping
-```
-curl -XPUT http://localhost:9200/{_index}/{_type}/{_id} -d '{
-
-	"properties" : {
-	  "createTime" : {
-		"type" : "long"
-	  },
-	  "name" : {
-		"type" : "text"
-	  }
-	}
-}'
 说明：
 如果不指定类型，ElasticSearch字符串将默认被同时映射成text和keyword类型，会自动创建下面的动态映射(dynamic mappings)：
+```
 {
 properties
     "name": {
@@ -388,8 +322,22 @@ properties
     }
 }
 这就是造成部分字段还会自动生成一个与之对应的“.keyword”字段的原因。
-
 ```
+
+**Index和Type使用的注意事项**
+- Index
+  - Index 存储在多个分片中，其中每一个分片都是一个独立的 Lucene Index。这就意味着添加新 index 应该有个限度：每个 Lucene Index 都需要消耗一些磁盘，内存和文件描述符。因此，一个大的 index 比多个小 index 效率更高： Lucene Index 的固定开销被摊分到更多文档上了。
+  - 另一个重要因素是你准备怎么搜索你的数据。在搜索时，每个分片都需要搜索一次， 然后 ES 会合并来自所有分片的结果。例如，你要搜索 10 个 index，每个 index 有 5 个分片，那么协调这次搜索的节点就需要合并 5x10=50 个分片的结果。这也是一个你需要注意的地方：如果有太多分片的结果需要合并，或者你发起了一个结果巨大的搜索请求，合并任务会需要大量 CPU 和内存资源。这是第二个让 index 少一些的理由。
+
+- Type
+  - 使用 type 允许我们在一个 index 里存储多种类型的数据，这样就可以减少 index 的数量了。在使用时，向每个文档加入 _type 字段，在指定 type 搜索时就会被用于过滤。使用 type 的一个好处是，搜索一个 index 下的多个 type，和只搜索一个 type 相比没有额外的开销 —— 需要合并结果的分片数量是一样的。
+  - 不同 type 里的字段需要保持一致。例如，一个 index 下的不同 type 里有两个名字相同的字段，他们的类型（string, date 等等）和配置也必须相同。
+  - 只在某个 type 里存在的字段，在其他没有该字段的 type 中也会消耗资源。这是 Lucene Index 带来的常见问题：它不喜欢稀疏。由于连续文档之间的差异太大，稀疏的 posting list 的压缩效率不高。这个问题在 doc value 上更为严重：为了提高速度，doc value 通常会为每个文档预留一个固定大小的空间，以便文档可以被高速检索。这意味着，如果 Lucene 确定它需要一个字节来存储某个数字类型的字段，它同样会给没有这个字段的文档预留一个字节。未来版本的 ES 会在这方面做一些改进，但是我仍然建议你在建模的时候尽量避免稀疏。[1]
+  - 得分是由 index 内的统计数据来决定的。也就是说，一个 type 中的文档会影响另一个 type 中的文档的得分。
+
+> 这意味着，只有同一个 index 的中的 type 都有类似的映射 (mapping) 时，才应该使用 type。否则，使用多个 type 可能比使用多个 index 消耗的资源更多。
+
+
 4. 创建索引并添加数据：curl -XPOST 'http://localhost:9200/{_index}/{_type}/{_id}' -d'{"a":"avalue","b":"bvalue"}'
 ```
 限定index + type添加：
@@ -397,6 +345,77 @@ curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index
 限定index + type + id添加（ID相同会覆盖）：
 curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
 ```
+
+#### 索引删除和索引数据删除
+删除索引：curl -XDELETE localhost:9200/log_index
+
+删除数据：curl -XDELETE localhost:9200/log_index/_doc/_id
+
+根据条件删除数据：
+```
+POST localhost:9200/log_index?requests_per_second
+{
+  "slice":{   #手动分片删除
+    "id":1,    #两次删除需要修改id
+    "max":2 #分为两批次删除
+  }
+  "query": { 
+    "match_all": {}
+  }
+}
+```
+
+#### 索引新增数据-单条写入
+支持put/post两种请求方式：
+   - put：curl -X PUT 'http://127.0.0.1:9200/log_index/_doc/id'(**必须指定数据ID**，同一条数据首次插入是created，再次插入会updated）
+   - put：curl -X PUT 'http://127.0.0.1:9200/log_index/_create/id'(**必须指定数据ID**，同一条数据首次插入是created，再次插入会报错）
+   - 
+   - post：curl -X POST 'http://127.0.0.1:9200/log_index/_doc'（**数据ID可不指定**，不指定id则自动生成ID，相同数据插入不会覆盖更新；指定id若对应数据存在则更新）
+   - post：curl -X POST 'http://127.0.0.1:9200/log_index/_create'（**数据ID可不指定**，不指定id则自动生成ID，相同数据插入不会覆盖更新；指定id若对应数据存则插入失败））
+   - 补充
+     - _doc:同一条数据首次插入是created，再次插入会updated
+     - _create:同一条数据首次插入是created，再次插入会报错
+
+示例1-put方式+_doc请求：插入/更新一条数据(id指定为1，id重复则会覆盖，**同一名称字段类型必须相同**)
+```
+http://127.0.0.1:9200/log_index/_doc/1
+{
+  "name":1
+}
+```
+示例2-put方式+_create请求：插入一条数据(id指定为1，id重复则会报错)
+```
+http://127.0.0.1:9200/log_index/_create/1
+{
+  "name":1
+}
+```
+示例3-post方式+_doc请求：插入一条数据(id不指定，重新生成一条新id数据)
+```
+http://127.0.0.1:9200/log_index/_doc
+{
+  "name":1
+}
+```
+示例4-post方式+_doc请求：插入一条数据(id指定1，更新覆盖)
+```
+http://127.0.0.1:9200/log_index/_doc/1
+{
+  "name":1
+}
+```
+
+批量写入_bulk:
+```
+POST _bulk
+{index:{"log_index":"company-staff-001", "_id": "1"}}
+...
+{index:{"log_index":"company-staff-001", "_id": "2"}}
+...
+{index:{"log_index":"company-staff-001", "_id": "3"}}
+...
+```
+
 
 5. 查询
 获取索引所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
@@ -458,6 +477,109 @@ curl -XGET 'http://localhost:9200/{index}/{type}/_search' -d '{
 - log_type是索引类型type（索引和类型的名称在文件中如果有定义，可以省略；如果没有则必须要指定）
 - _bulk是rest的命令，可以批量执行多个操作（操作是在json文件中定义的，原理可以参考之前的翻译）
 - pretty是将返回的信息以可读的JSON形式返回。
+
+
+### Elasticsearch索引别名
+es可以对一个或者多个索引指定别名,通过别名可以查到一个或者多个索引的内容。
+在内部,es会把别名映射到相应的索引上。
+可以对别名编写过滤器或者路由,在系统中别名不能重复,也不能和索引名重复。es中的别名机制有点像数据库中的视图。
+
+例子:为test1增加一个别名alias1
+- 请求:POST http://127.0.0.1:9200/_aliases
+- 参数:{"actions":[{"add":{"index":"secisland","alias":"alias1"}}] }
+
+**删除别名，请求与上述一样,参数不同**
+```
+{
+    "actions":[{"remove":{"index":"test1","alias":"alias1"}}]
+}
+```
+注意:别名没有修改语法,修改别名时,可以先删除别名,再添加
+```
+{
+    "actions":[
+        {"remove":{"index","test1","alias":"alias1"}},
+        {"add":{"index":"test1","alias":"alias2"}}
+    ]
+}
+```
+一个别名也可以关联多个索引
+```
+{
+    "actions":[
+        {"add":{"index":"test1","alias":"alias1"}},
+        {"add":{"index":"test2","alias":"alias1"}}
+    ]
+}
+```
+也可以用以下语法
+```
+{ "actions":[ {"add":{"indices":["test1","test2"],"alias":"alias1"}} ] }
+```
+或者使用通配符
+```
+{
+    "actions":[
+        {"add":{"index":"test*","alias":"all_test_indecies"}}
+    ]
+}
+```
+注意:通配符指定的索引只在当前索引生效,后续添加索引不会被自动添加到别名上。对某一别名做索引的时候,如果该别名添加多个索引就会报错
+
+**过滤索引别名**
+该过滤去可以使用查询DSL来定义适用于所有的搜索,计数,查询删除等,以及更多类似这样的与此别名的操作。
+
+创建过滤别名,请求:POST http://127.0.0.1:9200/_aliases
+```
+{
+	"actions":[
+		{"add":{"index":"test1","alias":"alias1","filter":{
+					"term":{"user":"kimchy"}}}}
+		}	
+	]
+}
+```
+
+通过别名也可以和路由关联,此功能可以和过滤别名命令一起使用
+请求:POST http://127.0.0.1:9200/_aliases
+```
+{
+	"actions":[
+		{"add":{"index":"test1","alias":"alias1","routing":"1"}}
+	]
+}
+```
+
+同时可以指定搜索路由和查询路由
+```
+{
+	"actions":[
+		{"add":{"index":"test","alias":"alias2","search_routing":"1,2","index_routing":"2"}}
+	]
+}
+```
+注意:搜索路由可以指定多个值,索引路由只能指定一个值.如果使用路由别名操作的同时还有路由参数,则结果时别名路由和路由的交集
+
+### Elasticsearch迁移
+问题：如何解决不停服切换索引
+
+当前系统在创建好一个 index 时, 下面的字段类型以及分词器是不支持修改的,如果修改只得去先删除索引，然后再重新按照新的字段去创建新的 index，最后导入数据后再进行操作。
+
+在生产环境中，这样做是及其不现实的，某些索引数据量大，再重新导入时间需要消耗大量的时间。而且在这个过程中，集群是没有办法对外提供这个索引的搜索服务。
+
+好在 ES 为我们提供了别名的概念 aliases，也就是我们在生成一个索引的时候，比如叫 my_index_v1，我们是可以做一个别名 my_index 指向它。
+
+当我们在查询 my_index 的时间时，实际上查询是 my_index_v1 这个索引的数据。
+
+那么在遇到有字段调整或者分词器发生变化时，我们就可以这样来做了。
+
+我们可以先生成一个别名 my_index 指向 my_index_v1，业务系统去查询时直接使用 my_index 去做查询，当后台字段发生变化，或者字段类型和分词器等发生变化，我们就可以再生成一个新的 index，比如叫 my_index_v2 。
+
+然后 把 my_index_v1 的数据 导入到 my_index_v2 中。最后删除 my_index 对于 my_index_v1 的指向，重新把 my_index 指向到 my_index_v2 。
+
+在这个过程中，应用系统在切换完成前查询的旧数据，切换后查询的是新数据，应用就可以做到不停机。
+
+对于我们之前的当前业务系统来说，暂时只是一个别名指向到一个 index 中。虽然别名可以指向到多个实际的 index 。
 
 
 ### ES为什么不能做主数据库（如何更新mapping字段类型）

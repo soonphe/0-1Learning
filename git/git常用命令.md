@@ -23,7 +23,8 @@ git push -u origin master：-u选项指定一个默认主机
 
 
 ### 1 远程仓库相关命令
-检出仓库：$ git clone git://github.com/jquery/jquery.git
+克隆仓库：$ git clone <版本库的网址>（示例：$ git clone git://github.com/jquery/jquery.git）
+克隆仓库并要指定不同的目录名：$ git clone <版本库的网址> <本地目录名>（示例：$ git clone git://git.kernel.org/pub/scm/.../linux.git mydir）
 查看远程仓库：$ git remote -v
 添加远程仓库：$ git remote add [name远程仓库名] [url远程地址]
 删除远程仓库：$ git remote rm [name]

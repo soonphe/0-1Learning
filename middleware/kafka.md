@@ -402,12 +402,37 @@ Segment-1 [offset:522-1044] 00000000000000000522.index  00000000000000000522.log
 
 ### kafka组成结构
 1. 生产者Producer：将向Kafka topic发布消息的程序成为producers.
+   - 消息发送过程
+      1. 创建 ProducerRecord 对象（可以指定键或分区）。
+      2. 键和值对象序列化成字节数组。
+      3. producer发送的消息分发到不同的partition中，确定分区。如果指定了分区，以指定的优先。如果没有，分区器会根据键选择一个分区。
+      4. 数据记录添加到记录批次。同一个批次里的所有消息会被发送到相同的主题和分区上。由独立的线程负责把这些记录批次发送到相应的 broker上。
+   - 生产者三个核心配置：1. bootstrap.servers （发送到哪里）2. key.serializer （键序列化器）3. value.serializer （值序列化器）
+   - 三种发送模式：1.发送并忘(不关心发送结果)，2.同步发送：根据返回的Future，同步等待结果；3.异步发送：通过回调的方式获取发送的结果。
+```
+ProducerRecord<String, String> record = new ProducerRecord<>("CustomerCountry", "Precision Products", "France");
+ 
+try { 
+    producer.send(record);
+} catch (Exception e) { 
+    e.printStackTrace();
+}
+```
+ProducerRecord的三个构造参数是，topic，key，value
+
+如果键值为 null，并且使用了默认的分区器，那么记录将使用轮询(Round Robin)算法发送到主题内各个可用的分区上。
+
+如果键不为空，并且使用了默认的分区器，那么 Kafka 会对键进行散列，然后根据散列值把消息映射到特定的分区上。
+
+在不改变主题分区数量的情况下，键与分区之间的映射才能保持不变。在创建主题的时候就把分区规划好，不要增加新分区。
 
 2. 消费者Consumer：将订阅topics并消费消息的程序成为consumer.
    - 和Producer一样是逻辑上的概念，是Kafka实现单播和广播两种消息模型的手段
    - 同一个topic的数据，会广播给不同的group(消费者组)
    - 同一个group中的Consumer，只有一个worker能拿到这个数据。*对于同一个topic，每个group都可以拿到同样的所有数据，但是数据进入group后只能被其中的一个worker消费*
-   - producer发送的消息分发到不同的partition中，consumer接受数据的时候是按照group来接收，kafka确保每个partition只能同一个group中的其中一个consumer消费，如果想要重复消费，那么需要其他的组来消费
+   - consumer接收数据的时候是按照group来接收，kafka确保每个partition只能同一个group中的其中一个consumer消费，如果想要重复消费，那么需要其他的组来消费
+   - 例：1. 主题 T1 有4个分区，仅存在消费者 C1， C1 将收到全部4个分区的消息；在群组 G1 里新增消费者 C2，那么每个消费者将分别从两个分区接收消息；如果群组 G1 有 4 个消费者，那么每个消费者可以分配到一个分区；如果我们往群组里添加更多的消费者，超过主题的分区数量，那么有一部分消费者就会被闲置，不会接收到任何消息；5. 新增一个只包含一个消费者的群组 G2，那么这个消费者将从主题 T1 上接收所有的消息，与群组 G1 之间互不影响。
+   - 核心配置：1. bootstrap.servers （从哪里获取）2. group.id（属于哪个群组）3. key.deserializer(键反序列化器) 4. value.deserializer(值反序列化器)
    - group内的worker可以使用多线程或多进程来实现，也可以将进程分散在多台机器上，worker的数量通常不超过partition的数量，且二者最好保持整数倍关系，因为Kafka在设计时假定了一个partition只能被一个worker消费（同一group内）
 
 3. broker：由一个或多个kafka服务(server)组成，每个服务叫做一个broker. 是消息的代理，Producers往Brokers里面的指定Topic中写消息，Consumers从Brokers里面拉取指定Topic的消息，然后进行业务处理，broker在中间起到一个代理保存消息的中转站
@@ -425,6 +450,16 @@ Segment-1 [offset:522-1044] 00000000000000000522.index  00000000000000000522.log
     - 每个消息在被添加到分区时，都会被分配一个 offset（称之为偏移量），它是消息在此分区中的唯一编号，kafka 通过 offset保证消息在分区内的顺序，offset 的顺序不跨分区，即 kafka只保证在同一个分区内的消息是有序的
     - 默认情况下，Kafka根据传递消息的key来进行分区的分配，即hash(key) % numPartitions，这就保证了相同key的消息一定会被路由到相同的分区。
     - 如果没有指定key，Kafka几乎就是随机找一个分区发送无key的消息，然后把这个分区号加入到缓存中以备后面直接使用——当然了，Kafka本身也会清空该缓存（默认每10分钟或每次请求topic元数据时）
+    - Kafka的分区设计：
+      - 生产者写作的并行性受分区数量的限制。
+      - 消费者消费并行度的程度也受到消费的分区数量的限制。假设分区数为20，则最大并发消费消费者数为20。
+    - 为什么Kafka不能支持更多分区 
+      - 每个分区都存储整个消息数据。尽管每个分区都按顺序写入磁盘，但随着并发写入分区数量的增加，从操作系统的角度来看，写入变得随机。
+      - 由于分散的数据文件，很难使用Linux IO组提交机制。
+      - 更多分区需要更多打开文件句柄
+      - 更多分区可能会增加不可用性
+      - 更多分区可能会增加端到端延迟
+      - 更多分区可能需要在客户端中有更多内存
 
 - 补充：
 无论是kafka集群，还是producer和consumer都依赖于zookeeper来保证系统可用性，zookeeper保存kafka集群的meta（元数据）信息（broker/consumer）。
@@ -542,6 +577,56 @@ Follower可以批量的从Leader复制数据，而且Leader充分利用磁盘顺
 ### kafka consumer 消费消息
 **消费者提交消费位移时提交的是当前消费到的最新消息的offset还是offset+1?**
 offset+1
+
+
+#### kafka Consumer参数设置
+consumer.poll(1000) 重要参数
+新版本的Consumer的Poll方法使用了类似于Select I/O机制，因此所有相关事件（包括reblance，消息获取等）都发生在一个事件循环之中。
+1000是一个超时时间，一旦拿到足够多的数据（参数设置），consumer.poll(1000)会立即返回 ConsumerRecords<String, String> records。
+如果没有拿到足够多的数据，会阻塞1000ms，但不会超过1000ms就会返回。
+
+session. timeout. ms <= coordinator检测失败的时间
+默认值是10s
+该参数是 Consumer Group 主动检测 (组内成员comsummer)崩溃的时间间隔。若设置10min，那么Consumer Group的管理者（group coordinator）可能需要10分钟才能感受到。太漫长了是吧。
+
+max. poll. interval. ms <= 处理逻辑最大时间
+这个参数是0.10.1.0版本后新增的，可能很多地方看不到喔。这个参数需要根据实际业务处理时间进行设置，一旦Consumer处理不过来，就会被踢出Consumer Group 。
+注意：如果业务平均处理逻辑为1分钟，那么max. poll. interval. ms需要设置稍微大于1分钟即可，但是session. timeout. ms可以设置小一点（如10s），用于快速检测Consumer崩溃。
+
+auto.offset.reset
+该属性指定了消费者在读取一个没有偏移量后者偏移量无效（消费者长时间失效当前的偏移量已经过时并且被删除了）的分区的情况下，应该作何处理，默认值是latest，也就是从最新记录读取数据（消费者启动之后生成的记录），另一个值是earliest，意思是在偏移量无效的情况下，消费者从起始位置开始读取数据。
+
+enable.auto.commit
+对于精确到一次的语义，最好手动提交位移
+
+fetch.max.bytes
+单次获取数据的最大消息数。
+
+max.poll.records <= 吞吐量
+单次poll调用返回的最大消息数，如果处理逻辑很轻量，可以适当提高该值。
+一次从kafka中poll出来的数据条数,max.poll.records条数据需要在在session.timeout.ms这个时间内处理完
+默认值为500
+
+heartbeat. interval. ms <= 居然拖家带口
+heartbeat心跳主要用于沟通交流，及时返回请求响应。这个时间间隔真是越快越好。因为一旦出现reblance,那么就会将新的分配方案或者通知重新加入group的命令放进心跳响应中。
+connection. max. idle. ms <= socket连接
+kafka会定期的关闭空闲Socket连接。默认是9分钟。如果不在乎这些资源开销，推荐把这些参数值为-1，即不关闭这些空闲连接。
+
+request. timeout. ms
+这个配置控制一次请求响应的最长等待时间。如果在超时时间内未得到响应，kafka要么重发这条消息，要么超过重试次数的情况下直接置为失败。
+消息发送的最长等待时间.需大于session.timeout.ms这个时间
+
+fetch.min.bytes
+server发送到消费端的最小数据，若是不满足这个数值则会等待直到满足指定大小。默认为1表示立即接收。
+
+fetch.wait.max.ms
+若是不满足fetch.min.bytes时，等待消费端请求的最长等待时间
+
+group.initial.rebalance.delay.ms <=牛逼了，我的kafka，防止成员加入请求后本应立即开启的rebalance
+对于用户来说，这个改进最直接的效果就是新增了一个broker配置：group.initial.rebalance.delay.ms，
+默认是3秒钟。
+主要作用是让coordinator推迟空消费组接收到成员加入请求后本应立即开启的rebalance。在实际使用时，假设你预估你的所有consumer组成员加入需要在10s内完成，那么你就可以设置该参数=10000。
+
 
 ### 消息如何保证幂等性——重复消费怎么解决
 为什么会出现重复消费？ 
@@ -687,6 +772,33 @@ Kafka 并不支持主写从读，因为主写从读有 2 个很明 显的缺点:
     * 再开启对应新partition个数的consumer对新的topic进行消费；
     * 这种做法相当于通过物理资源扩充了10倍来快速消费；
 3. 当消费完成后，需要恢复原有架构，开启原来的consumer进行正常消费；
+
+### kafka消费太慢、太快如何处理
+**消费太慢**
+
+考虑增加Topic的分区数，并且同时提升消费组的消费者数量，消费者数=分区数。（两者缺一不可）
+
+**消费太快**
+
+调整参数：
+- fetch.max.bytes ：单次获取数据的最大消息数。
+- max.poll.records <= 吞吐量 
+  - 单次poll调用返回的最大消息数，如果处理逻辑很轻量，可以适当提高该值。
+  - 一次从kafka中poll出来的数据条数,max.poll.records条数据需要在在session.timeout.ms这个时间内处理完，默认值为500
+- consumer.poll(1000) 重要参数
+  - 新版本的Consumer的Poll方法使用了类似于Select I/O机制，因此所有相关事件（包括reblance，消息获取等）都发生在一个事件循环之中。
+  1000是一个超时时间，一旦拿到足够多的数据（参数设置），consumer.poll(1000)会立即返回 ConsumerRecords<String, String> records。
+  如果没有拿到足够多的数据，会阻塞1000ms，但不会超过1000ms就会返回。
+
+错误方案示例：
+- 方案一：减少 topic 分区数量，能降低总体并行消费速度，但对于topic瞬时流量没有降低（例：一般系统基于mysql连接池用的是长连接，一次性获取的消息条数不变的情况下，分区数量并不能太限制kafka的消费速度）
+
+- 方案二：在应用端加个线程的Thread.sleep（效率问题严重，开销大，切换线程浪费资源严重，当代码运行到Thread.sleep时，当前线程进入time_wait状态，通常我们会说线程进入睡眠状态，此时该线程不需要占用CPU了，操作系统就会执行一次线程切换，将该线程的CPU时间给其他线程使用，这种切换叫做主动线程切换）
+```
+网上有人对线程上下文切换时间做过计算，每一次大概需要消耗5微妙左右CPU时间。而每一次sleep会造成2次线程切换，一次切出去， 一次切回来，那么就会消耗10微妙CPU时间。这个消耗虽然很小，但是架不住次数多，这是一种可耻的浪费。
+
+与此同时，sleep除了会造成线程切换之外，它还是一个系统调用。要知道系统调用相对于普通代码执行，也是一项重量级操作，每执行一次系统调用，操作系统需要将该线程的状态从用户态切为内核态，完成后还需要切回来，这也涉及到执行现场的保存和恢复，设计到CPU上下文切换。 当然，系统调用的切换开销不及线程切换的开销大，据统计，每次系统调用，涉及到切换上下文的的消耗时间为200纳秒，远小于线程切换的5微妙，但是如果次数多了，消耗的总和也不可忽视
+```
 
 ### kafka 消息过期、删除
 全局配置：kafka默认的消息过期时间为168h(7天)

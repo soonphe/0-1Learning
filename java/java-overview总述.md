@@ -129,48 +129,6 @@ java获取内存dump中的数据的几种方式：
 老年代溢出需要看dump文件中哪些对象没有释放，从而分析代码。
 元空间溢出排查比较麻烦，dump看不出来，一般是因为重复加载class太多，可以分析问题代码，针对性压测，观察class数量
 
-### java new String的时候会创建几个对象
-```
-String a = "a";
-```
-创建了1个对象：常量池1个
-ldc 出现了1次
-
-```
-String a = new String("a");
-```
-创建了2个对象：常量池1个，堆1个
-ldc 出现了1次
-
-```
-String a = "a"; String b = "b"; String c = "a" + "b";
-```
-创建了3个对象：常量池3个
-字面量 "a" + "b" 在编译前就已经识别为 ”ab“ 了， 被放到常量池中。所以只有一个对象 ：ab
-ldc 出现3次
-
-字符串拼接操作的总结
-- 常量 与 常量 的拼接结果在 常量池，原理是 编译期 优化；
-- 常量池 中不会存在相同内容的常量；
-- 只要其中一个是变量，结果在堆中。 如： String s2 = s1+"DEF" ;
-- 变量拼接的原理 是StringBuilder 。
-- 如果拼接的结果是调用 intern() 方法，则主动将常量池中 还没有的字符串 对象放入池中，并返回地址。
-
-```
-String a = "a"; String b = "b"; String c = a + b;
-```
-严格来说：创建了4个对象（还创建了StringBuilder对象）：常量池2个，堆2个
-StringBuilder.toString 方法的实现是 new String();
-
-```
-String str = new String(“a”) + new String(“b”) 
-```
-创建了6个String对象：常量池2个，堆4个
-
-ldc 出现了2次，表示常量池的 a，b
-
-堆里有 StringBuilder，a，b，ab（StringBuilder.toString()生成，不会在常量池创建）
-
 
 
 

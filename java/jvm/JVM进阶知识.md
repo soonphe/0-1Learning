@@ -89,7 +89,7 @@ Java虚拟机规范将JVM所管理的内存分为以下几个运行时数据区�
                 * S1 ( to )
             * 默认的，Eden : from : to = 8 : 1 : 1 ( 可以通过参数 –XX:SurvivorRatio 来设定)
         * 老年代 ( Old )
-        * 持久代 ( Permanent Space)
+        * 持久代 ( Permanent Space)（1.8后永久代改为元空间，元空间不再使用堆而是使用本地内存）。
         * 默认的，新生代 ( Young ) 与老年代 ( Old ) 的比例的值为 1:2 ，可以通过参数 –XX:NewRatio 配置
     
     * 为什么新生代要有Survivor，Eden
@@ -219,8 +219,8 @@ jdk1.9 默认垃圾收集器G1
 
 #### Minor GC与Full GC分别在什么时候发生？
 * Minor GC：通常是指对新生代的回收。指发生在新生代的垃圾收集动作，因为 Java 对象大多都具备朝生夕灭的特性，所以 Minor GC 非常频繁，一般回收速度也比较快
-* Major GC：通常是指对年老代的回收。
-* Full GC：Major GC除并发gc外均需对整个堆进行扫描和回收。指发生在老年代的 GC，出现了 Major GC，经常会伴随至少一次的 Minor GC（但非绝对的，在 ParallelScavenge 收集器的收集策略里就有直接进行 Major GC 的策略选择过程） 。MajorGC 的速度一般会比 Minor GC 慢 10倍以上。
+* Major GC：通常是指对老年代的回收。Major GC除并发gc外均需对整个堆进行扫描和回收。经常会伴随至少一次的 Minor GC（但非绝对的，在 ParallelScavenge 收集器的收集策略里就有直接进行 Major GC 的策略选择过程） 。MajorGC 的速度一般会比 Minor GC 慢 10倍以上。如果Major GC以后老年代空间还是不够用，就报OOM
+* Full GC：用于回收全局，调用System.gc()的时候会执行，大对象转入，方法区空间不足等，老年代的连续空间是否小于eden区中的对象的大小，如果还是小于，那么就查看是否开启了空间担保机制，如果没有开启，就直接进行full gc，如果开启了，就查看老年代最大连续可用空间是否大于历代晋升老年代对象的大小，如果大于，就执行Minor GC，但是这次Minor GC不一定是安全的，因为存在的要进入老年代的对象可能大于老年代中的连续空间(回收以后还是不够），如果小于，那么就直接进行full GC；如果Full GC以后老年代空间还是不够用，就报OOM了。
 
 ### jvm类的加载机制
 
