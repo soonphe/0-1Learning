@@ -38,6 +38,7 @@ INSERT INTO `student` VALUES (4, '赵六', 20, 2);
 INSERT INTO `student` VALUES (5, '孙七', 22, 3);
 INSERT INTO `student` VALUES (6, '李八', 28, 3);
 INSERT INTO `student` VALUES (7, '阿九', 28, 3);
+INSERT INTO `student` VALUES (8, '三班', 28, null);
 ````
 
 ### 案例分析
@@ -49,12 +50,19 @@ INSERT INTO `student` VALUES (7, '阿九', 28, 3);
 
 ### 错误写法——使用MAX函数
 ````
-SELECT *,MAX(age) FROM student
+SELECT *,MAX(age) FROM student  
+# 直接MAX就是去最大值(只有一条数据)，这里要求多分组，所以必须加上GROUP BY
 SELECT *,MAX(age) FROM student GROUP BY c_class
+
+结果：
+8,钱石,23, ,23
+1,张三,22,1,26
+3,王五,20,2,20
+5,孙七,22,3,28
 ````
 错误分析：
-MAX并不会取到最大值所在行，*分组并不会取最大值所在行*
-
+MAX能取到每个分组最大值，但并不一定会取到最大值所在行，*分组并不会取最大值所在行*
+说明：class为1的最高年龄人是李四(26岁)，MAX(age)能查出26，但是查出来是张三所在行，不是李四所在行
 
 ### 错误写法——使用排序+分组
 ````
@@ -65,11 +73,62 @@ FROM
 GROUP BY
     c_class;
 ````
-错误分析：
-分组并不会取排序的第一条结果
+错误分析：**分组并不会取排序的第一条结果**
 
+### 正确写法——使用IN 多字段
+```
+SELECT
+    *
+FROM
+    student
+WHERE (student.c_class,student.age) IN ( SELECT c_class,MAX(age) FROM student GROUP BY c_class);
 
-### 第一种方式正确写法——使用limit
+结果：
+2,李四,26,1
+3,王五,20,2
+4,赵六,20,2
+6,李八,28,3
+7,阿九,28,3
+```
+说明：先根据班级c_class分组，同时找出每个班级最大值MAX(age)，再查询全表，用c_class和age做IN函数双匹配（这里IN的字段里面只允许有两个）
+
+> 如果一个班级有多条相同最大值，那么这里会显示多条；**如果IN函数中c_class为null不会处理显示**（划重点：SQL中使用in时，会忽略null值的记录，即不会查询出列值为null的数据）
+
+如果想要每个分组只取一条数据怎么办？并且要取的这一条数据可以按规则变动，如ID倒序、ID正序等
+```
+SELECT
+  id,name,age,c_class
+FROM
+  student
+WHERE (student.c_class,student.age) IN ( SELECT c_class,MAX(age) FROM student GROUP BY c_class)
+GROUP BY
+    c_class
+
+结果：    
+2,李四,26,1
+3,王五,20,2
+6,李八,28,3
+```
+确实每个班级都取了一条数据，并且好像是按ID正序的，好像是没问题，那我们试下ID倒序：
+```
+select * from (
+SELECT
+    id,name,age,c_class
+FROM
+    student
+WHERE (student.c_class,student.age) IN ( SELECT c_class,MAX(age) FROM student GROUP BY c_class) order by id desc
+              ) AS b
+GROUP BY
+    c_class
+    
+结果：
+2,李四,26,1
+3,王五,20,2
+6,李八,28,3
+```
+完全没变化，还是一样的结果。证明：**分组并不会取排序的第一条结果**
+
+### 正确写法——使用limit
 ````
 SELECT
     * 
@@ -77,11 +136,21 @@ FROM
     ( SELECT * FROM student order by age desc,c_class asc limit 99999999) AS b
 GROUP BY
     c_class;
+
+结果：
+8,钱石,23,
+2,李四,26,1
+3,王五,20,2
+6,李八,28,3
 ````
+说明：limit最后做了分组，所以如果一个班级有多条相同最大值，那么这里只会显示一条。null值也会被分组显示。
+- 把 `order by age desc` 改为 `order by age asc` ，即为查分组最小值
+- 把 `c_class asc` 改为`id desc`，即为查最大最小值，同时按ID倒序
+
 分析：
 limit 99999999是必须要加的，如果不加的话，数据不会先进行排序，通过 explain 查看执行计划，可以看到没有 limit 的时候，少了一个 DERIVED(得到) 操作。
   
-### 第一种方式正确写法——使用having
+### 正确写法——使用having
 ````
 SELECT
     * 
@@ -89,6 +158,12 @@ FROM
     ( SELECT * FROM student having 1 order by age desc,c_class asc) AS b
 GROUP BY
     c_class;
+    
+结果：
+8,钱石,23,
+2,李四,26,1
+3,王五,20,2
+6,李八,28,3
 ````
 分析：
 通过 explain 查看执行计划，可以看到 使用having 1，也会使用 DERIVED(得到) 操作。
@@ -116,8 +191,8 @@ SELECT * FROM
 SELECT * FROM student order by age desc,c_class asc;
 ````
 
-同时由于这个机制，子查询中的里面的 order by 应该会跟外部块一起执行，
-也就是说 order by 会跑到外面来（说的形象一点哈），那么为什么结果的排序依旧是乱的：    
+同时由于这个机制，子查询中的里面的 order by 应该会跟外部块一起执行， 也就是说 order by 会跑到外面来（说的形象一点哈），那么为什么结果的排序依旧是乱的：
+
 官方使用文档：
 
 > 如果这些条件都为真，则优化器将派生类或视图引用中的ORDER BY子句传播到外部查询块。
@@ -145,7 +220,7 @@ SELECT * FROM student order by age desc,c_class asc;
 
 ---
 
-### 第二种方式写法分析
+### 第二种错误方式写法分析
 错误写法示例
 ````
 SELECT 

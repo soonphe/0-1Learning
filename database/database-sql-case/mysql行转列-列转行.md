@@ -121,8 +121,6 @@ SELECT
 	c_english AS s_score
   FROM s_score
 ```
-原理：group_concat参数可为多个列，separator为列之间的分隔符，默认为','
-说明：最后一定要用group by 维度聚合,不写group by 会拼接所有的行
 
 
 

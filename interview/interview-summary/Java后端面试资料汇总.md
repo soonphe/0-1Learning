@@ -85,9 +85,15 @@ switch支持使用byte类型，不支持long类型，String支持在java1.7引�
 因为内部类的产生依赖于外部类，持有的引用是类名.this。
 ```
 
-String类为什么是final的。
+**String类为什么是final的**
+主要目的就是保证String是不可变（immutable）。不可变就是第二次给一个String 变量赋值的时候，不是在原内存地址上修改数据，而是重新指向一个新对象，新地址。
 
-反射中，Class.forName和classloader的区别
+- 从内存角度来看：字符串常量池的要求：创建字符串时，如果该字符串已经存在于池中，则将返回现有字符串的引用，而不是创建新对象。多个String变量引用指向同一个内存地址。如果字符串是可变的，用一个引用更改字符串将导致其他引用的值错误。这是很危险的。
+- 缓存Hashcode ：字符串的Hashcode在java中经常配合基于散列的集合一起正常运行，这样的散列集合包括HashSet、HashMap以及HashTable。不可变的特性保证了hashcode永远是相同的。不用每次使用hashcode就需要计算hashcode。这样更有效率。因为当向集合中插入对象时，是通过hashcode判别在集合中是否已经存在该对象了（不是通过equals方法逐个比较，效率低）。
+- 方便其它类使用 ：其他类的设计基于string不可变，如set存储string，改变该string后set包含了重复值。
+- 安全性 ：String被广泛用作许多java类的参数，例如网络连接、打开文件等。如果对string的某一处改变一不小心就影响了该变量所有引用的表现，则连接或文件将被更改，这可能导致严重的安全威胁。 不可变对象不能被写，所以不可变对象自然是线程安全的，因为不可变对象不能更改，它们可以在多个线程之间自由共享。
+
+总结 ：由于效率和安全性的原因，字符串被设计为不可变。
 
 ### java new String的时候会创建几个对象
 ```
@@ -131,16 +137,50 @@ ldc 出现了2次，表示常量池的 a，b
 
 堆里有 StringBuilder，a，b，ab（StringBuilder.toString()生成，不会在常量池创建）
 
+### 深拷贝和浅拷贝
+深拷贝和浅拷贝都是指的对象的拷贝
+- 浅拷贝：只会拷贝基本数据类型的值和实际的引用地址,实际指向还是同一个对象,对基本类型数据修改,原对象也会紧接着修改
+- 深拷贝：基本数据类型和所指向的对象都会进行复制,内部实际指向的不是一个对象,所以在做修改时两者不会同时改变
+
+### i++和++i哪个线程不安全
+i++和++i都是i=i+1的意思，但是过程有些许区别：
+- i++：先赋值再⾃加。（例如：i=1；a=1+i++；结果为a=1+1=2，语句执⾏完后i再进⾏⾃加为2）
+- ++i：先⾃加再赋值。（例如：i=1；a=1+++i；结果为a=1+（1+1）=3，i先⾃加为2再进⾏运算）
+- 但是在单独使⽤时没有区别：如for(int i=0;i<10;i++）{}和for(int i=0;i<10;++i) { }没有区别。
+
+i++和++i的线程安全分为两种情况：
+1. 如果i是局部变量（在⽅法⾥定义的），那么是线程安全的。因为局部变量是线程私有的，别的线程访问不到，其实也可以说没有线程安不安全之说，因为别的线程对他造不成影响。
+2. 如果i是全局变量（类的成员变量），那么是线程不安全的。因为如果是全局变量的话，同⼀进程中的不同线程都有可能访问到。如果有⼤量线程同时执⾏i++操作，i变量的副本拷贝到每个线程的线程栈，当同时有两个线程栈以上的线程读取线程变量，假如此时是1的话，那么同时执⾏i++操作，再写⼊到全局变量，最后两个线程执⾏完，i会等于3⽽不会是2，所以，出现不安全性
+
 
 ## Spring和SpringBoot和SpringCloud
-Spring类的加载机制
+
+### Spring类的加载机制
 
     java中的类加载器负载加载来自文件系统、网络或者其他来源的类文件。
     jvm的类加载器默认使用的是双亲委派模式。
     三种默认的类加载器Bootstrap ClassLoader、Extension ClassLoader和System ClassLoader（Application ClassLoader）
     每一个中类加载器都确定了从哪一些位置加载文件
 
-Spring IOC加载全过程：
+### Java类加载过程，双亲委派机制，如何打破双亲委派
+
+* 如果一个类加载器接收到了类加载的请求，它首先把这个请求委托给他的父类加载器去完成，每个层次的类加载器都是如此，因此所有的加载请求都应该传送到顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它在搜索范围中没有找到所需的类）时，子加载器才会尝试自己去加载。
+* 好处：java类随着它的类加载器一起具备了一种带有优先级的层次关系。例如类java.lang.Object，它存放在rt.jar中，无论哪个类加载器要加载这个类，最终都会委派给启动类加载器进行加载，因此Object类在程序的各种类加载器环境中都是同一个类。相反，如果用户自己写了一个名为java.lang.Object的类，并放在程序的Classpath中，那系统中将会出现多个不同的Object类，java类型体系中最基础的行为也无法保证，应用程序也会变得一片混乱。
+* 实现：在java.lang.ClassLoader的loadClass()方法中，先检查是否已经被加载过，若没有加载则调用父类加载器的loadClass()方法，若父加载器为空则默认使用启动类加载器作为父加载器。如果父加载失败，则抛出ClassNotFoundException异常后，再调用自己的findClass()方法进行加载。
+* 打破双亲委派机制则不仅要继承ClassLoader类，还要重写loadClass和findClass方法。
+
+### 反射中，Class.forName和classloader的区别
+class.forname和classloader的调用关系
+```
+Class.forName(String name)->
+Class.forName(className, true, ClassLoader.getClassLoader(caller))->
+Class.forName0(String name, boolean initialize, ClassLoader loader)->
+ClassLoader.loadClass()
+```
+- class.forName()前者除了将类的.class文件加载到jvm中之外，还会对类进行解释，执行类中的static块。而classLoader只干一件事情，就是将.class文件加载到jvm中，不会执行static中的内容,只有在newInstance才会去执行static块。
+- Class.forName得到的class是已经初始化完成的，Classloder.loaderClass得到的class是还没有链接的。
+
+### Spring IOC加载全过程：
 
     Application加载xml
     AbstractApplicationContext的refresh函数载入Bean定义过程
@@ -157,11 +197,11 @@ Spring IOC加载全过程：
     解析元素的子元素
     。。。
 
-Spring的@Transactional如何实现的：
+### Spring的@Transactional如何实现的：
 
     实现@Transactional原理是基于spring aop，aop又是动态代理模式的实现。
 
-Spring的事务传播级别
+### Spring的事务传播级别
 
     事务传播行为(为了解决业务层方法之间互相调用的事务问题)：当事务方法被另一个事务方法调用时,必须指定事务应该如何传播
     支持当前事务的情况:
@@ -175,7 +215,7 @@ Spring的事务传播级别
     其他情况:
     TransactionDefinition.PROPAGATION_NESTED: 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED。
 
-**AOP（动、静、cglib）**
+### AOP（动、静、cglib）
 JDK动态代理只能对实现了接口的类生成代理，而不能针对类；
 CGLIB是针对类实现代理，主要是对指定的类生成一个子类，覆盖其中的方法（继承）实现增强，但是因为采用的是继承，所以该类或方法最好不要声明成final，对于final类或方法，是无法继承的；
 
@@ -201,7 +241,7 @@ Spring在选择用JDK还是CGLiB的依据：
 对线程安全一知半解的多半会死在这里，对Spring的scope不了解的也会死在这里。
 ```
 
-**SpringMVC 默认创建 Bean 是单例的，在高并发情况下是如何保证性能的？**
+### SpringMVC 默认创建 Bean 是单例的，在高并发情况下是如何保证性能的
 ```
 spring中的bean默认是单例的，通常对单例进行多线程访问时，为了线程安全而采用同步机制，以时间换空间的方式，而Spring中是利用ThreadLocal来以空间换取时间，为每一个线程提供变量副本，来保证变量副本对于某一线程都是线程安全的。
 
@@ -212,13 +252,13 @@ spring中的bean默认是单例的，通常对单例进行多线程访问时，�
 单例模式是spring推荐的配置，单利模式因为大大节省了实例的创建和销毁，它在高并发下能极大的节省资源，提高服务抗压能力。
 ```
 
-spring依赖注入原理：
+### spring依赖注入原理：
 
     1.构造器注入
     2.接口注入
     3.set方法参数注入
 
-spring循环依赖是如何解决的：
+### spring循环依赖是如何解决的：
 
     Spring三级缓存，也就是三个Map集合类：
     singletonObjects：第一级缓存，里面放置的是实例化好的单例对象；
@@ -246,13 +286,13 @@ spring循环依赖是如何解决的：
         对于“prototype”作用域bean，Spring容器无法完成依赖注入，因为“prototype”作用域的bean，Spring容器不进行缓存，因此无法提前暴露一个创建中的Bean。
         说明：singleton是默认作用域，在使用singleton时，Spring容器只存在一个可共享的Bean实例。
 
-spring为什么使用三级缓存？（解决循环依赖）
+### spring为什么使用三级缓存？（解决循环依赖）
 
     1.不支持循环依赖情况下，只有一级缓存生效，二三级缓存用不到
     2.二三级缓存就是为了解决循环依赖，且之所以是二三级缓存而不是二级缓存，主要是可以解决循环依赖对象需要提前被aop代理，以及如果没有循环依赖，早期的bean也不会真正暴露，不用提前执行代理过程，也不用重复执行代理过程。
 
 
-Spring和Springboot区别
+### Spring和Springboot区别
 
     1.Spring Boot提供极其快速和简化的操作,让 Spring 开发者快速上手。
     2.Spring Boot提供了 Spring 运行的默认配置。
@@ -260,15 +300,17 @@ Spring和Springboot区别
     4.嵌入Tomcat, Jetty Undertow 而且不需要部署他们。
     5.提供的“starters” poms来简化Maven配置
 
-Springboot 怎么实现自动装载组件的
+### Springboot 怎么实现自动装载组件的
 
     通过Springboot的@EnableAutoConfiguration注解上@Import引入的AutoConfigurationImportSelector.class类来实现的
 
-Eureka 和 Nacos对比？怎么做选择？Eureka中高可用是怎么做的？进行的调优有哪些？原理是什么？
+### Eureka 和 Nacos对比？怎么做选择？Eureka中高可用是怎么做的？进行的调优有哪些？原理是什么？
 
     都是服务注册发现中心，但是Nacos还可以用作配置中心，目前来看，建议使用Nacos，因为Eureka已经不在开源，而且性能上和高可用上没有Nacos方便。
 
-zookeeper如何保证数据一致性
+### zookeeper
+
+如何保证数据一致性
 
     消息广播阶段
     Leader 节点接受事务提交，并且将新的 Proposal 请求广播给 Follower 节点，收集各个节点的反馈，决定是否进行 Commit，在这个过程中，也会使用上一课时提到的 Quorum 选举机制。
@@ -403,6 +445,8 @@ jdk1.9 默认垃圾收集器G1
 **常用的集合**
 List,Set,hashmap，hashtable，ConcurrentHashMap
 
+**HashMap、HashTable和concurrentHashMap的区别、底层实现原理**
+
 **栈和队列的理解，如何用队列实现栈**
 
 **Set 怎么实现**
@@ -491,6 +535,92 @@ Vector:
 ArrayList:
 线程不同步，但性能很好
 当ArrayList中的元素超过它的初始大小时，ArrayList只增加50%的大小
+```
+
+一个数组有大量重复元素，设计一个结构可以压缩空间
+```
+在多维数组中可能会存在大量空间存储无效数值的现象，为了节省空间，我们可以通过记录 行 ，列，值的方式，来压缩数组空间，这样形成的新数组我们称之为稀疏数组
+
+算法步骤：
+1.双层循环遍历，获取有效数据个数；
+2.创建行数为count+1，列数为3的二维数组；
+3.在第一行中第一列和第二列分别赋值原数组行数、原数组列数；
+4.行数初始化为1，双层循环遍历，记录有效数据所在的行、列、值，赋值到新数组当前行，行数+1
+5.还原数组：按层遍历新数组，根据稀疏数组的每行存储的原数组的行数和列数、值进行赋值
+
+例：15×15的数组，[1][2] -----> 1, [2][3]----> 2 ,其余位置都为0,用代码来压缩数组成稀疏数组
+
+package com.demo.array;
+
+public class Demo5 {
+    public static void main(String[] args) {
+
+        int[][] arrays = new int[15][15];
+
+        arrays[1][2] = 1;
+        arrays[2][3] = 2;
+
+        printArrays(arrays);
+
+        int[][] sparseArrays = createSparseArrays(arrays);
+        System.out.println("================================");
+        System.out.println("压缩后的稀疏数组：");
+        printArrays(sparseArrays);
+
+        int[][] newArrays = getInitialArrays(sparseArrays);
+        System.out.println("================================");
+        System.out.println("还原后的数组：");
+        printArrays(newArrays);
+    }
+
+    //    还原数组
+    public static int[][] getInitialArrays(int[][] sparseArrays) {
+        int[][] newArrays = new int[sparseArrays[0][0]][sparseArrays[0][1]]; 
+        // 根据稀疏数组的第一行存储的原数组的行数和列数
+        for (int row = 1; row < sparseArrays.length; row++) {
+    newArrays[sparseArrays[row][0]][sparseArrays[row][1]] = sparseArrays[row][2];
+        }
+        return newArrays;
+    }
+
+    //    创建稀疏数组
+    public static int[][] createSparseArrays(int[][] arrays) {
+        int count = 0;
+        for (int[] array : arrays
+        ) {
+            for (int value : array
+            ) {
+                if (value != 0) count++; // 获取有效数据个数
+            }
+
+        }
+        int[][] sparseArrays = new int[count + 1][3];  // 创建稀疏数组
+        count = 1;
+        sparseArrays[0][0] = arrays.length; // 记录原数组行数
+        sparseArrays[0][1] = arrays[0].length; // 记录原数组列数
+        for (int row = 0; row < arrays.length; row++) {
+            for (int cls = 0; cls < arrays[row].length; cls++) {
+                if (arrays[row][cls] != 0) {
+                    sparseArrays[count][0] = row;  // 记录有效数据的行
+                    sparseArrays[count][1] = cls; // 记录有效数据的列
+                    sparseArrays[count][2] = arrays[row][cls];
+                    count++;
+                }
+            }
+        }
+        return sparseArrays;
+    }
+
+    //    打印数组
+    public static void printArrays(int[][] arrays) {
+        for (int row = 0; row < arrays.length; row++) {
+            for (int cls = 0; cls < arrays[row].length; cls++) {
+                System.out.print(arrays[row][cls] + "\t");
+            }
+            System.out.println();  // 换行
+        }
+    }
+}
 ```
 
 ## 网络结构
@@ -584,7 +714,82 @@ MySQL 索引类型有：唯一索引，主键（聚集）索引，非聚集索�
 ### 如果非要like的效果，但SQL的执行效率就是提不上去了，怎么办？
 这个问题其实是“没有银弹的”，也即没有标准答案，要视具体场景、具体技术架构、具体客户而定，水货遇到这种问题一般是直接懵逼，但凡能说出2-3个值得尝试的方案的就至少不是水货了。
 
-### SQL：行转列（基础）
+
+### SQL：行转列
+1. case when方式
+```
+示例：
+insert into student_score values(null,'张三','数学',90);
+insert into student_score values(null,'张三','语文',85);
+insert into student_score values(null,'张三','英语',92);
+insert into student_score values(null,'李四','数学',88);
+insert into student_score values(null,'李四','语文',91);
+insert into student_score values(null,'李四','英语',99);
+insert into student_score values(null,'王五','数学',100);
+insert into student_score values(null,'王五','语文',82);
+insert into student_score values(null,'王五','英语',88);
+
+实现sql：
+select s_name,
+sum(case s_sub when '数学' then s_score else 0 end) 数学,
+sum(case s_sub when '语文' then s_score else 0 end) 语文,
+max(case s_sub when '英语' then s_score else 0 end) 英语
+from student_score group by s_name
+```
+
+### SQL：列转行
+```
+SELECT
+	s_name,
+	'数学' AS s_sub,
+	c_math AS s_score
+  FROM s_score
+UNION
+SELECT
+	s_name,
+	'语文' AS s_sub,
+	c_language AS s_score
+  FROM s_score
+UNION
+SELECT
+	s_name,
+	'英语' AS s_sub,
+	c_english AS s_score
+  FROM s_score
+```
+
+### SQL：多行转一行
+```
+select s_name,group_concat(s_sub,':',s_score separator '@') all_score 
+from  student_score group by s_name
+```
+原理：group_concat参数可为多个列，separator为列之间的分隔符，默认为','
+说明：最后一定要用group by 维度聚合,不写group by 会拼接所有的行
+
+### group by多分组取最大最小值
+第一种方式正确写法——使用limit
+````
+SELECT
+    * 
+FROM
+    ( SELECT * FROM student order by age desc,c_class asc limit 99999999) AS b
+GROUP BY
+    c_class;
+````
+分析：
+limit 99999999是必须要加的，如果不加的话，数据不会先进行排序，通过 explain 查看执行计划，可以看到没有 limit 的时候，少了一个 DERIVED(得到) 操作。
+
+第二种方式正确写法——使用having
+````
+SELECT
+    * 
+FROM
+    ( SELECT * FROM student having 1 order by age desc,c_class asc) AS b
+GROUP BY
+    c_class;
+````
+分析：
+通过 explain 查看执行计划，可以看到 使用having 1，也会使用 DERIVED(得到) 操作。
 
 ### mybatis三级缓存
 一级缓存：
@@ -596,13 +801,13 @@ SqlSessionFactory层面给各个SqlSession 对象共享。
 在mybatis-config.xml文件中添加<setting name="cacheEnabled" value="true"/>
 在xxxMapper.xml文件中添加<cache eviction="FIFO" flushInterval="60000" readOnly="false" size="1024" ></cache>
 各个属性意义如下：
-​eviction：缓存的回收策略。
+eviction：缓存的回收策略。
 flushInterval：缓存刷新间隔。
 readOnly：是否只读。
 size：缓存存放多少个元素。
-​type：指定自定义缓存的全类名(实现Cache接口即可)。ps：要使用二级缓存，对应的POJO必须实现序列化接口 。
-​useCache="true"是否使用一级缓存，默认false。sqlSession.clearCache();只是清除当前session中的一级缓存。
-​useCache配置：如果一条句每次都需要最新的数据，就意味着每次都需要从数据库中查询数据，可以把这个属性设置为false
+type：指定自定义缓存的全类名(实现Cache接口即可)。ps：要使用二级缓存，对应的POJO必须实现序列化接口 。
+useCache="true"是否使用一级缓存，默认false。sqlSession.clearCache();只是清除当前session中的一级缓存。
+useCache配置：如果一条句每次都需要最新的数据，就意味着每次都需要从数据库中查询数据，可以把这个属性设置为false
 二级缓存默认会在insert、update、delete操作后刷新缓存，可以手动配置不更新缓存
 三级缓存：
 自定义缓存
@@ -627,6 +832,41 @@ size：缓存存放多少个元素。
 3、不剥夺条件:进程已获得的资源，在末使用完之前，不能强行剥夺；
 4、循环等待条件:若干进程之间形成一种头尾相接的循环等待资源关系；
 
+### 线程有哪些状态，各自的转换过程
+线程的五大状态：创建状态、就绪状态、运行状态、阻塞状态、死亡状态
+
+1. 创建状态**（新生状态）：new 线程对象Thread t = new Thread();线程对象一旦创建，就进入了新生状态。
+2. 就绪状态：new出来以后，当调用start()方法，线程就会立即进入就绪状态，但不意味着立即调度执行。
+3. 运行状态：处于就绪状态的线程，经过CPU调度就会进入运行状态，线程才会真正执行线程体的代码块。
+4. 阻塞状态**：当调用sleep、wait或同步锁定时，线程进入阻塞状态，就是代码块不往下执行，阻塞事件解除后，重新进入就绪状态，等待CPU调度执行。
+5. 死亡状态：线程中断或结束，一旦进入死亡状态，就不能再次启动。
+
+补充：
+1. 线程停止 ：不推荐使用JDK提供的stop()、destroy()方法（已废弃），推荐线程自己停下来：建议使用一个标志位进行终止变量，当flag=false时，则终止线程运行。
+2. 线程休眠sleep()方法
+sleep(时间)指定当前线程阻塞的毫秒数
+sleep存在异常InterruptedException，需要抛异常
+sleep时间达到后线程进入就绪状态
+sleep可以模拟网络延时、倒计时等功能
+3. 线程礼让yield()方法 ：线程礼让：让当前正在执行的线程停止，但并不是阻塞，将线程状态从运行状态转为就绪状态，让CPU重新调度，线程重新竞争；礼让不一定成功，看CPU心情
+4. 线程强制执行join()：可以想象成插队，待此线程执行完毕后，再执行其他线程，其他线程阻塞
+
+### 线程池
+**为什么需要线程池**
+我们有两种常见的创建线程的方法，一种是继承Thread类，一种是实现Runnable的接口，Thread类其实也是实现了Runnable接口。但是我们创建这两种线程在运行结束后都会被虚拟机销毁，如果线程数量多的话，频繁的创建和销毁线程会大大浪费时间和效率，更重要的是浪费内存。那么有没有一种方法能让线程运行完后不立即销毁，而是让线程重复使用，继续执行其他的任务哪？ 这就是线程池的由来，很好的解决线程的重复利用，避免重复开销。
+
+线程池的优点：
+1. 线程是稀缺资源，使用线程池可以减少创建和销毁线程的次数，每个工作线程都可以重复使用。
+2. 可以根据系统的承受能力，调整线程池中工作线程的数量，防止因为消耗过多内存导致服务器崩溃。
+
+线程池的风险：
+1.死锁 :任何多线程应用程序都有死锁风险。当一组进程或线程中的每一个都在等待一个只有该组中另一个进程才能引起的事件时，我们就说这组进程或线程 死锁了。死锁的最简单情形是：线程 A 持有对象 X 的独占锁，并且在等待对象 Y 的锁，而线程 B 持有对象 Y 的独占锁，却在等待对象 X 的锁。除非有某种方法来打破对锁的等待（Java 锁定不支持这种方法），否则死锁的线程将永远等下去。
+2. 资源不足 :线程池的一个优点在于：相对于其它替代调度机制（有些我们已经讨论过）而言，它们通常执行得很好。但只有恰当地调整了线程池大小时才是这样的。
+3. 并发错误 ：线程池和其它排队机制依靠使用 wait() 和 notify()方法，这两个方法都难于使用。如果编码不正确，那么可能丢失通知，导致线程保持空闲状态，尽管队列中有工作要处理。使用这些方法时，必须格外小心；即便是专家也可能在它们上面出错。而最好使用现有的、已经知道能工作的实现，例如在 util.concurrent 包。
+4. 线程泄漏 ：各种类型的线程池中一个严重的风险是线程泄漏，当从池中除去一个线程以执行一项任务，而在任务完成后该线程却没有返回池时，会发生这种情况。发生线程泄漏的一种情形出现在任务抛出一个 RuntimeException 或一个 Error 时。
+5. 请求过载 ：仅仅是请求就压垮了服务器，这种情况是可能的。在这种情形下，我们可能不想将每个到来的请求都排队到我们的工作队列，因为排在队列中等待执行的任务可能会消耗太多的系统资源并引起资源缺乏。在这种情形下决定如何做取决于您自己；在某些情况下，您可以简单地抛弃请求，依靠更高级别的协议稍后重试请求，您也可以用一个指出服务器暂时很忙的响应来拒绝请求。
+
+线程池原理：预先启动一些线程，线程无限循环从任务队列中获取一个任务进行执行，直到线程池被关闭。如果某个线程因为执行某个任务发生异常而终止，那么重新创建一个新的线程而已，如此反复。
 
 ### 线程池核心参数
 
@@ -655,19 +895,25 @@ size：缓存存放多少个元素。
 
 Lock锁实现逻辑：
 ```
-在java.util.concurrent.locks包中有很多Lock的实现类，常用的有ReentrantLock、ReadWriteLock（实现类ReentrantReadWriteLock），
-其实现都依赖java.util.concurrent.AbstractQueuedSynchronizer类，实现思路都大同小异
+在java.util.concurrent.locks包中有很多Lock的实现类，常用的有ReentrantLock、ReadWriteLock（实现类ReentrantReadWriteLock），其实现都依赖java.util.concurrent.AbstractQueuedSynchronizer类（AQS），实现思路都大同小异
 
-ReentrantLock把所有Lock接口的操作都委派到一个Sync类上，该类继承了AbstractQueuedSynchronizer：
-Sync又有两个子类：公平锁和非公平锁，默认情况下为非公平锁。
+ReentrantLock把所有Lock接口的操作都委派到一个Sync类上，该类继承了AbstractQueuedSynchronizer（AQS），ReentrantLock又有两个子类：公平锁和非公平锁，默认情况下为非公平锁。
 
-加锁实现：AbstractQueuedSynchronizer会把所有的请求线程构成一个CLH队列，当一个线程执行完毕（lock.unlock()）时会激活自己的后继节点，但正在执行的线程并不在队列中，而那些等待执行的线程全部处于阻塞状态，经过调查线程的显式阻塞是通过调用LockSupport.park()完成，而LockSupport.park()则调用sun.misc.Unsafe.park()本地方法，再进一步，HotSpot在Linux中中通过调用pthread_mutex_lock函数把线程交给系统内核进行阻塞。
+（AQS）加锁实现：AbstractQueuedSynchronizer会把所有的请求线程构成一个CLH队列，当一个线程执行完毕（lock.unlock()）时会激活自己的后继节点，但正在执行的线程并不在队列中，而那些等待执行的线程全部处于阻塞状态，经过调查线程的显式阻塞是通过调用LockSupport.park()完成，而LockSupport.park()则调用sun.misc.Unsafe.park()本地方法，再进一步，HotSpot在Linux中中通过调用pthread_mutex_lock函数把线程交给系统内核进行阻塞。
 
 AbstractQueuedSynchronizer通过构造一个基于阻塞的CLH队列容纳所有的阻塞线程，而对该队列的操作均通过Lock-Free（CAS）操作，但对已经获得锁的线程而言，ReentrantLock实现了偏向锁的功能。
 
 synchronized的底层也是一个基于CAS操作的等待队列，但JVM实现的更精细，把等待队列分为ContentionList和EntryList，目的是为了降低线程的出列速度；当然也实现了偏向锁，从数据结构来说二者设计没有本质区别。但synchronized还实现了自旋锁，并针对不同的系统和硬件体系进行了优化，而Lock则完全依靠系统阻塞挂起等待线程。
 
 当然Lock比synchronized更适合在应用层扩展，可以继承AbstractQueuedSynchronizer定义各种实现，比如实现读写锁（ReadWriteLock），公平或不公平锁；同时，Lock对应的Condition也比wait/notify要方便的多、灵活的多。 
+```
+ReentrantReadWriteLock详解：
+```
+JDK1.5之后，提供了读写锁ReentrantReadWriteLock，读写锁维护了一对锁，一个读锁，一个写锁，通过分离读锁和写锁，使得并发性相比一般的排他锁有了很大提升。ReentrantLock中所有操作都是具有互斥性的，而现实中有一种场景就是读得特别频繁，但是写得特别少，在这样的场景下，如果可以做到读与读之间不互斥的话，那么就可以大大提高并发效率，所以对应的出现了ReentrantReadWriteLock。
+
+读写锁中同样依赖队列同步器Sync(AQS)实现同步功能，而读写状态就是其同步器的同步状态。ReentrantReadWriteLock可以做到：读读共享，读写互斥，写写互斥。
+
+其实现方式就是：在内部封装了两把锁，一把独占锁，一把共享锁，获取独占锁的线程之间要进行同步；获取独占锁与获取共享锁之间的线程也要进行同步；获取共享锁的线程之间不需要进行同步。
 ```
 
 LOCK和synchronized、volatile区别
@@ -791,6 +1037,10 @@ snowflakeid算法：
 ### 分布式锁
 基于redis中setNx：拿setnx(如果key存在返回0)争抢锁，抢到后加一个expire过期时间防止忘记释放
 
+#### 原生Redis分布式锁有什么问题，怎么解决
+参考：[redis分布式锁](../../middleware/redis分布式锁.md)
+
+
 ### 分布式事务
 1. 2PC（ Two-Phase Commit)两阶段提交协议——强一致模型
    - 是将整个事务流程分为两个阶段，准备阶段（Preparephase）、提交阶段（commit phase），2是指两个阶段，P是指准备阶段，C是指提交阶段。
@@ -834,7 +1084,9 @@ snowflakeid算法：
 补充：其实这类问题基本上没有正确的方案，每一个平台根据业务性质都会不同，唯一能够提供的就是一个大体的思虑，其他的根据自己的业务性质自行提炼和优化。
 
 ## 消息系统
-Rabbitmq、rocketMq、kafka区别
+**Rabbitmq、rocketMq、kafka区别**
+
+**Kafka的使用场景，为什么使用Kafka，内部原理**
 
 RocketMQ消息事务：
 RocketMQ第一阶段发送Prepared消息时，会拿到消息的地址，第二阶段执行本地事物，第三阶段通过第一阶段拿到的地址去访问消息，并修改消息的状态。
