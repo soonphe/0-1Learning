@@ -68,14 +68,15 @@ ln -s 源文件 目标文件。 //添加软连接，为某一个文件在另外�
 ln -s /usr/local/mysql/bin/mysql /usr/bin        //创建mysql软链接
 ln -s /root/.nvm/versions/node/v10.10.0/bin/npm /usr/local/bin/npm  //常见npm软链接
 
-echo 字符串的输出
+echo 字符串的输出 将你想要显示的的信息打印在屏幕上，只用在 echo 后面加上想要显示的内容就好了。
 echo string
 echo $JAVA_HOME #获取java环境变量
 echo $PATH      #后去环境变量path的值
+echo "hello world" > file.txt   功能2：使用 ">" 和 ">>" 运算符，将echo后面的内容写入目标文件。(>覆盖重定向，>>追加重定向)
 ```
 
 文件操作相关：
-```$xslt
+```
 mkdir -m	//创建文件 -m：权限
 		//-p：连同上层“空”目录一起删除
 touch test.txt  ：新建文件：

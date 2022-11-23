@@ -9,15 +9,10 @@
 ## oh-my-zsh（更强大的命令行工具）
 github地址：https://github.com/ohmyzsh/ohmyzsh
 
-### 先决条件
-* 类 Unix 操作系统：macOS、Linux、BSD。在 Windows 上：WSL2 是首选，但 cygwin 或 msys 也主要工作。
-* 应该安装 Zsh（v4.3.9 或更新版本很好，但我们更喜欢 5.0.8 和更新版本）。如果未预先安装（运行 zsh --version 以确认），请在此处查看以下 wiki 说明：安装 ZSH
-* 应该安装 curl 或 wget
-* 应该安装 git（推荐 v2.4.11 或更高版本）
-
 ### 安装oh-my-zsh
-基本安装
-Oh My Zsh 是通过在终端中运行以下命令之一来安装的。您可以使用 curl、wget 或其他类似工具通过命令行安装它。
+可以使用 curl、wget 或其他类似工具通过命令行安装它。
+* 应该先安装 curl 或 wget
+* 应该先安装 git（推荐 v2.4.11 或更高版本）
 
 |Method	|Command|
 |---|---|
@@ -25,9 +20,12 @@ Oh My Zsh 是通过在终端中运行以下命令之一来安装的。您可以�
 |wget	|sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"|
 |fetch	|sh -c "$(fetch -o - https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"|
 
+例：
 ```
 $ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
+
+安装完成之后查看版本：运行 zsh --version
 
 Mac系统默认使用dash作为终端，可以使用命令修改默认使用zsh:  
 ```
@@ -38,11 +36,15 @@ chsh -s /bin/zsh
 chsh -s /bin/bash
 ```
 
-### 使用 Oh My Zsh
-插件
-Oh My Zsh 附带了大量插件供您使用。您可以查看[插件目录](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins)和/或 [wiki](https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins) 以查看当前可用的内容。
+### 使用oh-my-zsh
 
-启用插件
+#### 默认插件
+Oh My Zsh 附带了大量插件供您使用。
+
+您可以查看[插件目录](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins)或 [wiki](https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins) 以查看当前可用的内容。
+
+**配置文件**
+
 在 .zshrc 文件中启用它们。您将在 $HOME 目录中找到 zshrc 文件。用你最喜欢的文本编辑器打开它，你会看到一个列出你想要加载的所有插件的地方。
 ```
 vi ~/.zshrc
@@ -61,48 +63,29 @@ plugins=(
 ```
 >请注意，插件由空格（空格、制表符、新行...）分隔。不要在它们之间使用逗号，否则会中断。
 
-主题：
-默认主题：ZSH_THEME="robbyrussell"
+- 获取更新：DISABLE_UPDATE_PROMPT=true
+- 要禁用自动升级：DISABLE_AUTO_UPDATE=true
+- 手动更新：控制台命令(omz update)
 
-要使用不同的主题，只需更改值以匹配所需主题的名称。例如：
+- 主题： 默认主题：ZSH_THEME="robbyrussell"。要使用不同的主题，只需更改值以匹配所需主题的名称。例如：
 ```
 ZSH_THEME="agnoster" # (this is one of the fancy ones)
 # see https://github.com/ohmyzsh/ohmyzsh/wiki/Themes#agnoster
 ```
+- 其他配置
+  - HIST_STAMPS="yyyy-mm-dd"：history 命令查看历史输入命令的时间展示格式
+  - ZSH_THEME="random"：随机主题
+  - alias go="git-open"：别名
 
-获取更新
-```
-DISABLE_UPDATE_PROMPT=true
-```
-要禁用自动升级
-```
-DISABLE_AUTO_UPDATE=true
-```
-手动更新
-```
-omz update
-```
+**默认附带插件：**
+- git：git 命令缩写。默认已开启。使用示例：git add --all ===> gaa
+- autojump：目录间快速跳转,不用再一直cd。例：j local：跳转/usr/local/目录 ；jo local：跳转并打开/usr/local/目录
 
-其他配置
-```
-HIST_STAMPS="yyyy-mm-dd"：history 命令查看历史输入命令的时间展示格式
-ZSH_THEME="random"：随机主题
-alias go="git-open"：别名
-```
+### 安装oh-my-zsh插件
+- brew install zsh-syntax-highlighting    //语法高亮，关键位置用彩色，替换原有黑白色
+- brew install zsh-autosuggestions  //键自动补全、历史记录、命令提示
 
-### 安装zsh插件：
-
-默认插件：
-git：git 命令缩写。默认已开启。
-    例：git add --all ===> gaa
-autojump:目录间快速跳转,不用再一直 cd
-    例：j local：跳转/usr/local/目录
-       jo local：跳转并打开/usr/local/目录
-
-brew install zsh-syntax-highlighting    //语法高亮
-brew install zsh-autosuggestions  //→ 键自动补全、历史记录
-
-autojump    //跳转目录
+- 手动安装autojump 跳转目录
 ```
 brew install autojump
 
@@ -114,10 +97,40 @@ vim ~/.zshrc
 source ~/.zshrc
 ```
 
-其他参考：https://hufangyun.com/2017/zsh-plugin/
+- 手动安装zsh-syntax-highlighting 语法高亮
+```
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
+在 ~/.zshrc 中配置
+plugins=(其他的插件 zsh-syntax-highlighting)
 
-### 配置参考
+使配置生效
+source ~/.zshrc
+```
+
+- 手动安装zsh-autosuggestions 自动补全
+```
+git clone git://github.com/zsh-users/zsh-autosuggestions $ZSH_CUSTOM/plugins/zsh-autosuggestions
+
+在 ~/.zshrc 中配置
+plugins=(其他的插件 zsh-autosuggestions)
+
+使配置生效
+source ~/.zshrc
+```
+
+- 手动安装git-open
+```
+git clone https://github.com/paulirish/git-open.git $ZSH_CUSTOM/plugins/git-open
+
+在 ~/.zshrc 中配置
+plugins=(其他的插件 git-open)
+
+使配置生效
+source ~/.zshrc
+```
+
+### oh-my-zsh配置参考
 ```
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -241,14 +254,8 @@ alias disableHomebrewUpdate="export HOMEBREW_NO_AUTO_UPDATE=true"
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
 
-#elasticsearch
-#export PATH="/Users/luoxiaosheng/elasticsearch-6.2.2/bin:$PATH"
-#export PATH="/Users/luoxiaosheng/kibana-6.2.2-darwin-x86_64/bin:$PATH"
-
 # 本机bash
 source ~/.bash_profile
-
-# [ -s "/Users/luoxiaosheng/.web3j/source.sh" ] && source "/Users/luoxiaosheng/.web3j/source.sh"
 
 # 语法高亮
 source "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
