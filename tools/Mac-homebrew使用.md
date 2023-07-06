@@ -55,7 +55,7 @@ brew有很多使用的工具，如搜索、安装、更新等，都是可以一�
 *https://formulae.brew.sh/api/analytics/install-on-request/90d.json*
 
 
-### 使用示例：
+### brew使用示例
 * 帮助：brew –help
 
 * 搜索(会搜索formula（软件包）和cask（应用包）)
@@ -94,7 +94,7 @@ brew有很多使用的工具，如搜索、安装、更新等，都是可以一�
 * brew cleanup git  #单个软件删除，和upgrade一样
 * brew cleanup      #删除所有
 * brew home git     #用浏览器打开git主页
-* brew info git	    #显示软件内容信息
+* brew info git	    #显示软件内容信息（可以查询安装路径、配置文件地址等）
 * brew deps git	    #显示包依赖
 * brew config	    #查看brew配置
 
@@ -198,29 +198,20 @@ brew update
 ```
 
 ### brew 和 brew cask
+- brew 是从下载源码解压然后 ./configure && make install ，同时会包含相关依存库。并自动配置好各种环境变量，而且易于卸载。简单的指令，就能快速安装和升级本地的各种开发环境。
+- brew cask 是软件/应用，已经编译好了的应用包 （.dmg/.pkg），下载、解压并放在统一的目录中（/opt/homebrew-cask/Caskroom），省掉了自己去下载、解压、拖拽（安装）等步骤，同样，卸载相当容易与干净
 
-brew 是从下载源码解压然后 ./configure && make install ，同时会包含相关依存库。并自动配置好各种环境变量，而且易于卸载。
-这个对程序员来说简直是福音，简单的指令，就能快速安装和升级本地的各种开发环境。
+Homebrew Cask 是 Homebrew 的扩展，借助它可以方便地在 macOS 上安装图形界面程序，即我们常用的各类应用.*使用一个快速命令安装的应用程序：不单击、不拖放、不拖放。*
 
-而 brew cask 是 已经编译好了的应用包 （.dmg/.pkg），仅仅是下载解压，放在统一的目录中（/opt/homebrew-cask/Caskroom），省掉了自己去下载、解压、拖拽（安装）等蛋疼步骤，同样，卸载相当容易与干净。这个对一般用户来说会比较方便，包含很多在 AppStore 里没有的常用软件。
-
-### homebrew cask
-
-Homebrew Cask 是 Homebrew 的扩展，借助它可以方便地在 macOS 上安装图形界面程序，即我们常用的各类应用.
-*使用一个快速命令安装的应用程序：不单击、不拖放、不拖放。*
-
-安装homebrew cask
-Homebrew已默认集成了homebrew cask,如果没有执行brew tap homebrew/cask-cask
-
-搜索应用：
-brew casks   列表本地所有可安装的cask
-
-安装应用：
-brew install --cask firefox     //以应用包形式安装
-brew install --formulae firefox //以软件包形式安装
-
-制作cask：
-brew create --cask foo
+- 安装brew cask
+  - Homebrew已默认集成了homebrew cask,如果没有则执行：brew tap homebrew/cask-cask
+- 搜索应用：
+  - brew casks   列表本地所有可安装的cask
+- 安装应用：
+  - brew install --cask firefox     //以应用包形式安装
+  - brew install --formulae firefox //以软件包形式安装
+- 制作cask：
+  - brew create --cask foo
 
 ### brew 命令拓展
 ```
@@ -319,3 +310,61 @@ vendor-gems               -- Install and commit Homebrew's vendored gems
 vendor-install            -- Install Homebrew's portable Ruby
 aspell-dictionaries          postgresql-upgrade-database  services
 ```
+
+### brew 安装的软件相关信息
+使用：`brew info xxx`查看安装软件版本、官网、安装路径、大小、依赖、配置文件地址、操作命令等
+
+使用示例
+- brew info nginx
+- brew info redis
+```
+(base) [/usr/local/etc/nginx]$ brew info redis
+redis: stable 6.2.4, HEAD
+Persistent key-value database, with built-in net interface
+https://redis.io/
+/usr/local/Cellar/redis/6.2.4 (14 files, 2.0MB)
+  Poured from bottle on 2021-07-01 at 23:19:46
+From: https://mirrors.ustc.edu.cn/homebrew-core.git/Formula/redis.rb
+License: BSD-3-Clause
+==> Dependencies
+Required: openssl@1.1 ✔
+==> Options
+--HEAD
+	Install HEAD version
+==> Caveats
+To restart redis after an upgrade:
+  brew services restart redis
+Or, if you don't want/need a background service you can just run:
+  /usr/local/opt/redis/bin/redis-server /usr/local/etc/redis.conf
+==> Analytics
+install: 27,174 (30 days), 124,245 (90 days), 124,245 (365 days)
+install-on-request: 24,766 (30 days), 121,837 (90 days), 121,837 (365 days)
+build-error: 0 (30 days)
+```
+
+brew安装redis软件的相关信息：
+- 版本：redis: stable 6.2.4, HEAD
+- 官网：https://redis.io/
+- 安装路径：/usr/local/Cellar/redis/6.2.4 (14 files, 2.0MB)
+- 配置文件：/usr/local/etc/redis.conf
+- 命令：
+  - 重启：brew services restart redis
+  - 手动启动：/usr/local/opt/redis/bin/redis-server /usr/local/etc/redis.conf
+
+brew安装nginx软件的相关信息：
+- 版本：nginx: stable 1.21.0, HEAD
+- 官网：https://nginx.org/
+- 安装路径：/usr/local/Cellar/nginx/1.21.0 (25 files, 2.2MB) *
+- 配置文件：/usr/local/etc/nginx/nginx.conf
+- 命令：
+  - 重启：brew services start nginx
+  - 手动启动：nginx
+
+brew安装elasticsearch软件的相关信息:
+- 版本：elasticsearch: stable 7.10.2
+- 官网：https://www.elastic.co/products/elasticsearch
+- 安装路径：/usr/local/Cellar/elasticsearch/7.10.2 (156 files, 113.5MB) *
+- 配置文件：/usr/local/etc/elasticsearch/
+- 命令：
+  - 重启：  brew services start elasticsearch
+  - 手动启动：elasticsearch

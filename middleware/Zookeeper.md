@@ -10,14 +10,27 @@
 国内压缩包地址：https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz
 
 ### brew 安装zookeeper
-brew install zookeeper
+安装命令：brew install zookeeper
 
-启动文件： /usr/local/Cellar/zookeeper/3.4.10/bin/
-配置文件： /usr/local/etc/zookeeper/
+启动文件路径： /usr/local/Cellar/zookeeper/3.4.10/bin/ (对于brew安装的软件都可以使用brew info命令查看安装路径)
+配置文件路径： /usr/local/etc/zookeeper/
 
-启动zookeeper：nohup zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties &
+brew操作zookeeper命令：
+- zkServer start  启动zookeeeper
+- zkServer stop   关闭zookeeeper
+- zkServer restart
+- zkServer status  查看zookeeper状态
+- zkCli 连接zookeeper
 
-查看zookeeper启动状态： ps -ef|grep zookeeper
+连接成功后操作：
+- ls /：查看 ZooKeeper 中存在的节点信息
+- stat /zk_xxx：查看某个节点的详细信息
+
+ZooKeeper 还提供了一个内置的 AdminServer，可以通过它来查看 ZooKeeper 集群状态。
+该命令会输出 ZooKeeper 集群当前的状态信息，包括所有节点信息和客户端连接信息。
+使用命令：curl http://localhost:8080/commands/dump
+
+**查看zookeeper启动状态： ps -ef|grep zookeeper**
 
 ### 单机环境搭建
 操作
@@ -46,6 +59,7 @@ dataDir和dataLogDir的路径是你创建的文件夹的路径
 
 ./zkServer.sh start-foreground查看相关启动信息
 ./zkCli.sh -server 127.0.0.1:2185  利用客户端测试连接（ls 还能查看所有节点）
+- 文件夹启动zookeeper：nohup zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties &
 
 6.启动前利用命令：netstat -tunlp|grep 端口号  查看端口有没有被占用，有的话kill掉，或者改用其他端口
 ```

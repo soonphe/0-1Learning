@@ -48,6 +48,8 @@ n stable // 把当前系统的 Node 更新成最新的 “稳定版本”
 n lts // 长期支持版
 n latest // 最新版
 n 10.14.2 // 指定安装版本
+sudo n 17.4.0 切换指定版本
+n 命令行 查看/切换 你需要的node版本 上下切换 回车选择 q退出
 
 
 ### npm常用命令
@@ -101,6 +103,35 @@ npm set registry https://registry.npmjs.org/
    修改 package.json 格式如下
    npm audit fix --force
    npm install
+
+### node多环境管理
+node有问题的，我的建议是装个nvs https://github.com/jasongin/nvs
+
+node版本管理 n和nvm说明：一个是组件，一个是外置
+
+nvm安装：brew install nvm
+```
+创建nvm文件夹
+mkdir ~/.nvm
+
+添加环境变量
+export NVM_DIR="$HOME/.nvm"
+  [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+```
+nvm命令
+- nvm root：查看nvm的安装根路径在那个文件夹
+- 修改镜像源：/usr/local/Cellar/nvm/0.38.0找到setting.txt
+  - node_mirror: https://npm.taobao.org/mirrors/node/
+  - npm_mirror: https://npm.taobao.org/mirrors/npm/
+- nvm install <version>：安装指定版本的 Node.js。
+- nvm use <version>：切换到指定版本的 Node.js。
+- nvm ls：列出已安装的所有 Node.js 版本。
+- nvm alias <name> <version>：给指定版本创建别名。
+- nvm run <version> <script>：在指定版本下运行脚本。
+- nvm current：显示当前正在使用的 Node.js 版本。
+- nvm uninstall <version>：卸载指定版本的 Node.js。
+
 
 ###  package.json
 

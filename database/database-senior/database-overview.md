@@ -17,6 +17,60 @@
 传统数据库遵循ACID规则：Atomic（原子性)Consistency（一致性）Isolation（隔离性）Durability（持久性）
 NoSql一般为分布式，遵循CAP定理：一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance）
 
+### Mysql基础日志
+- 重写日志（redo log）
+- 回滚日志（undo log）
+- 二进制日志（bin log）
+- 错误日志（error log）
+- 慢查询日志（slow query log）
+- 一般查询日志（general log）
+
+MySQL中的数据变化会体现在上面这些日志中，比如事务操作会体现在redo log、undo log以及bin log中，数据的增删改查会体现在 binlog 中。
+
+**redo log**
+redo log是一种基于磁盘的数据结构，用来在MySQL宕机情况下将不完整的事务执行数据纠正，redo日志记录事务执行后的状态。
+当事务开始后，redo log就开始产生，并且随着事务的执行不断写入redo log file中。redo log file中记录了xxx页做了xx修改的信息，我们都知道数据库的更新操作会在内存中先执行，最后刷入磁盘。
+redo log就是为了恢复更新了内存但是由于宕机等原因没有刷入磁盘中的那部分数据。
+
+**undo log**
+undo log主要用来回滚到某一个版本，是一种逻辑日志。undo log记录的是修改之前的数据，比如：当delete一条记录时，undolog中会记录一条对应的insert记录，从而保证能恢复到数据修改之前。在执行事务回滚的时候，就可以通过undo log中的记录内容并以此进行回滚。
+undo log还可以提供多版本并发控制下的读取（MVCC）。
+
+**bin log**
+MySQL的bin log日志是用来记录MySQL中增删改时的记录日志。简单来讲，就是当你的一条sql操作对数据库中的内容进行了更新，就会增加一条bin log日志。查询操作不会记录到bin log中。bin log最大的用处就是进行主从复制，以及数据库的恢复。
+
+### Redo Log和binLog的写入顺序
+redo log要分两步写，中间再穿插写binlog：写完redo log 后，并不是直接将其标记为完成状态，而是将其标记为prepare状态， 然后等服务层的bin log 日志记录完成后，才会把引擎层的redo log 改为提交状态。
+
+mysql是如何保证一致性的呢？最简单的做法是在每次事务提交的时候，将该事务涉及修改的数据页全部刷新到磁盘中。但是这么做会有严重的性能问题，主要体现在两个方面：
+
+- 因为 Innodb 是以 页 为单位进行磁盘交互的，而一个事务很可能只修改一个数据页里面的几个字节，这个时候将完整的数据页刷到磁盘的话，太浪费资源了！
+- 一个事务可能涉及修改多个数据页，并且这些数据页在物理上并不连续，使用随机IO写入性能太差！
+
+因此 mysql 设计了 redo log ， 具体来说就是只记录事务对数据页做了哪些修改 ，这样就能完美地解决性能问题了(相对而言文件更小并且是顺序IO)。 
+InnoDB 引擎会在适当的时候（如系统空闲时），将这个操作记录更新到磁盘里面（刷脏页）。
+
+**为什么 redo log 具有 crash-safe 的能力，而 binlog 没有？**
+
+redo log 是一个固定大小，“循环写”的日志文件，记录的是物理日志——“在某个数据页上做了某个修改”。
+
+binlog 是一个无限大小，“追加写”的日志文件，记录的是逻辑日志——“给 ID=2 这一行的 c 字段加1”。
+
+redo log 和 binlog 有一个很大的区别就是，一个是循环写，一个是追加写。也就是说 redo log 只会记录未刷盘的日志，已经刷入磁盘的数据都会从 redo log 这个有限大小的日志文件里删除。binlog 是追加日志，保存的是全量的日志。
+当数据库 crash 后，想要恢复未刷盘但已经写入 redo log 和 binlog 的数据到内存时，binlog 是无法恢复的。虽然 binlog 拥有全量的日志，但没有一个标志让 innoDB 判断哪些数据已经刷盘，哪些数据还没有。
+
+**redo log 和 binlog 是怎么关联起来的?#**
+redo log 和 binlog 有一个共同的数据字段，叫 XID。崩溃恢复的时候，会按顺序扫描 redo log：
+
+如果碰到既有 prepare、又有 commit 的 redo log，就直接提交；
+如果碰到只有 parepare、而没有 commit 的 redo log，就拿着 XID 去 binlog 找对应的事务。
+
+**MySQL 怎么知道 binlog 是完整的?#**
+一个事务的 binlog 是有完整格式的：
+
+statement 格式的 binlog，最后会有 COMMIT
+row 格式的 binlog，最后会有一个 XID event
+
 ### 存储过程和定时器
 - 存储过程（创建存储过程，这里的存储过程主要提供给mysql的定时器event来调用去执行）
 ```

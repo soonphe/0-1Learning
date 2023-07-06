@@ -57,6 +57,23 @@ Linux安装步骤：
 9300端口是使用tcp客户端连接使用的端口；（后台client访问）
 9200端口是通过http协议连接es使用的端口；（网页或curl访问）
 
+### kibana使用
+**dev_tools**
+dev_tools功能：控制台，可以使用dsl操作ES
+例：
+```
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+```
+
+**创建看板**
+- 创建索引模式：Stack Management——Index Patterns——Create index pattern(如果存在，则将在列表中显示)
+- 添加Index成功后，点击“discover”面板，查看对应索引增加的数据，
+
 ### Elasticsearch文档、类型、索引及映射
 1、文档 （document）
 Elasticsearch是面向文档的，这意味着索引和搜索数据的最小单位是文档。
@@ -197,6 +214,47 @@ http://127.0.0.1:9200/_cat/
     /_cat/templates
     其实很多都可以见词知义的，相当于获得查看集群信息的目录
 
+### Elasticsearch索引和数据 
+- 查询索引信息：curl -XGET 'http://localhost:9200/log_index'
+```
+{
+    log_index: {            索引名称
+        aliases: { },       索引别名
+        mappings: {         mapping集合
+            properties: {
+                createTime1: {                          属性名称
+                    properties: {
+                        type: {
+                            type: "text",               文本类型(text会分词，keyword不会分词)
+                            fields: {                   自动创建的动态映射(dynamic mappings)：
+                                keyword: {
+                                    type: "keyword",
+                                    ignore_above: 256
+                                }
+                            }
+                        }
+                    }
+            },
+            ...
+            }   
+        },
+        settings: {
+            index: {
+                creation_date: "1666333913993",
+                number_of_shards: "5",
+                number_of_replicas: "1",
+                uuid: "zcxUnFBzTQGxToiyIUdnRA",
+                version: {
+                    created: "7100299"
+                },
+                provided_name: "log_index"
+            }
+        }
+    }
+}
+```
+
+- 查询索引下所有数据：curl -XGET 'http://localhost:9200/log_index/_search?pretty'
 
 ### Elasticsearch支持的字段类型
 |一级分类	|二级分类	|具体类型|
