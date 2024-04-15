@@ -458,6 +458,24 @@ public class ServiceHystrix implements SchedualServiceHi {
 }
 ```
 
+FallbackFactory<定义的Feign接口>
+```
+@Component
+public class TestFactory implements FallbackFactory<TestApi> {
+
+  @Override
+  public TestApi create(final Throwable throwable) {
+    FeignException ex = (FeignException) throwable;
+    JSONObject jsonObject = JSONObject.parseObject(ex.contentUTF8());
+    return new TestApi() {
+      @Override
+      public String test() {
+        return jsonObject.getString("message");
+      }
+    };
+  }
+}
+```
 
 
 

@@ -40,7 +40,182 @@ spring-cloud应用引入：
     <groupId>com.alibaba.cloud</groupId>
     <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
 </dependency>
+<!--sentinel持久化到nacos用到-->
+<dependency>
+    <groupId>com.alibaba.csp</groupId>
+    <artifactId>sentinel-datasource-nacos</artifactId>
+</dependency>
 ```
+### 下载控制界面jar：
+https://github.com/alibaba/Sentinel/releases
+
+执行运行命令： java -jar ./sentinel-dashboard-1.8.0.jar
+
+访问：http://localhost:8080/# (登陆的账号密码都是sentinel)
+
+一开始没有看到任何监控服务，但这并不能证明配置有问题，由于sentinel的内部机制就是懒加载，所以我们需要先访问微服务的任意可访问接口初始化加载一次即可。
+
+### 配置yml
+```
+server:
+  port: 8083
+
+spring:
+  application:
+    name: cloud-sentinel-service
+  cloud:
+#    nacos:
+#      discovery:
+#        server-addr: localhost:8848 #Nacos服务注册中心地址
+    sentinel:
+      transport:
+        dashboard: localhost:8080 #配置Sentinel dashboard地址
+        port: 8719 #默认8719，如果被占用会从8719开始扫描+1直到找到未被占用的端口
+
+# 图形化界面监控
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+feign:
+  sentinel:
+    enabled: true # 激活Sentinel对Feign的支持
+```
+启动服务后查看8080dashboard还是没东西，因为dashboard是懒加载，需要有访问请求才会刷新
+
+### 流控规则
+https://sentinelguard.io/zh-cn/docs/basic-api-resource-rule.html
+
+控制台——流控规则
+- 资源名：唯一名称，默认请求路径
+- 针对来源：Sentinel可以针对调用者进行限流，填写微服务名，默认default(不区分来源)
+- 阈值类型（QPS和并发线程数）
+  - QPS的单机阈值代表每秒最多允许请求多少次资源
+  - 并发线程数的单机阈值代表代表可以同时运行的线程数量
+- 是否集群
+- 流控模式
+  - 直接：代表超过阈值直接限流
+  - 关联：代表关联的资源达到阈值时也进行限流。A、B接口关联，如果A接口被限流了，那么B接口也无法访问
+  - 链路：代表当服务到达阈值时，所有使用该服务的服务也限流。A->B->C接口为链路调用关系时，当其中一个接口出现限流，那么整个链路上的接口都无法使用
+- 流控效果
+  - 快速失败：指直接进行限流
+  - Warm Up：冷启动，某个接口平时访问量不大，突然某段时间访问量突增，针对某些抽奖类型的接口。开始时QPS的通过量为（请求数量/3），经设置预热时长才逐渐升至设定的QPS阈值。
+  - 排队等待： 就是简单队列形式的等待，让限流的请求排队等待系统空闲时再通过，需要配置超时时间，过了超时时间再拒绝请求。
+
+控制台——降级规则
+- 熔断规则
+  - 慢调用比例：最大RT（请求的最大调用时间），当一个请求响应时间超过该时间就被判断为慢调用，当慢调用的接口的比例超过比例阈值就进行熔断降级处理。在统计时长内请求资源的次数超过最小请求数，并且这些请求响应时间超过最大RT，总的慢调用比例超过比例阈值，就进行熔断降级处理
+  - 异常比例： 在统计时长内当请求超过最小请求数，且异常比例超过比例阈值时进行熔断降级。
+  - 异常数： 在统计时长内当请求超过最小请求数，且异常请求数超过异常数时进行熔断降级。
+
+- 热点规则：针对于接口中某个参数请求次数过多，对其进行限流或者其他操作。热点即经常访问的数据。很多时候我们希望统计某个热点数据中访问频次最高的 Top K 数据，并对其访问进行限制
+  - 参数索引：代表针对从第0位开始，依次向后递增代表第几个参数，在统计窗口时长内访问次数超过单机阈值，则会交由@SentinelResource注解blockHandler所指向的方法进行熔断处理。
+    - @SentinelResource(value="热点key", blockHandler="自定义兜底规则方法")
+  - 资源名：可以是限流的value值（即 testHotkey)也可以是限流接口的uri（即 /testHotkey）
+  - 参数索引：0为最高，即p1,如果没有参数p1，访问频次多高也不会出问题
+  - 单机阈值：单机限定次数
+  - 统计窗口时长：多少窗口时长
+  - 参数例外项：配置参数例外项的效果就是，正常p1的访问限制是多少秒多少次，这里可以设定指定参数值的限流阈值。
+  - 备注：@SentinelResource只负责控制台配置的错误处理，即blockhandler只处理value绑定的问题，但如果程序自己抛异常，他是处理不了的。
+
+- 系统规则：前面规则只针对于单一资源，系统规则针对的是整个应用入口
+  - LOAD：当系统1分钟内的load（即系统的负载）超过阈值，且并发线程数超过系统容量时触发。 建议设置为CPU核心数 * 2.5 （仅对LInux/Unix-like机器生效） 。load，系统平均负载，linux中使用命令 uptime查看load指标。 系统容量（sentinel计算出来的） = maxQps * minRt 。maxQps: 秒级统计出来的最大QPS，minRt : 秒级统计出来的最小响应时间
+  - RT:前面已经使用过，即是平均响应时间。当单台机器上所有入口流量的平均 RT 达到阈值即触发系保护，单位是毫秒。
+  - 线程数：即是指线程的并发数，与前面类似。当并发线程数超过设定的阈值，就会发生服务的熔断降级
+  - QPS：所有入口流量在1秒钟内的请求达到设置阈值都会触发。 QPS = 总请求数 / ( 进程总数 * 请求时间 )
+  - CPU 使用率：1.5.0+ 版本，当系统 CPU 使用率超过阈值即触发系统保护（取值范围 0.0-1.0），比较灵敏。
+
+**@SentinelResource再深入**
+目前限流方案存在的问题
+1. 系统默认的，没有体现我们自己的业务要求。
+2. 依照现有条件，我们自定义的处理方法又和业务代码耦合在一块，不直观。
+3. 每个业务方法都要添加一个兜底方法，代码膨胀家具。
+4. 全局统一的处理方法没有体现。
+
+我们进行如下操作：
+新增流控处理类blockhandler
+
+在流控接口上进行配置，使其关联到自定义规则的相关方法。
+@SentinelResource(value="热点key", blockHandlerClass= "全局流控处理.class", blockHandler="流控方法方法")
+
+之前我们曾提到blockHandler只用于处理流控异常问题。对于程序本身的运行是异常是不做处理的。此处我们就需要调用另一种方法--fallback
+@SentinelResource(value="热点key", fallbackClass="全局流控处理.class", fallback="异常处理方法", blockHandlerClass= "全局流控处理.class", blockHandler="流控方法方法")
+当再次访问接口时，就会走 fallbackException 处理运行时异常的问题。
+
+**sentinel规则持久化**
+现在sentinel控制台存在这么一个问题，当重新登录控制台或者关闭服务，控制台的流控规则就消失了。
+
+sentinel持久化有三种模式
+
+- 原始模式：
+  - API将规则推送至客户端并直接更新到内存中，扩展写数据源(writableDataSource)
+  - 简单，无任何依赖；
+  - 不保证一致性；规则保存在内存中，重启即消失。严重不建议用于生产环境
+- Pull模式：
+  - 扩展写数据源（WritableDataSource），客户端主动向某个规则管理中心定期轮询拉取规则，这个规则中心可以是RDBMS、文件等
+  - 简单，无任何依赖；
+  - 不保证一致性；实时性不保证，拉取过于频繁也可能会有性能问题
+- Push模式：
+  - 扩展读数据源（ReadableDataSource），规则中心统一推送，客户端通过注册监听器的方式时刻监听变化，比如使用Nagos、Zookeeper等配置中心。这种方式有更好的实时性和一致性保证。生产环境下一般采用push模式的数据源。
+  - 规则持久化，一致性，快速
+  - 引入第三方依赖
+  
+push模式：
+我们可以将流控规则持久化进nacos进行保存。只要刷新微服务的某个rest地址，sentinel控制台的流控规则就能看到，只要nacos里面的配置不删除，针对改微服务的流控规则持续有效。
+1. 依赖
+```
+<dependency>
+    <groupId>com.alibaba.csp</groupId>
+    <artifactId>sentinel-datasource-nacos</artifactId>
+</dependency>
+```
+2. yml
+```yml
+spring: 
+  profiles:
+  active: dev
+application:
+  name: consumer
+cloud: 
+  sentinel: 
+    transport: 
+      dashboard: 127.0.0.1:8080 
+      port: 8917 
+    datasource: 
+      ds1: 
+        nacos: 
+          server-addr: 192.168.50.37:8848
+          dataId: consumer
+          group: DEFAULT_GROUP 20
+          data-type: json
+          rule-type: flow
+```
+
+4. 登录nacos新增配置
+```
+[
+  {
+  "resource": "/testHotkey",
+  "limitApp": "default",
+  "grade": 1,
+  "count": 1,
+  "strategy": 0,
+  "controlBehavior": 0,
+  "clusterMode": false
+  }
+] 
+```
+- resource：资源名称；
+- limitApp：来源应用；
+- grade：阈值类型，0表示线程数，1表示QPS；
+- count：单机阈值；
+- strategy：流控模式，0表示直接，1表示关联，2表示链路；
+- controlBehavior：流控效果，0表示快速失败，1表示Warm Up，2表示排队等待； 
+- clusterMode：是否集群。
+
+5. 重启服务，测试接口
 
 
 #### STEP 2. 定义资源

@@ -19,17 +19,14 @@
 - dt.jar：dt.jar是关于运行环境的类库，主要是swing包。
 - i18n.jar: 字符转换类及其它与国际化和本地化有关的类。
 
-### JDK相关：
-Mac下查看已安装的jdk版本及其安装目录
-```
-查看JDK信息：/usr/libexec/java_home -V
-JDK bin目录：cd /Library/Java/JavaVirtualMachines/jdk1.8.0_241.jdk/Contents/Home/bin/
-移除Oracle JDK：sudo rm -fr /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
-```
+### JDK内置命令行工具
+JDK 内置了许多命令行工具，它们可用来获取目标 JVM 不同方面、不同层次的信息。
 
-### JDK相关工具使用
-
-几种常用的内存调试工具：jmap、jstack、jconsole
+- jinfo - 用于实时查看和调整目标 JVM 的各项参数。
+- jstack - 用于获取目标 Java 进程内的线程堆栈信息，可用来检测死锁、定位死循环等。
+- jmap - 用于获取目标 Java 进程的内存相关信息，包括 Java 堆各区域的使用情况、堆中对象的统计信息、类加载信息等。
+- jstat - 一款轻量级多功能监控工具，可用于获取目标 Java 进程的类加载、JIT 编译、垃圾收集、内存使用等信息。
+- jcmd - 相比 jstat 功能更为全面的工具，可用于获取目标 Java 进程的性能统计、JFR、内存使用、垃圾收集、线程堆栈、JVM 运行时间等信息。
 
 #### jmap
 

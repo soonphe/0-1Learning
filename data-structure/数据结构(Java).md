@@ -91,6 +91,30 @@ Tips:数组中删除和增加元素的原理：增加元素，需要将index后�
 
 链表反转
 ~~~~
+
+    public static void main(String[] args) {
+        Node node3 = new Node();
+        node3.setVal(3);
+
+        Node node2 = new Node();
+        node2.setVal(2);
+        node2.setNext(node3);
+
+        Node node = new Node();
+        node.setVal(1);
+        node.setNext(node2);
+        System.out.println(JSON.toJSONString(node));
+
+        Node reverse = reverse(node);
+        System.out.println(JSON.toJSONString(reverse));
+    }
+    
+    @Data
+    class Node{
+        Node next;
+        int val;
+    }
+    
 public Node reverse(Node head) {
     if (head == null || head.next == null)
         return head;

@@ -9,74 +9,29 @@
 
 #### MyBatis @Param 注解，使用场景
 
-第一种：方法有多个参数，需要 @Param 注解
+**Mybatis @Param用和不用的区别**
+- 单个参数
+  - 基本数据类型：SQL语句中不论有没有动态SQL，加不加@Param都可（动态sql为包含在<if test=...中的语句） 
+  - 对象：SQL语句中不论有没有动态SQL，
+    - （1）加@Param，test和#{}中获取方式是对象.属性，因为绑定的是对象。如：#{user.username}
+    - （2）不加@Param，test和#{}中获取方式直接属性即可。如：#{username}
 
-例如下面这样：
+- 多个参数
+  - 基本数据类型
+    - 1）不加@Param注解，可以写 param1、param2 … 这种的参数表示形式，也可以参数写一致（因为mybatis-plus高版本之后（经测试3.1.2必须要加）允许不加 @Param指定参数名称，自动会以入参的名称作为param key，低版本必须要加上@Param）
+    - 2）加了@param之后，xml中就可以直接输入参数了，但是经测试写param1、param2 … 这种的参数也没问题，不过最好保持参数一致。
+  - 参数包含对象(List<User> getUser(String role,User user);)：加不加@Param均可，都是通过对象.属性获取，如：#{user.username}
 
-@Mapper
-public interface UserMapper {
-Integer insert(@Param("username") String username, @Param("address") String address);
-}
-对应的 XML 文件如下：
-```
-<insert id="insert" parameterType="org.javaboy.helloboot.bean.User">
-    insert into user (username,address) values (#{username},#{address});
-</insert>
-```
-这是最常见的需要添加 @Param 注解的场景。
+- 集合（针对低版本，经测试mybatis-plus3.1.2版本必须要加）
+  - 1、list作为参数，不加@Param的话，<foreach>标签内的collection必须为list，否则报错。或者不加@Param，collection中使用list也可以。
+  - 2、数组作为参数，不加@Param的话，<foreach>标签内的collection必须为array。
+  - 3、map作为参数，直接用属性值即可。如： UserInfo selectByUserIdAndStatusMap(Map<String,Object> map);
 
-第二种：方法参数要取别名，需要 @Param 注解
-当需要给参数取一个别名的时候，我们也需要 @Param 注解，例如方法定义如下：
-```
-@Mapper
-public interface UserMapper {
-User getUserByUsername(@Param("name") String username);
-}
-```
-对应的 XML 定义如下：
-```
-<select id="getUserByUsername" parameterType="org.javaboy.helloboot.bean.User">
-    select * from user where username=#{name};
-</select>
-```
 
-第三种：XML 中的 SQL 使用了 $ ，那么参数中也需要 @Param 注解
-$ 会有注入漏洞的问题，但是有的时候你不得不使用 $ 符号，例如要传入列名或者表名的时候，这个时候必须要添加 @Param 注解，例如：
-```
-@Mapper
-public interface UserMapper {
-List<User> getAllUsers(@Param("order_by")String order_by);
-}
-```
-对应的 XML 定义如下：
-```
-<select id="getAllUsers" resultType="org.javaboy.helloboot.bean.User">
-    select * from user
- <if test="order_by!=null and order_by!=''">
-        order by ${order_by} desc
- </if>
-</select>
-```
-前面这三种，都很容易懂，相信很多小伙伴也都懂，除了这三种常见的场景之外，还有一个特殊的场景，经常被人忽略。
-
-第四种，那就是动态 SQL ，如果在动态 SQL 中使用了参数作为变量，那么也需要 @Param 注解，即使你只有一个参数。
-如果我们在动态 SQL 中用到了 参数作为判断条件，那么也是一定要加 @Param 注解的，例如如下方法：
-```
-@Mapper
-public interface UserMapper {
-List<User> getUserById(@Param("id")Integer id);
-}
-```
-定义出来的 SQL 如下：
-```
-<select id="getUserById" resultType="org.javaboy.helloboot.bean.User">
-    select * from user
- <if test="id!=null">
-        where id=#{id}
- </if>
-</select>
-```
-这种情况，即使只有一个参数，也需要添加 @Param 注解，而这种情况却经常被人忽略！
+补充：需要加@Param注解的场景：
+- 方法有多个参数，且非顺序获取参数时，需要 @Param 注解。(Mybatis自动解析的Map参数列表为[arg0,arg1,param1,param2,@param注解参数...])
+- 方法参数要取别名，需要 @Param 注解：User getUserByUsername(@Param("name") String username);
+- XML 中的 SQL 使用了 $ ，那么参数中也需要 @Param 注解，如：order by ${order_by} desc ($ 会有注入漏洞的问题，但是有的时候你不得不使用 $ 符号，例如要传入列名或者表名的时候，这个时候必须要添加 @Param 注解)
 
 
 ### mybatis 配置多数据源

@@ -112,20 +112,7 @@ Java虚拟机规范将JVM所管理的内存分为以下几个运行时数据区�
 -Xms 的默认值为你当前机器最大内存的 1/64 （这个值要反复测试并通过监控调整一个合适的值，是因为当Heap不够用时，会发生内存抖动，影响程序运行稳定性）
 -Xss 的默认值好像和平台有关（不同平台默认值不同），我们最常用的Linux64位服务器默认值好像是1024k（这个我不确定）。在相同物理内存下，减小这个值能生成更多的线程，这个参数在高并发的情况下对性能影响比较明显，需要花比较长的时间进行严格的测试来定义一个合适的值（如果栈不深128k够用的，大的应用建议使用256k）。
 
-示例
-```
-    -Xmx128m #最大堆大小
-    -Xms64m #JVM启动时的初始堆大小
-    -Xmn64m #年轻代的大小，其余的空间是老年代
-    -XX:MaxMetaspaceSize=128m #
-    -XX:CompressedClassSpaceSize=64m #使用 -XX：CompressedClassSpaceSize 设置为压缩类空间保留的最大内存。
-    -Xss256k #线程
-    -XX:InitialCodeCacheSize=4m #
-    -XX:ReservedCodeCacheSize=8m # 这是由 JIT（即时）编译器编译为本地代码的本机代码（如JNI）或 Java 方法的空间
-    -XX:MaxDirectMemorySize=16m
-    -XX:+UseG1GC    #设置使用G1垃圾收集器
-    -jar app.jar
-```
+jvm参数说明：
 ```
 -server
 -Xmx1g              ：设置JVM最大可用内存.默认物理内存的1/4(<1GB)
@@ -141,6 +128,8 @@ Java虚拟机规范将JVM所管理的内存分为以下几个运行时数据区�
 -XX:+UseFastAccessorMethods             ：原始类型的快速优化
 -XX:+UseCMSInitiatingOccupancyOnly      ：使用手动定义初始化定义开始CMS收集
 -XX:CMSInitiatingOccupancyFraction=70   ：使用cms作为垃圾回收，使用70％后开始CMS收集
+
+补充1：
 -Xdebug         ：是通知JVM工作在DEBUG模式下，
 -Xrunjdwp       ：是通知JVM使用(java debug wire protocol)来运行调试环境。该参数同时了一系列的调试选项：
 transport指定了调试数据的传送方式，dt_socket是指用SOCKET模式，另有dt_shmem指用共享内存方式，其中，dt_shmem只适用于Windows平台。
@@ -148,6 +137,14 @@ server参数是指是否支持在server模式的VM中.
 onthrow指明，当产生该类型的Exception时，JVM就会中断下来，进行调式。该参数可选。
 launch指明，当JVM被中断下来时，执行的可执行程序。该参数可选
 suspend指明，是否在调试客户端建立起来后，再执行JVM。
+
+补充2:
+    -XX:CompressedClassSpaceSize=64m #使用 -XX：CompressedClassSpaceSize 设置为压缩类空间保留的最大内存。
+    -XX:MetaspaceSize=128m #设置元空间大小
+    -XX:InitialCodeCacheSize=4m #
+    -XX:ReservedCodeCacheSize=8m # 这是由 JIT（即时）编译器编译为本地代码的本机代码（如JNI）或 Java 方法的空间
+    -XX:MaxDirectMemorySize=16m
+    -XX:+UseG1GC    #设置使用G1垃圾收集器
 ```
 
 ---

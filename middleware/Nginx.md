@@ -18,6 +18,10 @@ Nginx (engine x) 是一个高性能的HTTP和反向代理web服务器，同时�
 - nginx -s reload     //重新加载nginx
 - nginx -s stop       //停止nginx
 
+配置地址：/usr/local/etc/nginx/nginx.conf
+安装地址：/usr/local/Cellar/nginx/1.21.0
+HTML默认地址：/usr/local/Cellar/nginx/1.21.0
+
 ### docker方式安装
 - docker search nginx //搜索
 - docker pull nginx:1.17.0    //拉取镜像
@@ -138,115 +142,103 @@ $server_port        服务器的端口号
 
 ### 配置文件参考 
 ```
-user  root;             # 使用root访问权限访问文件
-worker_processes  4;    #工作进程：数目。根据硬件调整，通常等于cpu数量或者2倍cpu数量。
+user  root;                     #指定nginx运行的用户和用户组(只有当主进程以超级用户权限运行时，“user”指令才有意义)
+worker_processes  4;            #指定nginx启动的进程数，根据硬件调整，通常等于cpu数量或者2倍cpu数量。
 
-error_log  logs/error.log;
-#error_log  logs/error.log  notice;
+error_log  logs/error.log;          #指定错误日志文件
+#error_log  logs/error.log  notice; #日志级别为notice
 #error_log  logs/error.log  info;
 
-pid        logs/nginx.pid;  # nginx进程pid存放路径
-
+pid        logs/nginx.pid;      #nginx进程号存放文件
 
 events {
-    worker_connections  1024;   # 工作进程的最大连接数量
+    worker_connections  1024;   #最大连接数
 }
-
 
 http {
 
-    include       mime.types;   #指定mime类型，由mime.type来定义
-    default_type  application/octet-stream;
+    include       mime.types;                   #引入mime.types文件
+    default_type  application/octet-stream;     #默认类型
 
-    # 日志格式设置
+    #日志格式
     log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_x_forwarded_for"';
 
-    # 文件大小配置
-    server_names_hash_bucket_size 128;
-    client_header_buffer_size 32k;
-    large_client_header_buffers 4 32k;
-    client_max_body_size 10000m;
-    client_body_buffer_size 2560k;
-    client_header_timeout 3m;
-    client_body_timeout 3m;
-    send_timeout 3m;
+    #文件配置
+    server_names_hash_bucket_size 128;      #服务器名称hash表桶的大小，默认是32或64
+    client_header_buffer_size 32k;          #设置请求头的缓冲区大小
+    large_client_header_buffers 4 32k;      #设置请求头的缓冲区大小，最大的请求头数目和请求头的缓冲区大小
+    client_max_body_size 10000m;            #设置请求体的最大值
+    client_body_buffer_size 2560k;          #设置请求体的缓冲区大小
+    client_header_timeout 3m;               #设置请求头的超时时间
+    client_body_timeout 3m;                 #设置请求体的超时时间
+    send_timeout 3m;                        #设置发送响应的超时时间
 
-    access_log  logs/access.log  main;
+    access_log  logs/access.log  main;      #访问日志文件
 
-    sendfile        on; #指定nginx是否调用sendfile函数来输出文件，对于普通应用，必须设置on。如果用来进行下载等应用磁盘io重负载应用，可设着off，
-    #tcp_nopush     on; #此选项允许或禁止使用socket的TCP_CORK的选项，此选项仅在sendfile的时候使用
+    sendfile        on;                     #开启sendfile，减少cpu占用，提高文件传输效率(对于普通应用，必须设置on。如果用来进行下载等应用磁盘io重负载应用，可设着off)
+    #tcp_nopush     on;                     #开启tcp_nopush，减少网络报文段的数量，提高网络传输效率(此选项允许或禁止使用socket的TCP_CORK的选项，此选项仅在sendfile的时候使用)
 
-    #keepalive_timeout  0;  #keepalive超时时间
+    #keepalive_timeout  0;                  #保持连接的时间，如果为0，表示不启用长连接，如果大于0，表示在这个时间内，客户端可以持续发起请求
     keepalive_timeout  65;
 
-    #gzip  on;   #开启gzip压缩服务
+    #gzip  on;                              #启用gzip压缩            
+    #gzip_min_length 1k;                    #启用压缩的最小文件，小于设置值的文件将不会压缩
 
-    #引入配置1
-    include conf/conf.d/*.conf;
-	#引入配置2
-	include /etc/nginx/default.d/*.conf;
+    #引入配置文件
+    include conf/conf.d/*.conf;             #引入conf.d目录下的所有.conf文件
+	include /etc/nginx/default.d/*.conf;    #引入default.d目录下的所有.conf文件
 
     #配置负载均衡（映射规则）
-    upstream www.0-1Leaning.com {   #这里也可以配置
-        #upstream默认不指定是轮询方式，weight不指定时，各服务器weight相同
-        ip_hash;        #每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session不能跨服务器的问题
-        server 47.93.193.146:8080 weight=2; #配置权重比，weight越大，负载的权重就越大。
-        server 47.94.108.123:8080 weight=1; 
-        #server 192.168.11.69:20201 weight=100 down;    #down 表示当前的server暂时不参与负载
-        #server 192.168.11.71:20201 weight=100 backup;  #backup 其它所有的非backup机器down或者忙的时候，请求backup机器。所以这台机器压力会最轻
-        #server 192.168.11.72:20201 weight=100 max_fails=3 fail_timeout=30s; #max_fails允许请求失败的次数默认为1。fail_timeout max_fails次失败后，暂停的时间
-        #当upstream中只有一个 server 时，max_fails 和 fail_timeout 参数可能不会起作用。weight\backup 不能和 ip_hash 关键字一起使用。
+    upstream www.0-1Leaning.com {                                           #定义负载均衡的名称(upstream默认为轮询，weight不指定时，各服务器weight相同)
+        #ip_hash;                                                           #ip_hash指令会根据客户端的ip地址进行hash，这样可以保证同一个客户端每次访问的服务器是一样的（可以解决session不能跨服务器的问题）
+        server 47.93.193.146:8080 weight=2;                                 #定义后端服务器，weight表示权重，权重越高被分配到的几率越大
+        server 47.94.108.123:8080 weight=1;                                 #weight\backup 不能和 ip_hash 关键字一起使用。
+        #server 192.168.11.69:20201 weight=100 down;                        #down 表示当前的server暂时不参与负载
+        #server 192.168.11.71:20201 weight=100 backup;                      #backup 表示备份的server，只有当所有的非backup的server挂掉后才会使用
+        #server 192.168.11.72:20201 weight=100 max_fails=3 fail_timeout=30s;    #max_fails 表示允许请求失败的次数，默认为1。fail_timeout 表示在经历了max_fails次失败后，暂停服务的时间。（#当upstream中只有一个 server 时，max_fails 和 fail_timeout 参数可能不会起作用。）
     }
     
     server {
-        listen       80;    #监听端口号
-        #配置访问域名，默认localhost，域名可以有多个，用空格隔开
-        server_name www.0-1Leaning.com 0-1Leaning.com;
-        if ($host != 'www.0-1Leaning.com'){ #如果访问不为www开头，强制转换
-            rewrite ^/(.*)$ http://www.0-1Leaning.com/$1 permanent;
+        listen       80;                                                    #监听端口号
+        server_name www.0-1Leaning.com 0-1Leaning.com;                      #域名
+        if ($host != 'www.0-1Leaning.com'){                                 #判断域名
+            rewrite ^/(.*)$ http://www.0-1Leaning.com/$1 permanent;         #重定向，不为www开头，强制转换
+            #rewrite ^/(.*)$ https://$host$1 permanent;                     #http重定向https
         }
-
+        #root /usr/share/nginx/html/;                                       #根目录
+        
         #charset koi8-r;    #字符集设置
-
         #access_log  logs/host.access.log  main;
         
         # 默认配置uri，配置为 = ，可精确匹配加快访问速度
+        #/标识通用匹配，= 表示精确匹配，~ 表示区分大小写的正则匹配，~* 表示不区分大小写的正则匹配，!~ 表示区分大小写的正则不匹配，!~* 表示不区分大小写的正则不匹配，^~ 表示uri以某个字符串开头
+        #在顺序上，前缀字符串顺序不重要，按照匹配长度来确定，正则表达式则按照定义顺序。
+        #优先级，= 修饰符最高，^~ 次之，再者是正则，最后是前缀字符串匹配。
         location / {    
-            root         /usr/share/nginx/html;
-            index  index.html index.htm;
+            root   /usr/share/nginx/html;                                   #根目录(就近原则，如果 location 中能匹配到，就用 location 中的 root 配置，当 location 中匹配不到的时候，则使用 server 中的 root 配置)
+            index  index.html index.htm;                                    #默认访问文件
         }
         # 静态文件
         location ~ /uploadtuyue.*\.(gif|jpg|jpeg|png|js|css|woff|woff2|ttf|mp4|mp3|apk|txt)$ {
-            expires 7d;
-            root /usr/local/;    
+            expires 7d;                                                     #缓存时间
+            root /usr/local/;                                               #根目录
         }
         # 匹配uri
         location /tuyue {
-            proxy_pass http://localhost:8080/tuyue/;
+            proxy_pass http://localhost:8080/tuyue/;                        #转发请求
         }
-        # 匹配uri
-        location /jenkins {
-            proxy_pass http://10.10.18.36:8080/;
-            proxy_set_header Host $proxy_host; # 修改转发请求头，让8080端口的应用可以受到真实的请求
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        }
-
-        # 配置转发代理跳转规则
         location /lwgk/ {
-        #root html;
-        #index index.html index.htm;
-            proxy_pass http://www.0-1Leaning.com/lwgk/;   #充当代理服务器，转发请求
-            proxy_redirect off;                                #对发送给客户端的URL进行修改，默认default
-            proxy_set_header Host $host:$server_port;
-            proxy_set_header X-Real-IP $remote_addr;                #获取真实ip
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;                #获取代理者的真实ip
-            add_header Access-Control-Allow-Origin *;
-            add_header Access-Control-Allow-Headers X-Requested-With;
-            add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
-            client_max_body_size       100M;
+            proxy_pass http://www.0-1Leaning.com/lwgk/;                     #转发请求
+            proxy_redirect off;                                             #不重定向，默认default
+            proxy_set_header Host $host:$server_port;                       #设置请求头
+            proxy_set_header X-Real-IP $remote_addr;                        #获取真实ip
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;    #获取代理者的真实ip
+            add_header Access-Control-Allow-Origin *;                       #允许跨域
+            add_header Access-Control-Allow-Headers X-Requested-With;       #允许请求头
+            add_header Access-Control-Allow-Methods GET,POST,OPTIONS;       #允许请求方法
+            client_max_body_size       100M;                                #设置请求体大小
         }
 
         #error_page  404              /404.html;
@@ -300,18 +292,18 @@ http {
     # HTTPS server
     #
     #server {
-    #    listen       443;
-    #    server_name  localhost;
+    #    listen       443 ssl;                                              #监听端口号(此处如未添加ssl，可能会造成Nginx无法启动。)
+    #    server_name  localhost;                                            #域名
 
-    #    ssl                  on;
-    #    ssl_certificate      cert.pem;
-    #    ssl_certificate_key  cert.key;
+    #    ssl                  on;                                           #开启ssl
+    #    ssl_certificate      cert.pem;                                     #证书
+    #    ssl_certificate_key  cert.key;                                     #证书key
 
-    #    ssl_session_timeout  5m;
+    #    ssl_session_timeout  5m;                                           #ssl会话超时时间
 
-    #    ssl_protocols  SSLv2 SSLv3 TLSv1;
-    #    ssl_ciphers  HIGH:!aNULL:!MD5;
-    #    ssl_prefer_server_ciphers   on;
+    #    ssl_protocols  SSLv2 SSLv3 TLSv1;                                  #ssl协议
+    #    ssl_ciphers  HIGH:!aNULL:!MD5;                                     #ssl加密算法
+    #    ssl_prefer_server_ciphers   on;                                    #ssl优先使用服务器端的加密算法
 
     #    location / {
     #        root   html;
@@ -321,6 +313,12 @@ http {
 
 }
 ```
+
+### nginx同时配置了proxy_pass和root效果
+- proxy_pass 指令用于将请求转发到另一台服务器
+- root 指令用于设置请求资源的文件系统根路径。
+如果配置了 proxy_pass 和 root 后请求同时生效，这通常不是预期的行为，可能是配置错误。
+正常情况下，location 块中的 proxy_pass 和 root 指令不应该同时使用，因为它们分别代表了不同的用途：proxy_pass 用于定义代理服务器的地址，而 root 用于指定请求资源的文件系统路径。x
 
 ### 代理文件proxy_pass配置选项
 ```

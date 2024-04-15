@@ -368,3 +368,11 @@ brew安装elasticsearch软件的相关信息:
 - 命令：
   - 重启：  brew services start elasticsearch
   - 手动启动：elasticsearch
+
+### brew安装报错no bottle available!
+修复命令
+```
+echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles' >> ~/.zshrc
+source ~/.zshrc
+brew update
+```

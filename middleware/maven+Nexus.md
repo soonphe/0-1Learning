@@ -311,7 +311,23 @@ pom文件基础结构
                         <!--配置是否被传播到子POM -->
                         <inherited />
                         <!--作为DOM对象的配置 -->
-                        <configuration />
+                        <configuration >
+                            <source>1.8</source>
+                            <target>1.8</target>
+                            <!-- 注解处理器所在的jar包 -->
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.mapstruct</groupId>
+                                    <artifactId>mapstruct-processor</artifactId>
+                                    <version>1.3.1.Final</version>
+                                </path>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                    <version>1.18.12</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
                     </execution>
                 </executions>
                 <!--项目引入插件所需要的额外依赖 -->
@@ -467,6 +483,17 @@ Maven会沿着父子层次向上走，直到找到一个拥有dependencyManageme
 下载地址：https://www.sonatype.com/products/repository-oss-download
 mac下载地址：https://download.sonatype.com/nexus/3/latest-mac.tgz
 
+#### mac使用brew安装：brew install nexus
+```
+brew install nexus
+2.0启动：brew services start nexus
+3.0启动：/usr/local/Cellar/nexus/3.38.1-01/libexec/bin/nexus
+http://127.0.0.1:8081 	admin/admin123 admin/123456
+修改默认端口
+/usr/local/Cellar/nexus/2.14.18-01/libexec/conf/nexus.properties
+application-port=8088
+```
+
 1. 构建
 ```
 git fetch --tags
@@ -478,3 +505,110 @@ git checkout -b release-3.29.2-02 origin/release-3.29.2-02 --
 unzip -d target assemblies/nexus-base-template/target/nexus-base-template-*.zip
 ./target/nexus-base-template-*/bin/nexus console
 ```
+
+#### settings配置本地nexus
+在项目的settings.xml文件中配置本地Nexus仓库，可以通过以下步骤进行：
+* 找到settings.xml文件。这个文件通常位于Maven的conf目录下，例如：{maven.home}/conf/settings.xml。
+* 在settings.xml文件中，找到<profiles>标签。如果不存在，就在<settings>标签内添加。
+* 在<profiles>标签内，添加一个<profile>元素，并设置一个唯一的id。
+* 在这个<profile>内，添加<repositories>和<pluginRepositories>标签，分别指定本地Nexus仓库作为Maven仓库和插件仓库。
+```
+        <profile>
+            <id>testprofile</id>
+            <activation>
+            	<activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>releases</id>
+                    <name>releases</name>
+                    <url>http://127.0.0.1:8088/repository/releases</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </repository>
+
+                <repository>
+                    <id>snaoshots</id>
+                    <url>http://127.0.0.1:8088/repository/snapshots/</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </repository>
+                </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>releases</id>
+                    <url>http://127.0.0.1:8088/repository/releases</url>
+                   <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>snaoshots</id>
+                    <url>http://127.0.0.1:8088/repository/snapshots</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+        
+        <!-- 最后设置配置启用 -->
+        <activeProfiles>
+            <activeProfile>local-nexus</activeProfile>
+            <activeProfile>...</activeProfile>
+        </activeProfiles>
+```
+注意：
+- releases.enabled和snapshots.enabled 可分别设置启用与否，如果不设置默认为true
+- <url>：Nexus仓库的URL地址，（一定要填正确，可以登录后去设置里面查看仓库链接）
+
+如果需要发布jar包：
+```
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>release</name>
+            <url>http://127.0.0.1:8088/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>snapshot</name>
+            <url>http://127.0.0.1:8088/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+```
+
+
+如果需要使用本地镜像：
+```
+  <mirrors>
+    ...
+    <mirror>
+       <id>central</id>
+       <name>central</name>
+       <url>http://127.0.0.1:8088/repository/sgcc_maven/</url>
+       <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+```
+mirrorOf常用值：
+- *：匹配所有仓库和仓库组。
+- external:*：匹配所有外部仓库和仓库组。
+- external:*、!central：匹配所有外部仓库和仓库组，但排除中央仓库。
+- repo1,repo2：匹配指定的仓库和仓库组。
+- central:配置中央仓库。
+

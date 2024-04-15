@@ -90,15 +90,17 @@ IOC重点：
 @SpringBootApplication复合注解
 ```
 1. @SpringBootConfiguration Extends Configuration：标注当前类为配置类
-2. @EnableAutoConfiguration ：自动配置看注解，Spring会根据你添加的jat包来配置项目的默认设置
+2. @EnableAutoConfiguration ：自动配置注解，Spring会根据你添加的jar包来配置项目的默认设置
 3. @ComponentScan：扫描当前包及其子包下被@Component，@Controller，@Service，@Repository
 注：@Controller @Service @Repository是@Component的子注解
 自动装配原理：将META-INF/spring.factories里面配置的所有EnableAutoConfiguration的值加入溶氧仪
 ```
 
 ### 属性注解
-* @DatetimeFormat是将String转换成Date，一般前台给后台传值时用
+* @DateTimeFormat(pattern="HH:mm:ss"):是将String转换成Date，一般前台给后台传值时用，Spring自带的处理框架
 * @JsonFormat(pattern="yyyy-MM-dd", timezone = "GMT+8")  将Date转换成String  一般后台传值给前台时
+* @JSONField来源于fastjson，是阿里巴巴的开源框架，主要进行JSON解析和序列化。@JSONField(format=”yyyy-MM-dd”)
+
 
 ### 方法注解
 @PostConstruct：@PostConstruct该注解被用来修饰一个非静态的void（）方法。被@PostConstruct修饰的方法会在服务器加载Servlet的时候运行，并且只会被服务器执行一次。PostConstruct在构造函数之后执行，init（）方法之前执行。

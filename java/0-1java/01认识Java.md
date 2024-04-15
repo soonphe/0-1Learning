@@ -67,7 +67,7 @@ Java语言的特点：
    1. JAVA_HOME: your_path\Java\jdk1.8.0_04
    2. Path:your_path\Java\jdk1.8.0_04\bin(注意：要写在所有值的最前端否则找 不到该路径)
    3. CLASSPATH:	.这个“ . ”表示：指向当前目录。
-   4. 在命令提示行下：javac	-version	回车运行，如果能看到版本信息则OK.
+   4. 在命令提示行下：javac	-version  或使用`java -version`	回车运行，如果能看到版本信息则OK.
 
 * mac环境变量：
 ```
@@ -76,6 +76,19 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home
 export JAVA_HOME
 CLASS_PATH="$JAVA_HOME/lib"
 PATH=".$PATH:$JAVA_HOME/bin"
+```
+
+### Mac下查看已安装的jdk版本及其安装目录
+查看JDK详细信息，如安装路径、是否多个版本等：
+```
+/usr/libexec/java_home -V
+```
+可以看到，JDK bin目录：cd /Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/bin/
+
+如果不小心安装了多个jdk，如存在Oracle JDK等，想要移除
+```
+移除Oracle JDK：
+sudo rm -fr /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
 ```
 
 ### 第一个Java程序

@@ -75,6 +75,13 @@ List<Long> idList = permissionList.stream()
 Stream.of("My", "Java", "My", "Life!")
         .map(String::toLowerCase)//转化为小写
         .map(Student::new);//接着以名字为参数转化Student流
+        
+//list转逗号分隔字符串
+String.join(",", list.stream().map(String::valueOf).collect(Collectors.toList()));	
+
+//list取某字段转逗号分隔字符串
+records.stream().map(permission -> permission.getDeviceId()).map(String::valueOf).collect(Collectors.joining(","));
+
 ```
 
 #### flatMap

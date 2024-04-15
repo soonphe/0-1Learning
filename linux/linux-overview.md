@@ -133,12 +133,24 @@ source filename
 
 sh 执行.sh脚本
 	“-x”选项实现shell脚本逐条语句的跟踪
+```
+文件解压与打包
+```
+jar命令解压zip：jar xf file.zip
+解压jar：jar xvf xxx.jar
+解压jar：jar xvf hello-0.0.1.jar     //-c 创建war包   -v 显示过程信息  -f 指定 JAR 文件名，通常这个参数是必须的
+压缩jarjar：jar cvfm 新名字.jar META-INF/MANIFEST.MF com/ mapper/ static/ templates/ application.properties generatorConfig
 
-
-war包解压： unzip -oq common.war -d common
+war包解压：unzip -oq common.war -d common
 
 解压.gz：gzip -dv *
 
+解压tar：tar -zxvf redis-6.0.16.tar.gz ./
+压缩tar：tar -zcvf test01.tar.gz ./test
+
+解压zip：unzip test1.zip     unzip example.jar -d .    //其中-d选项指定了解压后的目标路径，.表示当前目录。
+压缩zip：zip -r test1.zip ./susu 把当前目录下的susu文件夹下的内容压缩为test1.zip  
+压缩zip：zip -r test2.zip susu liu   把当前目录下，susu文件夹和liu文件夹下的内容压缩为test2.zip
 ```
 
 ### 查看文件及内容（head、tail、cat、nl、grep、less、more）
@@ -477,6 +489,22 @@ halt		//关闭系统，等同于shutdown -h now和poweroff
   -l 定义发送数据包的大小，默认为32字节，我们利用它可以最大定义到65500字节。
   -n 定义向目标IP发送数据包的次数，默认为3次。如果网络速度比较慢，3次对我们来说也浪费了不少时间，因为现在我们的目的仅仅是判断目标IP是否存在，那么就定义为一次吧。
 - telnet：远程登陆命令
+```
+telnet 127.0.0.1 8080
+Escape character is '^]'.
+如果返回Escape character is '^]'. 则代表端口是通的
+
+mac telnet 替代命令
+检测8080端口：nc -vz -w 2 127.0.0.1 8080
+检测443端口是否开启：nc -vz -w 2 -G 2 $x 443
+-v 详细信息
+-z 不发数据
+-w 后面是数字/秒。
+-G tcp连接超时/秒
+-u udp 协议，默认tcp
+
+centos命令：nc -w 1 $x 443 < /dev/null && echo ‘domain_ok:’
+```
 - ftp	在本地主机与远程主机之间传输文件	ftp ftp.sp.net.edu.cn
 
 ### 端口相关
@@ -496,6 +524,10 @@ netstat -lanp	//查看一台服务器上面哪些服务及端口
 ```
 
 lsof -i:$PORT"查看应用该端口的程序（$PORT指对应的端口号）
+
+查询端口：sudo lsof -i tcp:port
+查看所有端口使用情况：netstat -natp tcp （在mac中使用netstat -tlp tcp或netstat -tlp udp 来指定其后使用的协议）
+
 
 ### 进程命令
 查看进程命令：ps（显示与进程相关的PID号）	
@@ -916,6 +948,263 @@ Linux export 命令用于设置或显示环境变量。
 # export MYENV=7 //定义环境变量并赋值
 ```
 
+### 三种方法设置环境变量
+- 方法一：使用export命令
+  - 普通用户即可修改；**仅对当前登录的终端有效**
+  - 实例：将路径/home/admin/test/bin添加到环境变量$PATH中
+  - $ export PATH=$PATH:/home/admin/test/bin
+
+- 方法二：修改.bashrc文件
+  - 普通用户即可修改；对当前登录用户有效。
+```
+首先，打开.bashrc文件：
+$ vim ~/.bashrc
+然后，在该文件中，添加如下内容：`
+export PATH=$PATH:/home/dabai/test/bin
+最后，保存并退出；再执行如下命令，以使修改的环境变量立即生效：
+$ source ~/.bashrc
+```
+- 方法三：修改profile文件
+需要root权值；对所有用户都有效。
+```
+首先，打开profile文件：
+# vim /etc/profile
+然后，在该文件中，添加如下内容：
+export PATH=$PATH:/home/dabai/test/bin
+最后，保存并退出；再执行如下命令，以使修改的环境变量立即生效：
+$ source /etc/profile
+```
+
+### linux配置防火墙
+会报错Failed to start iptables.service: Unit iptables.service failed to load: No such file or directory.
+
+在CentOS 7或RHEL 7或Fedora中防火墙由firewalld来管理，
+
+如果要添加范围例外端口 如 1000-2000
+语法命令如下：启用区域端口和协议组合
+firewall-cmd [--zone=<zone>] --add-port=<port>[-<port>]/<protocol> [--timeout=<seconds>]
+此举将启用端口和协议的组合。端口可以是一个单独的端口 <port> 或者是一个端口范围 <port>-<port> 。协议可以是 tcp 或 udp。
+实际命令如下：
+
+添加
+firewall-cmd --zone=public --add-port=80/tcp --permanent （--permanent永久生效，没有此参数重启后失效）
+firewall-cmd --zone=public --add-port=1000-2000/tcp --permanent
+
+重新载入
+firewall-cmd --reload
+查看
+firewall-cmd --zone= public --query-port=80/tcp
+删除
+firewall-cmd --zone= public --remove-port=80/tcp --permanent
+
+当然你可以还原传统的管理方式。
+
+执行一下命令：
+
+[plain] view plain copy
+systemctl stop firewalld  
+systemctl mask firewalld
+
+并且安装iptables-services：
+[plain] view plain copy
+yum install iptables-services
+
+设置开机启动：
+[plain] view plain copy
+systemctl enable iptables
+
+[plain] view plain copy
+systemctl stop iptables  
+systemctl start iptables  
+systemctl restart iptables  
+systemctl reload iptables
+
+保存设置：
+[plain] view plain copy
+service iptables save
+
+OK，再试一下应该就好使了
+
+开放某个端口 在/etc/sysconfig/iptables里添加
+
+-A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
 
 
- 
+
+## linux脚本编写(如编写一个java -jar启动java程序)
+
+#### 脚本解析
+我们经常会见到这样的脚本启动方式：
+```
+./start.sh
+或
+./start.sh start
+备注：windows为.bat文件
+```
+
+常见的脚本至少要有：
+```
+start   #启动
+stop    #停止
+status  #状态
+info    #信息
+help    #帮助
+*       #任意输入匹配
+```
+
+#### 脚本主要结构
+定义变量：
+```
+BIN_DIR=$bin_abs_path
+DEPLOY_DIR=$BIN_DIR/..
+JAR_NAME='managesrv.jar'
+VM_OPTS="-server -Xmx1g -Xms1g -Xmn256m -XX:PermSize=128m -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70"
+SPB_OPTS="--spring.profiles.active=pro"
+APP_NAME="managesrv"
+JAVA=java
+```
+定义方法：
+```
+start() {
+ stop                       #方法中调用其他方法
+ echo "sleep for stopping"  #打印
+ sleep 2                    #休眠
+ echo "start $APP_NAME "
+ echo "exec command : nohup $JAVA $VM_OPTS -jar $DEPLOY_DIR/lib/$JAR_NAME $SPB_OPTS > /dev/null 2>&1 &"
+ nohup $JAVA $VM_OPTS -jar $DEPLOY_DIR/lib/$JAR_NAME  > /dev/null 2>&1 &    #执行启动命令
+ sleep 3
+ boot_id=`ps -ef |grep java|grep $APP_NAME|grep -v grep|awk '{print $2}'`
+ echo "app started pid = ${boot_id}"
+}
+```
+定义参数解析：
+```
+case $1 in  #case判断
+start)      #如果命令为./start.sh start
+    start   #执行方法动作
+    ;;
+stop)       #如果命令为./start.sh stop
+    stop
+    ;;
+esac        #与case配对
+exit $?     #退出命令
+```
+
+
+#### 脚本示例
+```
+#!/bin/bash
+current_path=`pwd`
+case "`uname`" in
+    Linux)
+		bin_abs_path=$(readlink -f $(dirname $0))
+		;;
+	*)
+		bin_abs_path=`cd $(dirname $0); pwd`
+		;;
+esac
+BIN_DIR=$bin_abs_path
+DEPLOY_DIR=$BIN_DIR/..
+JAR_NAME='managesrv.jar'
+VM_OPTS="-server -Xmx1g -Xms1g -Xmn256m -XX:PermSize=128m -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70"
+SPB_OPTS="--spring.profiles.active=pro"
+APP_NAME="managesrv"
+JAVA=java
+
+start() {
+ stop
+ echo "sleep for stopping"
+ sleep 2
+ echo "start $APP_NAME "
+ echo "exec command : nohup $JAVA $VM_OPTS -jar $DEPLOY_DIR/lib/$JAR_NAME $SPB_OPTS > /dev/null 2>&1 &"
+ nohup $JAVA $VM_OPTS -jar $DEPLOY_DIR/lib/$JAR_NAME  > /dev/null 2>&1 &
+ sleep 3
+ boot_id=`ps -ef |grep java|grep $APP_NAME|grep -v grep|awk '{print $2}'`
+ echo "app started pid = ${boot_id}"
+}
+
+stop(){
+    boot_id=`ps -ef |grep java|grep $APP_NAME|grep -v grep|awk '{print $2}'`
+    count=`ps -ef |grep java|grep $APP_NAME|grep -v grep|wc -l`
+    if [ $count != 0 ];then
+        kill -9 $boot_id
+        echo "Stop $APP_NAME success..."
+    else
+    	echo "$APP_NAME is not running..."
+    fi
+}
+
+status() {
+  echo "=============================status=============================="
+  boot_id=`ps -ef |grep java|grep $APP_NAME|grep -v grep|awk '{print $2}'`
+  count=`ps -ef |grep java|grep $APP_NAME|grep -v grep|wc -l`
+  if [ $count != 0 ];then
+       echo "$APP_NAME is running,PID is $boot_id"
+  else
+       echo "$APP_NAME is not running!!!"
+  fi
+  echo "=============================status=============================="
+}
+
+info() {
+  echo "=============================info=============================="
+  echo "APP_LOCATION: $DEPLOY_DIR/lib/$JAR_NAME"
+  echo "APP_NAME: $APP_NAME"
+  echo "VM_OPTS: $VM_OPTS"
+  echo "SPB_OPTS: $SPB_OPTS"
+  echo "=============================info=============================="
+}
+
+help() {
+   echo "start: start server"
+   echo "stop: shutdown server"
+   echo "status: display status of server"
+   echo "info: display info of server"
+   echo "help: help info"
+}
+
+case $1 in
+start)
+    start
+    ;;
+stop)
+    stop
+    ;;
+status)
+    status
+    ;;
+info)
+    info
+    ;;
+help)
+    help
+    ;;
+*)
+    help
+    ;;
+esac
+exit $?
+```
+
+**命令解析：ps -ef|grep xxx.jar|grep -v grep|awk '{print $2}'**
+
+- 直接使用：ps -ef|grep java
+```
+ps -ef|grep java
+root     1583778       1  0 Mar20 ?        00:59:50 java -jar xxx.jar
+root     2628773       1  1 Apr02 ?        00:16:06 java -jar xxxx.jar
+root     2777713 2773423  0 13:54 pts/0    00:00:00 grep --color=auto java
+```
+- grep -v grep：查找除了grep下的所有信息
+```
+ps -ef|grep java|grep -v grep
+root     1583778       1  0 Mar20 ?        00:59:50 java -jar xxx.jar
+root     2628773       1  1 Apr02 ?        00:16:07 java -jar xxxx.jar
+```
+
+- awk '{print $2}'：取第二个字段输出
+所以代码的意思就是 查找除了grep操作的xxx.jar的进程之外的所有进程这一行信息的第二个字段的值并打印（即pid进程号）
+
+- grep -n  打印行号
+- grep -E = egrep 匹配正则表达式
+- grep -i 忽略大小写

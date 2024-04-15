@@ -30,6 +30,7 @@ Command + 逗号(,)：打开当前应用的偏好设置
 Command + Control + F   全屏快捷键
 Command + Control + Q   锁屏快捷键
 Command + Option + esc  打开强制退出窗口
+Command + Option + D：mac 程序拓展坞切换隐藏
 Command + Shift + N：在“访达”中创建一个新文件夹。
 
 Command + Shift + .: 显示/隐藏 隐藏文件、文件夹

@@ -44,8 +44,9 @@ Archetype插件有四个目标可以直接使用：
 ### 如何生成Archetype项目
 有两种方法来创建Archetyp,
 - 第一种是通过已有的项目来创建,
-- 第二种是通过mvn archetype:generate创建一个简单的JAVA项目或WEB项目,然后进行改造。
+- 第二种是通过mvn archetype:generate创建一个简单的JAVA项目或WEB项目,然后进行改造(这种就和创建普通的maven项目类似)
 
+**主要说第一种**
 在已有maven项目中的pom.xml里面添加maven-archetype-plugin,Maven-resources-plugins,maven-compiler-plugin插件。
 利用archetype plugin的create-from-project将maven项目将该maven项目生成为archetype类型项目。
 执行命令：
@@ -55,7 +56,8 @@ mvn archetype:create-from-project
 注意:在搭建好样板工程之后，在使用mvn archetype:create-from-project命令之前，要先把项目中不相关的工程文件、中间文件、.setting、.class、.project等删除。
 生成文件：target\generated-sources
 
-安装Archetype
+
+### 安装Archetype(这一步不管是是哪种方式都需要进行)
 在上文创建了archetype之后，进入到target\generate-sources\archetype目录，然后在命令行执行：
 ```
 #将模板安装到本地仓库（因为创建的maven项目一般都是从仓库中选择模板）

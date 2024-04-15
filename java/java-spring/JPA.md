@@ -159,3 +159,38 @@ sequence-identity: sequence策略的扩展，采用立即检索策略来获取se
 9. @PreUpdate	//在更新操作之前
 
 10. @Temporal(DATE)	//JPA 持续性提供程序应只为 java.util.Date 和 java.util.Calendar 类型的字段或属性持久保存的数据库类型
+
+
+### queryDsl
+Querydsl 是一个框架，它可以为多个后端（包括 JPA、MongoDB 和 Java 中的 SQL）构建类型安全的 SQL 类查询。
+介绍文档：https://www.cnblogs.com/babycomeon/p/11605809.html
+
+查询类型：
+QCustomer customer = QCustomer.customer;
+QCustomer customer = new QCustomer("myCustomer");
+查询：
+QCustomer customer = QCustomer.customer;
+Customer bob = queryFactory.selectFrom(customer)
+.where(customer.firstName.eq("Bob"))
+.fetchOne();
+
+实际使用：
+@Generated("com.querydsl.codegen.EntitySerializer")
+Public class QOverTimeFeeModel extends EntityPathBase<OverTimeFeeModel>{
+Public static final QOverTimeFeeModel overTimeFeeModel = new QOverTimeFeeModel("overTimeFeeModel");
+
+QOverTimeFeeModel qOverTimeFeeModel=QOverTimeFeeModel.overTimeFeeModel;
+
+Return jpaQueryFactory
+.select(Projections.fields(OverTimeFeeModelStationVo.class,
+qOverTimeFeeModel.id.as("id"),qOverTimeStation.stationNo,qOverTimeStation.stationName,
+qOverTimeStation.operateState,qOverTimeStation.address,qOverTimeFeeModel.validStatus,
+qOverTimeFeeModel.feeRuleList))
+.from(qOverTimeFeeModel)
+.leftJoin(qStationFeeModel).on(qOverTimeFeeModel.id.eq(qStationFeeModel.feeModelId))
+.leftJoin(qOverTimeStation)
+.on(qOverTimeStation.stationNo.eq(qStationFeeModel.stationNo))
+.where(predicate)
+.offset((long)(query.getPage()-1)*query.getPageSize())
+.limit(query.getPageSize())
+.fetchResults();

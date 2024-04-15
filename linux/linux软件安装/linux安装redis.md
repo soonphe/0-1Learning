@@ -102,9 +102,11 @@ loglevel notice ——debug
 logfile "" ——文件路径，默认为redis所在盘符
  
  
-获取所有Key命令：redis-cli keys ‘*’  ；
+获取所有Key命令：redis-cli keys *；
  
-获取指定前缀的key：redis-cli KEYS “edu:*”
+获取指定前缀的key：redis-cli KEYS edu:*
+
+获取指定key对应的值：redis-cli get edu
  
 如果需要导出，可以redis-cli keys ‘*’ > /data/redis_key.txt
  

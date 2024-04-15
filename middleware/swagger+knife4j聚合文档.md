@@ -164,12 +164,12 @@ public class SwaggerUiWebMvcConfigurer implements WebMvcConfigurer {
 
 关闭Swagger有两种方式
 - 方式一：
-在Swagger2Config上使用@Profile注解标识，@Profile({“dev”,“test”})表示在dev和test环境才能访问swagger-ui.html，prod环境下访问不了。
+在Swagger2Config上使用@Profile注解标识，@Profile({"dev","test"})表示在dev和test环境才能访问swagger-ui.html，prod环境下访问不了。
 
 - 方式二：
 在Swagger2Config上使用@ConditionalOnProperty注解，
 
-@ConditionalOnProperty(name = “swagger.enable”, havingValue = “true”)
+@ConditionalOnProperty(name = "swagger.enable", havingValue = "true")
 
 表示配置文件中如果swagger.enable =true表示开启。所以只需要在开发环境的配置文件配置为true，生产环境配置为false即可。
 

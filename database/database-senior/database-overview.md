@@ -802,6 +802,18 @@ end;
 ---
 
 
+### mysql锁表处理
+处理数据库锁表问题：直接定位线程kill
+-- 查询所有正在使用中的表
+show OPEN TABLES where In_use > 0;
+
+-- 查看所有进程
+show processlist;
+
+-- kill指定线程
+kill 893952;
+
+
 ### 数据库备份
 1.编写sh脚本(文件目录需要提前创建)
 mysqldump -uusername -ppassword DatabaseName > /home/dbback/DatabaseName_$(date +%Y%m%d_%H%M%S).sql

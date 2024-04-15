@@ -13,11 +13,12 @@ Jenkins是一个开源软件项目，是基于Java开发的一种持续集成工
 ### 安装部署
 基于brew安装jenkins环境
 ```
-安装最新的 LTS 版本： brew install jenkins-lts
+安装:： brew install jenkins
 安装特定的 LTS 版本： brew install jenkins-lts@YOUR_VERSION
-启动Jenkins服务：brew services start jenkins-lts
-重启Jenkins服务：brew services restart jenkins-lts
-更新 Jenkins 版本： brew upgrade jenkins-lts
+启动Jenkins服务：brew services start jenkins
+停止Jenkins服务：brew services stop jenkins
+重启Jenkins服务：brew services restart jenkins
+更新 Jenkins 版本： brew upgrade jenkins
 ```
 
 基于Docker安装Jenkins环境
@@ -49,12 +50,6 @@ docker exec -it jenkins /bin/bash #进入jenkins容器
 systemctl restart  docker    #重启容器
 ```
 
-1. 访问http://localhost:8080 jenkins地址
-2. 从 Jenkins 控制台日志(docker logs $ContainerName)输出中，复制自动生成的字母数字密码（在 2 组星号之间）。
-3. 在解锁 Jenkins页面上，将此密码粘贴到管理员密码字段中，然后单击继续
-4. 安装所需的插件（EDAS、Git、Gitlab、NodeJS、Pipeline、Publish Over SSH、SSH plugin、SSH Agent）
-5. 创建第一个管理员用户
-
 ### 手动安装（不推荐）
 > 下载地址：https://jenkins.io/
 
@@ -76,6 +71,19 @@ sudo systemctl start jenkins    #启动jenkins
 sudo systemctl status jenkins   #检查 Jenkins 服务的状态
 ```
 
+### 创建管理员账户与安装插件
+1. 访问http://localhost:8080 jenkins地址
+2. 输入admin账户，会默认弹出密码路径，找到复制粘贴即可（docker可以去日志(docker logs $ContainerName)输出中，复制自动生成的字母数字密码（在 2 组星号之间）。）
+3. 修改管理员用户密码，admin  123456（系统管理-管理用户，）
+ 
+安装插件（系统管理-插件管理）
+- Git、Gitlab
+- Pipeline   流水线插件
+- Pipeline Maven Integration   maven打包插件
+- Publish Over SSH    通过SSH协议与远程服务器进行文件传输和执行命令的功能
+- SSH plugin          使用SSH 协议远程执行 shell 命令
+- SSH Agent
+- NodeJS
 
 ### Jenkins全局工具配置
 全局工具是打包的基础：例如maven，没有maven工具，打包是进行不了的
@@ -87,19 +95,24 @@ sudo systemctl status jenkins   #检查 Jenkins 服务的状态
 - 全局属性-环境变量
 > 说明：可以使用宿主机内的环境，需要让docker挂载相应的目录即可，也可以指定版本自动安装
 ```
-jdk1.8
-/opt/edas/jdk/jdk1.8.0_65
-
-Default
-git
-
-maven
-/opt/maven-3.6.3
-
-node
-/node
+JDK：名称jdk1.8   路径 /Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home
+Default：git
+maven：名称maven  路径/usr/local/Cellar/maven/3.9.6
+node：名称node   路径 /usr/local/bin/
 ```
 
+### 配置凭据
+系统管理-凭据-系统-全局凭据
+- 选择类型：支持用户名和密码，api token等
+- 选择范围：全局、系统
+- 用户名：
+- 密码：
+- ID：识别此凭据的唯一标识，如：gitlab
+
+### 配置SSH登录
+系统配置（系统管理-系统配置）配置全局设置于路径
+- SSH Server：（配置远程：host username password）
+-
 
 ### Jenkins pipeline流水线构建：
 Jenkins构建一个项目的方式有很多，如自由风格、maven项目、流水线等。 这里主要介绍流水线构建，流水线编写脚本易于配置和迁移，还能和docker联动。
@@ -278,7 +291,7 @@ tar -zxvf timber.tar.gz
 > 
 > 2.这里的start.sh为自行编写，脚本可根据需要自行改动路径或者start.sh
 
-#### 4.jar包方式部署-配置jenkins能访问模板服务器
+#### 4.jar包方式部署-配置jenkins能访问目标服务器
 > 操作路径：Jenkins - 系统管理 - 系统配置 - Publish over SSH - SSH Servers
 
 > 需要配置：Hostname + Username + Remote Directory + Passphrase / Password
@@ -292,6 +305,12 @@ tar -zxvf timber.tar.gz
 3. 项目中添加jenkinsfile，内容同上面的pipline
 4. Jenkins——系统管理——系统设置——设置 SSH Servers：输入IP、用户名、密码、远程目录
 
+### jenkins配置局域网IP访问
+使用brew安装jenkins会避免很多其他安装方式产生的用户权限问题，但是会将httpListenAddress默认设置为127.0.0.1，这样我们虽然可以在本地用localhost:8080访问，但是本机和局域网均无法用ip访问。解决办法为修改两个路径下的plist配置。并重启
+
+/usr/local/Cellar/jenkins/2.448/homebrew.mxcl.jenkins.plist    
+~/Library/LaunchAgents/homebrew.mxcl.jenkins.plist
+将上面两个plist中的httpListenAddress后的ip地址，修改为本机IP或者0.0.0.0即可。
 
 ### 常见问题解析
 

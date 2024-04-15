@@ -37,14 +37,14 @@ void print(T t)不是一个泛型方法，
 ````
 /**
  * 泛型类语法示例
- * Created by 韩超 on 2018/2/22.
+ * Created by  on 2018/2/22.
  */
 public class MyGenericsType<T> {
     private T t;
 
     /**
      * <p>Title: 这是一个普通方法</p>
-     * @author 韩超 2018/2/22 10:52
+     * @author  2018/2/22 10:52
      */
     public T getT() {
         return t;
@@ -52,7 +52,7 @@ public class MyGenericsType<T> {
 
     /**
      * <p>Title: 这是一个泛型方法</p>
-     * @author 韩超 2018/2/22 10:53
+     * @author  2018/2/22 10:53
      */
     public <T> T getTT() {
         T t = null;
@@ -73,7 +73,7 @@ t：泛型类型的实例对象
 ````
 /**
  * <p>Title: 泛型原始类型使用</p>
- * @author 韩超 2018/2/22 11:21
+ * @author  2018/2/22 11:21
  */
 public static void main(String[] args){
     //泛型原始类型
@@ -98,7 +98,6 @@ public static void main(String[] args){
 ````
 /**
  * 泛型类语法示例
- * Created by 韩超 on 2018/2/22.
  */
 class MyGenericsType2<X>{
     private X x;
@@ -122,7 +121,7 @@ N：数值 泛型类型，主要用于定义数值类型的泛型类型
 ````
 /**
  * <p>Title: 通用泛型类型示例</p>
- * @author 韩超 2018/2/22 11:09
+ * @author  2018/2/22 11:09
  */
 public class MyMultiType<T,S,U,V,A,B> {
     private T t;
@@ -145,7 +144,7 @@ public class MyMultiType<T,S,U,V,A,B> {
 
     /**
      * <p>Title: 测试通用泛型类型</p>
-     * @author 韩超 2018/2/22 11:08
+     * @author  2018/2/22 11:08
      */
     public static void main(String[] args){
         MyMultiType<Integer,Double,Float,String,Long,Short> myMultiType = new MyMultiType<Integer, Double, Float, String, Long, Short>();
@@ -169,7 +168,7 @@ public class MyMultiType<T,S,U,V,A,B> {
 ````
 /**
  * <p>Title: 集合泛型类型示例</p>
- * @author 韩超 2018/2/22 11:11
+ * @author  2018/2/22 11:11
  */
 public class MyList<E> {
     private List<E> list = new ArrayList<E>();
@@ -187,7 +186,7 @@ public class MyList<E> {
 
     /**
      * <p>Title: 集合泛型类型示例</p>
-     * @author 韩超 2018/2/22 11:11
+     * @author  2018/2/22 11:11
      */
     public static void main(String[] args){
         MyList<String> stringMyList = new MyList<String>();
@@ -206,7 +205,7 @@ public class MyList<E> {
 ````
 /**
  * <p>Title: 映射泛型类型示例</p>
- * @author 韩超 2018/2/22 11:15
+ * @author  2018/2/22 11:15
  */
 public class MySet<K,V> {
     private Map<K,V> map = new HashMap<K, V>();
@@ -224,7 +223,7 @@ public class MySet<K,V> {
     }
     /**
      * <p>Title: 映射泛型类型示例</p>
-     * @author 韩超 2018/2/22 11:14
+     * @author  2018/2/22 11:14
      */
     public static void main(String[] args){
         MySet<String,Integer> mySet = new MySet<String, Integer>();
@@ -243,7 +242,7 @@ public class MySet<K,V> {
 ````
 /**
  * <p>Title: 数值泛型类型示例</p>
- * @author 韩超 2018/2/22 11:16
+ * @author  2018/2/22 11:16
  */
 public class MySquare<N> {
     private final static Logger LOGGER = Logger.getLogger(MySquare.class);
@@ -254,7 +253,7 @@ public class MySquare<N> {
 
     /**
      * <p>Title: 数值泛型类型示例</p>
-     * @author 韩超 2018/2/22 11:16
+     * @author  2018/2/22 11:16
      */
     public static void main(String[] args){
         MySquare<Integer> mySquare = new MySquare<Integer>();
@@ -295,7 +294,7 @@ ClassA ：父类：必须在第一位。
 ````
 /**
  * 有界类型参数
- * Created by 韩超 on 2018/1/30.
+ * Created by  on 2018/1/30.
  */
 public class MyMath {
 
@@ -303,7 +302,7 @@ public class MyMath {
 
     /**
      * <p>Title: 有界参数类型（单重）</p>
-     * @author 韩超 2018/1/31 10:37
+     * @author  2018/1/31 10:37
      */
     public static <T extends Comparable> T MyMax(T x, T y) {
         T max = x;
@@ -315,7 +314,7 @@ public class MyMath {
 
     /**
      * <p>Title: 多重有界参数类型</p>
-     * @author 韩超 2018/1/31 13:20
+     * @author  2018/1/31 13:20
      */
     public static <T extends Number & Comparable> T MyMax2(T x, T y){
         T dmax = x.doubleValue() >= y.doubleValue() ? x : y;
@@ -324,7 +323,7 @@ public class MyMath {
 
     /**
      * <p>Title: 有界泛型类型示例</p>
-     * @author 韩超 2018/2/22 11:44
+     * @author  2018/2/22 11:44
      */
     public static void main(String[] args){
         Integer result = MyMath.MyMax(1,2);
@@ -352,7 +351,7 @@ public class MyMath {
 ````
 /**
  * <p>Title: 泛型原始类型使用</p>
- * @author 韩超 2018/2/22 11:21
+ * @author  2018/2/22 11:21
  */
 public static void main(String[] args){
     //泛型原始类型
@@ -445,7 +444,7 @@ Java泛型的实现原理：类型擦除。
 ````
 /**
  * <p>Title: <T>与<?>示例</></></p>
- * @author 韩超 2018/2/23 16:33
+ * @author  2018/2/23 16:33
  */
 static class Demo1<T>{
     private T t;

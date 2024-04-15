@@ -208,5 +208,5 @@ TEXT_MAP：k-v集合
 BINARY：字节数组
 HTTP_HEADERS：和k-v类似，但保证了HTTP Header的安全性（保证了key、value的格式合法）
 
-
+### Fluentd 日志采集和logstash 日志采集
 
