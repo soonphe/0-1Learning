@@ -236,6 +236,20 @@ public class NacosProviderApplication {
 ${prefix}-${spring.profiles.active}.${file-extension}
 prefix 默认为 spring.application.name 的值，也可以通过配置项 spring.cloud.nacos.config.prefix来配置。
 
+```
+${prefix}:
+默认为所属工程配置spring.application.name的值(这就是为什么平时我们直接用服务名就可以),也可以用spring.cloud.nacos.config.prefix来配置.
+
+${spring.profile.active}:
+spring.profile.active即为当前环境对应的profile.注意:当spring.profile.active为空的时候,对应的连接符 - 也将不存在,dataId的拼接格式变成prefix.{file-extension}
+
+${file-extension}:
+为配置内容的数据格式，可以通过配置项 spring.cloud.nacos.config.file-extension 来配置。目前只支持 properties 和 yaml 类型。
+```
+如果在使用Nacos时，你没有明确指定dataId的后缀，比如直接使用dataId=myapp而不是dataId=myapp.properties，那么Nacos客户端会尝试匹配不同的后缀，以便能找到合适的配置文件。
+这是因为Nacos客户端在内部处理时，会将dataId与服务端上的配置文件进行匹配，并考虑到不同的文件扩展名。如果你没有指定后缀，它会按照默认的扩展名列表来查找匹配的配置。
+例如，如果你的服务端有一个myapp.yaml的配置文件，即使客户端请求的是dataId=myapp，Nacos也能正确地找到并返回这个配置。
+这种机制允许你只需要指定基本的dataId，而不用每次都要指定完整的文件名，从而简化配置和部署过程。
 
 配置：
 *在 bootstrap.properties / bootstrap.yml 中配置 Nacos server 的地址和应用名*

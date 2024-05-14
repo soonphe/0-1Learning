@@ -82,6 +82,10 @@ String.join(",", list.stream().map(String::valueOf).collect(Collectors.toList())
 //list取某字段转逗号分隔字符串
 records.stream().map(permission -> permission.getDeviceId()).map(String::valueOf).collect(Collectors.joining(","));
 
+//map合并：
+Map<String, Object> offlineMap = RedisUtil.getMap(PC_MODEL_OFFLINE_CAR_REDIS_KEY);
+offlineMap.forEach((k, v) -> recordOfflineMap.merge(k, v, (v1, v2) -> v2));
+
 ```
 
 #### flatMap

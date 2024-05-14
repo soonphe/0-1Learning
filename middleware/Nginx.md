@@ -403,6 +403,24 @@ server {
             index   index.html index.htm;
         }
     }
+    
+    server {
+        listen          80;
+        server_name     www.ywzt.com ywzt.com;
+    
+        location / {
+            root   html/ywzt;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen          80;
+        server_name     nacos.ywzt.com;
+    
+        location / {
+            proxy_pass   http://127.0.0.1:8848;
+        }
+    }
 ```
 
 ### 域名和IP和端口

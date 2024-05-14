@@ -1,4 +1,4 @@
-
+## WebSocket
 
 ### WebSocket 与 HTTP 的关系
 WebSocket 协议和 HTTP 协议之间有密切的关系，WebSocket 连接的建立需要通过 HTTP 握手来协商，其基本流程如下：

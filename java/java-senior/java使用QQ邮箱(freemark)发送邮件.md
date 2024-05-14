@@ -104,7 +104,7 @@ public class PwdMailSender{
         map.put("content",content);
         try{
             //根据模板内容，动态把map中的数据填充进去，生成HTML
-            Templatetemplate=freeMarkerConfigurer.getConfiguration().getTemplate("model.mail.fmt");
+            Templatetemplate=freeMarkerConfigurer.getCownfiguration().getTemplate("model.mail.fmt");
             //map中的key，对应模板中的${key}表达式
             text=FreeMarkerTemplateUtils.processTemplateIntoString(template,map);
         }catch(IOExceptione){

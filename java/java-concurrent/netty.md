@@ -314,6 +314,25 @@ public class ClientApplication {
 ```
 
 #### 网页端websocket代码
+依赖
+```
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+			<version>2.1.12.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.3.8</version>
+		</dependency>
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+            <version>2.1.12.RELEASE</version>
+        </dependency>
+```
+
 直接继承TextWebSocketHandler，重写方法
 ```
 public class PublishVideo extends TextWebSocketHandler {

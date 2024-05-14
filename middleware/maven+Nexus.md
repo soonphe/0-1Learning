@@ -106,6 +106,31 @@ mvn install:install-file
 ### mvn -v提示Permission denied
 权限不够，chmod a+x  /opt/apache-maven-3.2.2/bin/mvn(a:所有用户 +:增加权限 x:执行权限)
 
+### mvn 打包插件报错
+报错问题：
+```
+Plugin org.apache.maven.plugins:maven-resources-plugin:3.3.0 or one of its dependencies could not be resolved: Failed to read artifact descriptor for org.apache.maven.plugins:maven-resources-plugin:jar:3.3.0
+```
+解决：IDEA选择高级版maven进行打包
+
+Maven版本查看网址：https://maven.apache.org/docs/history.html
+
+maven-compiler-plugin是每个maven都自带的插件
+maven打包过程：其实就是调用maven声明周期阶段绑定的内置插件执行（插件名：插件版本：插件目标）
+```
+--- resources:3.3.1:resources (default-resources)
+--- compiler:3.11.0:compile (default-compile)
+--- resources:3.3.1:testResources
+--- compiler:3.11.0:testCompile
+--- surefire:3.2.2:test 
+--- jar:3.2.2:jar   
+--- spring-boot:2.3.0.RELEASE:repackage (repackage) 
+```
+
+Maven 默认为一些核心的生命周期阶段绑定了插件目标，当用户调用这些阶段时，对应的插件目标就会自动执行相应的任务。
+maven-compiler-plugin插件只要我们编译代码就会用到该插件，就算我们项目没有声明该插件也照样会使用到。
+其中maven-resources-plugin的resources和testResources两个目标，绑定到了default生命周期的process-resources和process-test-resources两个阶段上。
+作用：他的作用是将项目的资源（resources目录下）目录的文件复制到输出目录（target），输出目录又分为了两个，一个是测试的输出目录，一个是主资源的。所以对应了process-resources和process-test-resources两个阶段上，当然一般测试目录并没有资源目录。
 
 ### pom文件
 
@@ -612,3 +637,160 @@ mirrorOf常用值：
 - repo1,repo2：匹配指定的仓库和仓库组。
 - central:配置中央仓库。
 
+### maven 插件
+maven自带插件配置
+```
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version> <!-- or newer version -->
+                <configuration>
+                    <source>1.8</source> <!-- depending on your project -->
+                    <target>1.8</target> <!-- depending on your project -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.3.1.Final</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!--方法一，忽略打包的测试异常-->
+					<testFailureIgnore>true</testFailureIgnore>
+					<!--方法二，直接跳过测试-->
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+```
+
+### spring-boot-maven-plugin
+针对springboot和maven集成的项目，打成jar包，则需要使用springboot和maven集成好的打包插件：spring-boot-maven-plugin，例如特别是含有@SpringBootApplication注解的入口启动程序。
+```
+            <plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<fork>true</fork>
+					<!-- 避免打jar包时找不到主类 -->
+					<mainClass>org.starry.TcpApplication</mainClass>
+				</configuration>
+				<executions>
+					<execution>
+						<id>repackage</id>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+```
+命令：mvn clean package
+
+### maven-assembly-plugin
+作用：将自己项目中的代码和资源，还包含了所有依赖包的内容打成一个jar包。
+打包后会在target目录下生成一个xxx-jar-with-dependencies.jar文件，这个文件不但包含了自己项目中的代码和资源，还包含了所有依赖包的内容。所以可以直接通过java -jar来运行。
+```
+            <!-- 项目打包 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <finalName>${project.artifactId}</finalName>
+                    <outputDirectory>${project.basedir}/target</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+```
+可配和profile和自定义shell使用
+
+### appassembler-maven-plugin
+作用： 利用Maven的appassembler-maven-plugin插件，就可以实现自动打包成可运行的脚本，还可以跨平台。（Windows/linux）
+```
+            <plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<version>1.10</version>
+				<configuration>
+					<repositoryLayout>flat</repositoryLayout>
+					<configurationSourceDirectory>src/main/resources</configurationSourceDirectory>
+					<copyConfigurationDirectory>true</copyConfigurationDirectory>
+					<includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+					<daemons>
+						<daemon>
+							<id>tcp-monitor</id>
+							<mainClass>org.starry.TcpApplication</mainClass>
+							<commandLineArguments>
+								<!-- 打包时启用 -->
+								<commandLineArgument>-Dspring.profiles.active=product</commandLineArgument>
+							</commandLineArguments>
+							<platforms>
+								<platform>jsw</platform>
+							</platforms>
+							<generatorConfigurations>
+								<generatorConfiguration>
+									<generator>jsw</generator>
+									<includes>
+										<include>linux-x86-64</include>
+										<include>windows-x86-64</include>
+									</includes>
+									<configuration>
+										<property>
+											<name>configuration.directory.in.classpath.first</name>
+											<value>etc</value>
+										</property>
+										<property>
+											<name>wrapper.logfile</name>
+											<value>wrapper.log</value>
+										</property>
+										<property>
+											<name>wrapper.logfile.maxsize</name>
+											<value>10m</value>
+										</property>
+										<property>
+											<name>wrapper.logfile.maxfiles</name>
+											<value>60</value>
+										</property>
+									</configuration>
+								</generatorConfiguration>
+							</generatorConfigurations>
+							<jvmSettings>
+								<!--启动内存配置 -->
+								<initialMemorySize>126m</initialMemorySize>
+								<maxMemorySize>1024m</maxMemorySize>
+								<extraArguments>
+									<extraArgument>-server</extraArgument>
+								</extraArguments>
+							</jvmSettings>
+						</daemon>
+					</daemons>
+				</configuration>
+				<executions>
+					<execution>
+						<id>tcp-monitor</id>
+						<phase>package</phase>
+						<goals>
+							<goal>generate-daemons</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+```

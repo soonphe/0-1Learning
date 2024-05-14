@@ -28,6 +28,33 @@ JDK 内置了许多命令行工具，它们可用来获取目标 JVM 不同方�
 - jstat - 一款轻量级多功能监控工具，可用于获取目标 Java 进程的类加载、JIT 编译、垃圾收集、内存使用等信息。
 - jcmd - 相比 jstat 功能更为全面的工具，可用于获取目标 Java 进程的性能统计、JFR、内存使用、垃圾收集、线程堆栈、JVM 运行时间等信息。
 
+使用示例：
+```
+jstat -gc <pid>：显示垃圾收集信息，包括堆内存的使用情况。
+S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
+26176.0 26176.0  0.0   21463.1 209792.0 76414.7   786432.0   36711.4   86504.0 81289.3 11356.0 10504.3     21    0.461   6      0.115    0.576
+
+- S0C：第一个幸存区的大小
+- S1C：第二个幸存区的大小
+- S0U：第一个幸存区的使用大小
+- S1U：第二个幸存区的使用大小
+- EC：Eden区的大小
+- EU：Eden区的使用大小（重点关注）
+- OC：老年代大小
+- OU：老年代使用大小（重点关注）
+- MC：元空间大小
+- MU：元空间使用大小
+- CCSC：压缩类空间大小
+- CCSU：压缩类空间使用大小
+- YGC：年轻代垃圾回收次数（重点关注）
+- YGCT：年轻代垃圾回收消耗时间
+- FGC：老年代垃圾回收次数（重点关注）
+- FGCT：老年代垃圾回收消耗时间
+- GCT：垃圾回收消耗总时间
+
+jmap -heap <pid>：显示堆的内存映射并输出到文件（调用失败）
+```
+
 #### jmap
 
 * jmap（linux下特有，也是很常用的一个命令）观察运行中的jvm物理内存的占用情况。
@@ -125,6 +152,87 @@ java获取内存dump中的数据的几种方式：
 最后，可以看一下GC日志，观测老年代溢出，还是元空间溢出。
 老年代溢出需要看dump文件中哪些对象没有释放，从而分析代码。
 元空间溢出排查比较麻烦，dump看不出来，一般是因为重复加载class太多，可以分析问题代码，针对性压测，观察class数量
+
+
+### json及诶西集中方式
+- jackson：反射+反射缓存、良好的stream支持、高效的内存管理
+- fastjson：
+  - jvm虚拟机：通过ASM库运行时生成parser字节码，支持的field不能超过200个。参考：FastJson使用ASM反序列化。
+  - android虚拟机：反射的方式。
+- gson：反射+反射缓存、支持部分stream、内存性能较差（gc问题）。
+
+#### Jackson
+依赖
+```
+<dependency>
+  <groupId>com.fasterxml.jackson.core</groupId>
+  <artifactId>jackson-databind</artifactId>
+  <version>2.9.6</version>
+</dependency>
+```
+使用代码
+```
+private static ObjectMapper mapper=new ObjectMapper();
+String userJson = "{\"name\": \"jack\",\"age\": \"20\"}";
+
+//JSON字符串->Java对象
+User user = objectMapper.readValue(userJson, User.class);
+//JSON数组字符串->Java对象数组
+User[] users = objectMapper.readValue(usersJson, User[].class);
+
+//Java对象转JSON字符串
+String jack = objectMapper.writeValueAsString(new User("jack", 20));
+
+//转二进制数组
+byte[] jacks = objectMapper.writeValueAsBytes(new User("jack", 20));
+```
+
+
+#### Gson
+```
+Gson gson = new Gson();
+Person person = gson.fromJson(jsonData, Person.class);
+```
+
+#### fastjson
+```
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+```
+
+JSONObject解析
+```
+例：
+{
+  "code": 200,
+  "message": "操作成功！",
+  "data": {[
+    "address": "TEfgYPLn3Z8RJ3mTJiwwHtkukZspUWPreF",
+    "list": []
+  ]}
+}
+//java对象转json字符串
+String result = JSON.toJSONString(dingMsg);
+//截取字符串
+String realResult = result.substring(4, result.length());
+//字符串转换JSONObject 对象：
+JSONObject data = JSON.parseObject(realResult);
+//解析对象：
+Class class = JSON.parseObject(realResult , xxx.class);
+//解析对象数组
+JSONObject jsonObject = data.getJSONObject("data");
+List<Class> trxToCNYRate = JSONObject.parseArray(jsonObject.toJSONString(), Class.class);
+
+//获取JSONObject中的对象并解析
+JSONObject jsonObject = data.getJSONObject("data");
+Class class = JSON.parseObject(jsonObject.toJSONString(), xxx.class);
+//解析JSONObject中的string
+String obj = data.getJSONObject("data").getString("address");
+```
+
 
 
 

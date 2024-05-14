@@ -138,6 +138,12 @@ SELECT c.relname AS sequence_name,
 FROM pg_class c
 JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE c.relkind = 'S';
+
+如果查询报错就使用 *：
+SELECT *
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relkind = 'S';
 ```
 
 ### 时序数据库TimescaleDB

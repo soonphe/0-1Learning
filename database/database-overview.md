@@ -211,7 +211,19 @@ Select * from table where id>10 limit 10
 完全可以在需要分页的表中使用自动递增的主键，即使只是为了分页。
 
 
----
+### MySQL 存时间戳(timestamp)还是日期(date)
+1. 切记不要用字符串存储日期:字符串占用的空间更大！ 字符串存储的日期比较效率比较低（逐个字符进行比对），无法用日期相关的 API 进行计算和比较。
+2. Datetime 和 Timestamp 之间抉择 :通常我们都会首选 Timestamp
+- DateTime 类型是没有时区信息的（时区无关） 当你的时区更换之后，比如你的服务器更换地址或者更换客户端连接时区设置的话，就会导致你从数据库中读出的时间错误。
+- Timestamp 和时区有关。Timestamp 类型字段的值会随着服务器时区的变化而变化，自动换算成相应的时间，说简单点就是在不同时区，查询到同一个条记录此字段的值会不一样。
+- DateTime 类型耗费空间更大
+Timestamp 只需要使用 4 个字节的存储空间，但是 DateTime 需要耗费 8 个字节的存储空间。但是，这样同样造成了一个问题，Timestamp 表示的时间范围更小。
+DateTime ：1000-01-01 00:00:00 ~ 9999-12-31 23:59:59
+Timestamp： 1970-01-01 00:00:01 ~ 2037-12-31 23:59:59
+Timestamp 在不同版本的 MySQL 中有细微差别。
+
+3. Timestamp 只需要使用 4 个字节的存储空间，但是 DateTime 需要耗费 8 个字节的存储空间。
+4. 数值型时间戳是更好的选择吗？ 很多时候，我们也会使用 int 或者 bigint 类型的数值也就是时间戳来表示时间。 这种存储方式的具有 Timestamp 类型的所具有一些优点，并且使用它的进行日期排序以及对比等操作的效率会更高，跨系统也很方便，毕竟只是存放的数值。缺点也很明显，就是数据的可读性太差了，你无法直观的看到具体时间。
 
 ### Mysql常见的优化手段
 - 增加索引，索引是直观也是最快速优化检索效率的方式。
@@ -800,7 +812,21 @@ end;
 
 
 ---
+### mysql报错信息：Too many connections。。。
 
+查看数据库连接数sql：
+show status where variable_name = 'threads_connected';
+
+查看数据库连接数详情：
+select id,
+user,
+host,
+db,
+command,
+time,
+state,
+info
+from information_schema.processlist;
 
 ### mysql锁表处理
 处理数据库锁表问题：直接定位线程kill

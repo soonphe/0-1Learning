@@ -45,10 +45,14 @@ sadd set
 查询redis指定key：keys key
 查询redis指定key+模糊匹配后缀：keys key*
 查询redis指定key对应的value：get key
+查询redis指定key：del key
 删除hashmap指定hashkey的值：hdel KEY hashKey
 获取hashmap全部键值对：HGETALL KEY
 获取hashmap指定hashkey的值：HGET KEY hashKey
 查看指定值的过期时间（秒）：TTL KEY
+设置过期时间（秒）：EXPIRE key seconds
+设置过期时间（毫秒）：PEXPIRE key milliseconds
+
 
 ### zet跳表结构
 跳表实际上是一种增加了前向指针的链表，是一种随机化的数据结构，实质上是可以进行二分查找的有序链表；跳表在原来的有序链表上加上了**多级索引**，通过索引来快速查找；可以支持快速的删除、插入和查找操作。

@@ -60,42 +60,29 @@ elasticjob和xxl-job
 #### 网页控制台
 - 网页控制台
 官网地址：https://github.com/apache/shardingsphere-elasticjob-ui
-操作步骤
-```bash
-git clone https://github.com/apache/shardingsphere-elasticjob-ui.git
-cd shardingsphere-elasticjob-ui/
-mvn clean package -Prelease
-```
-- 获取压缩包 `shardingsphere-elasticjob-ui/shardingsphere-elasticjob-ui-distribution/shardingsphere-elasticjob-lite-ui-bin-distribution/target/apache-shardingsphere-${latest.release.version}-shardingsphere-elasticjob-lite-ui-bin.tar.gz`
+下载地址：https://shardingsphere.apache.org/elasticjob/current/en/downloads/
 
-连接数据库
-受协议限制，一些数据库的JDBC驱动程序无法直接添加到项目中，用户需要自行添加。有两种方法：
-
-- 添加JDBC Driver依赖到 pom.xml然后编译
-Add JDBC driver dependency to [shardingsphere-elasticjob-lite-ui/shardingsphere-elasticjob-lite-ui-backend/pom.xml](https://github.com/apache/shardingsphere-elasticjob-ui/blob/master/shardingsphere-elasticjob-lite-ui/shardingsphere-elasticjob-lite-ui-backend/pom.xml) and build.
-
-- Add JDBC Driver JAR to ext-lib in Binary Distribution Package
-1. Get `apache-shardingsphere-${latest.release.version}-shardingsphere-elasticjob-lite-ui-bin.tar.gz` and extract.
-2. Add JDBC Driver (Such as `mysql-connector-java-8.0.13.jar`) to directory `ext-lib`.
-3. Run application with `bin/start.sh`
-
-2核2g即可，只是用于后台操作，能运行的最低配置	
-用于任务管理控制台，只是负责启停，和其他的监控，不负责任务的执行
-
-- 国内安装命令
-```
-wget https://mirrors.tuna.tsinghua.edu.cn/apache/shardingsphere/elasticjob-ui-3.0.0-beta/apache-shardingsphere-elasticjob-3.0.0-beta-lite-ui-bin.tar.gz
 解压后进入bin 目录，然后启动./start.sh
-```
+2核2g即可，只是用于后台操作，能运行的最低配置，用于任务管理控制台，只是负责启停，和其他的监控，不负责任务的执行
+
 控制台访问网址：http://127.0.0.1:8088/#/
 用户名 root 密码root
-注册中心配置-添加注册中心（输入注册中心名称、地址、命名空间）
+全局配置-注册中心配置-添加注册中心（输入注册中心名称、地址、命名空间）
 
 注意：默认为h2数据库，即内存存储，修改数据库driver和登录账户密码操作application.properties配置即可
 
+作业操作-作业维度，可以进行修改（分片数，cron表达式等）
+
+
+Elastic-Job是一个分布式任务调度框架，它基于Zookeeper和分布式数据库实现了任务的分片和调度。其原理如下：
+任务分片：Elastic-Job将一个任务分成多个子任务，每个子任务称为一个分片。分片的数量可以根据需求进行配置。
+任务注册：任务的注册是通过Zookeeper实现的。每个任务在启动时会向Zookeeper注册自己的信息，包括任务名称、分片数量等。
+任务调度：Elastic-Job使用分布式调度算法将任务的分片均匀地分配给可用的执行器节点。调度算法可以根据需求进行配置，常见的有平均分配和一致性哈希算法。
+任务执行：每个执行器节点会监听Zookeeper上的任务分片信息，并根据分配到的分片进行任务的执行。执行器节点会定时向Zookeeper上报任务执行情况。
+任务监控：Elastic-Job提供了任务监控功能，可以查看任务的执行情况、日志和统计信息。监控数据存储在分布式数据库中，可以通过Elastic-Job-UI进行查看。
+
 #### zeekeeper集群
 3个节点的高可用zookeeper集群，负责elasticjob 任务的注册管理
-
 
 ### 依赖
 ```
@@ -677,10 +664,3 @@ JOB_EXECUTION_LOG 记录每次作业的执行历史。 分为两个步骤：
 |creation_time|	TIMESTAMP|	是|	记录创建时间|
 
 JOB_STATUS_TRACE_LOG 记录作业状态变更痕迹表。 可通过每次作业运行的 task_id 查询作业状态变化的生命周期和运行轨迹。
-
-
-
-### 应用部署
-1. 启动 ElasticJob-Lite 指定注册中心的 ZooKeeper。
-2. 运行包含 ElasticJob-Lite 和业务代码的 jar 文件。不限于 jar 或 war 的启动方式。
-3. 当作业服务器配置多网卡时，可通过设置系统变量 elasticjob.preferred.network.interface 指定网卡地址或 elasticjob.preferred.network.ip 指定IP。 ElasticJob 默认获取网卡列表中第一个非回环可用 IPV4 地址。

@@ -7,6 +7,73 @@
 
 ## html总结
 
+### Ajax：
+Ajax：“Asynchronous JavaScript and XML”，翻译过来就是异步JavaScript和XML。
+要创建Ajax，主角是XMLHttpRequest（下简称XHR）对象。
+第一步：创建XHR对象
+var xhr = new XMLHttpRequest();
+第二步：向服务器发送请求
+方法：open(method,url,async) 和 send(string)
+open()方法传入三参数
+• method：请求的类型（GET/POST）
+• url：文件在服务器上的位置
+• async：布尔值，true表示异步，false表示同步（可选，默认为true）
+1 xhr.open("GET","demo.asp?t=" + Math.random(),true);
+2 xhr.send();
+第三步：服务器响应
+XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形式的响应数据和XML形式的响应数据
+还有三个关于响应状态的属性也经常用到：
+• readyState：存有XMLHttpRequest的状态。XHR对象会经历5种不同的状态
+○ 0：请求未初始化（new完后）；
+○ 1：服务器连接已建立（对象已创建并初始化，尚未调用send方法）；
+○ 2：请求已接收；
+○ 3：请求处理中；
+○ 4：请求已完成，响应就绪；
+• status：（HTTP状态码很多，请自行了解，举例常见的）
+○ 200：请求成功
+○ 404：未找到页面
+• onreadystatechange：存储函数（或函数名），每当readyState属性改变时，就会调用该函数。
+1 xhr.onreadystatechange = function () {
+2     if (xhr.readyState == 4 && xhr.status == 200) {
+3     console.log(xhr.responseText);
+4 };
+
+
+
+### Icon
+1. img一个页面的请求资源中图片 img 占了大部分，所以为了优化有了image sprite 就是所谓的雪碧图，
+   就是将多个图片合成一个图片，然后利用 css 的 background-position 定位显示不同的 icon 图标，但这个也有一个很大的痛点，维护困难
+2. font 库，常见的如 Font Awesome ，使用起来也非常的方便，定制性也非常的不友善，图标库一共有675个图标
+3. iconfont：几百个公司的开源图标库，还有各式各样的小图标，还支持自定义创建图标库
+
+**iconfont 三种使用姿势**
+1.unicode
+第一步：引入自定义字体 `font-face 第二步：定义使用iconfont的样式 第三步：挑选相应图标并获取字体编码，应用于页面
+
+2.font-class <i class="iconfont icon-xxx"></i>
+
+3.symbol：svg-icon 使用形式慢慢成为主流和推荐
+第一步 引入  ./iconfont.js  
+引入  ./iconfont.js
+第二步：加入通用css代码（引入一次就行）
+<style type="text/css">
+    .icon {
+       width: 1em; height: 1em;
+       vertical-align: -0.15em;
+       fill: currentColor;
+       overflow: hidden;
+    }
+</style>
+第三步：挑选相应图标并获取类名，应用于页面：
+<svg class="icon" aria-hidden="true">
+<use xlink:href="#icon-xxx"></use>
+</svg>
+
+
+使用svg-sprite：引入 svg-sprite-loader
+svgo：清除svg中多余的东西
+
+
 ### Content-Type几种值的区别及用法
 - application/json
   - 告诉服务器请求的主题内容是json格式的字符串，服务器端会对json字符串进行解析  好处： 前端不需要关心数据结构的复杂度，只要是标准的json格式就能提交成功。

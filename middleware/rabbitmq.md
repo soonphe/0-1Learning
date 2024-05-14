@@ -6,11 +6,11 @@
 - 配置 RabbitMQ 环境变量
 ```
 vi ~/.bash_profile
-export RABBIT_HOME=/usr/local/Cellar/rabbitmq/3.13.0
+export RABBIT_HOME=/usr/local/Cellar/rabbitmq/3.13.1
 export PATH=$PATH:$RABBIT_HOME/sbin
 source ~/.bash_profile
 ```
-- 到brew安装目录下的sbin目录：cd /usr/local/Cellar/rabbitmq/3.13.0/sbin
+- 到brew安装目录下的sbin目录：cd /usr/local/Cellar/rabbitmq/3.13.1/sbin
 - 安装 RabiitMQ 的可视化监控插件：sudo rabbitmq-plugins enable rabbitmq_management
 - 后台启动 RabbitMQ：sudo rabbitmq-server -detached
 - 查看状态：sudo rabbitmqctl status

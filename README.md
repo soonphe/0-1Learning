@@ -1,11 +1,11 @@
 # 0-1Learning
 
 <p align="center">
-  <img src="static/common/0-1Learning.png" width=1100 />
+  <img src="./static/common/0-1Learning.png" width=1100 />
 </p>
 <p align="center">
-  <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI4MjM3MTA2Mw==#wechat_redirect"><img src="static/common/svg/luoxiaosheng.svg" alt="公众号" /></a>
-  <a href="https://space.bilibili.com/352882592"><img src="static/common/svg/luoxiaosheng_learning.svg" alt="视频" /></a>
+  <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI4MjM3MTA2Mw==#wechat_redirect"><img src="./static/common/svg/luoxiaosheng.svg" alt="公众号" /></a>
+  <a href="https://space.bilibili.com/352882592"><img src="./static/common/svg/luoxiaosheng_learning.svg" alt="视频" /></a>
 </p>
 <div align="center">
   <h3>
@@ -40,20 +40,20 @@
 
 如下，这些技术也许你已经不是很陌生，但也许你还是一个新手，还没接触过以下这些，那么请记住以下这些，以后免不了会打很多交道。
 
-![高可用分布式系统架构](static/architecture/highly_available_architecture.png "高可用分布式系统架构")
+![高可用分布式系统架构](./static/architecture/highly_available_architecture.png "高可用分布式系统架构")
 
 > 这张图基本涵盖了现阶段一个分布式系统所涉及的各个核心组件，对可拓展的组件也可以直接进行添加。图中只有一个组件的并不是指只有一个单节点，各组件可以单节点也可以组成集群对外提供服务。
 
 
 ### 系统技术栈
 
-![系统技术栈](static/architecture/system_technology_stack.png "系统技术栈")
+![系统技术栈](./static/architecture/system_technology_stack.png "系统技术栈")
 
 > 本来还有画一个`学习路线图`（Learning roadmap），帮助新手朋友快速找到一条通往技术大神之路，想了想有些和技术栈重叠太多，索性就合二为一，路线图直接参照下图即可。
 
 
 ### 系统持续交付流水线图
-![持续交付流水线图](static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
+![持续交付流水线图](./static/architecture/continuous_delivery_pipeline.png "持续交付流水线图")
 
 > 比起一般的`项目开发流程图`千人前面，我觉得持续交付这张图更有意义，项目流程怎么开发，最终还是要落到人身上去实现，而人恰恰是不能当做一个稳定节点去进行计算的。
 > 对于持续开发交付，应该有这么样一个自动化的过程。在不断的需求迭代中，版本控制，做好持续集成赋能，自动打包和部署，环境初始化完成再分配，最后再形式一个可视化的操作面板，流程可控透明，直接呈现给用户。
@@ -212,7 +212,7 @@
 ### 公众号
 公众号已发布 `0-1Learning` 部分文章，另有更多好文，等待你的探索，关注公众号「**罗晓胜**」第一时间获取。
 
-![公众号图片](static/common/luoxiaosheng_wechat_common.jpg)
+![公众号图片](./static/common/luoxiaosheng_wechat_common.jpg)
 
 
 ## 在哪里可以免费看我的视频
