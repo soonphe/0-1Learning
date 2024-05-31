@@ -4,8 +4,8 @@
   <img src="./static/common/0-1Learning.png" width=1100 />
 </p>
 <p align="center">
-  <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI4MjM3MTA2Mw==#wechat_redirect"><img src="./static/common/svg/luoxiaosheng.svg" alt="公众号" /></a>
-  <a href="https://space.bilibili.com/352882592"><img src="./static/common/svg/luoxiaosheng_learning.svg" alt="视频" /></a>
+  <a href=""><img src="./static/common/svg/luoxiaosheng.svg" alt="公众号" /></a>
+  <a href=""><img src="./static/common/svg/luoxiaosheng_learning.svg" alt="视频" /></a>
 </p>
 <div align="center">
   <h3>
@@ -26,7 +26,6 @@
 - [在哪里可以免费看我的视频](#在哪里可以免费看我的视频)
   - [YouTube](#YouTube)
   - [tiktok](#tiktok)
-  - [bilibili](#bilibili)
 - [鸣谢其他开源项目](#鸣谢其他开源项目)
 
 
@@ -207,7 +206,8 @@
 ## 在哪里可以免费看我的文章
 
 ### github
-链接地址：https://github.com/soonphe/0-1Learning
+>  [0-1Learning](https://github.com/soonphe/0-1Learning "")
+> 
 
 ### 公众号
 公众号已发布 `0-1Learning` 部分文章，另有更多好文，等待你的探索，关注公众号「**罗晓胜**」第一时间获取。
@@ -232,7 +232,6 @@
 
 ## 鸣谢其他开源项目
 好多项目都不开源了，这里有借鉴其他开源项目，本项目也会一直开源
->  [LearningNotes](https://github.com/francistao/LearningNotes "")
 
 
 ## 许可证

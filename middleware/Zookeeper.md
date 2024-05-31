@@ -12,8 +12,8 @@
 ### brew 安装zookeeper
 安装命令：brew install zookeeper
 
-启动文件路径： /usr/local/Cellar/zookeeper/3.4.10/bin/ (对于brew安装的软件都可以使用brew info命令查看安装路径)
-配置文件路径： /usr/local/etc/zookeeper/
+启动文件： /usr/local/Cellar/zookeeper/3.4.10/bin/ (对于brew安装的软件都可以使用brew info命令查看安装路径)
+配置文件： /usr/local/etc/zookeeper/zoo.cfg
 
 brew操作zookeeper命令：
 - zkServer start  启动zookeeeper
@@ -23,14 +23,33 @@ brew操作zookeeper命令：
 - zkCli 连接zookeeper
 
 连接成功后操作：
-- ls /：查看 ZooKeeper 中存在的节点信息
-- stat /zk_xxx：查看某个节点的详细信息
+- 查看 ZooKeeper 中存在的节点信息：ls /
+- 查看某个节点的详细信息：stat /zk_xxx
+- 创建一个节点并设置数据：create /myNode myData
+- 获取节点数据：get /myNode
+- 设置节点数据：set /myNode newData
+- 删除节点：delete /myNode
+- 退出 zkCli：quit 或 Ctrl+C
 
 ZooKeeper 还提供了一个内置的 AdminServer，可以通过它来查看 ZooKeeper 集群状态。
 该命令会输出 ZooKeeper 集群当前的状态信息，包括所有节点信息和客户端连接信息。
-使用命令：curl http://localhost:8080/commands/dump
+网页打开或使用curl命令：curl http://localhost:8080/commands/dump
+```
+{
+  expiry_time_to_session_ids: {
+    687330000: [ ],
+    687344000: [ ],
+    687356000: [
+      72102605104283650
+    ]
+  },
+  session_id_to_ephemeral_paths: { },
+  command: "dump",
+  error: null
+}
+```
 
-**查看zookeeper启动状态： ps -ef|grep zookeeper**
+**查看zookeeper进程： ps -ef|grep zookeeper**
 
 ### 单机环境搭建
 操作

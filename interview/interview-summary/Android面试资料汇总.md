@@ -32,7 +32,7 @@ Framework是android 系统对 linux kernel，lib库等封装，提供WMS，AMS�
 ```
 
 Android应用程序的组成
-```$xslt
+```
 Activites　　应用程序的表示层。
 应用程序的每个界面都将是Activity类的扩展。Acitvities用视图(View)构成GUI来显示信息、响应用户操作。就桌面开发而言，一个活动(Activity)相当于一个窗体(Form)。
 Services　　应用程序中的隐形工作者。

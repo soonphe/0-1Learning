@@ -150,6 +150,15 @@ WHERE c.relkind = 'S';
 TimescaleDB是一个在PostgreSQL之上构建的时序数据库，它利用了关系型数据库的成熟性和灵活性，并针对时序数据进行了优化。
 TimescaleDB通过使用分区表（hypertable）和连续聚集表（continuous aggregate）来处理时序数据，使得数据的存储和查询更加高效。
 
+TimescaleDB具有以下特点：
+- 与PostgreSQL兼容：TimescaleDB是一个PostgreSQL扩展，因此它兼容PostgreSQL，这意味着您可以使用标准的SQL语法来查询和管理时序数据，同时还能够利用PostgreSQL的强大功能。
+- 水平扩展：TimescaleDB支持水平扩展，允许在需要时添加更多的节点，以处理大规模的时序数据，这使得它非常适合在云环境中构建弹性和高可用性的时序数据存储。
+- 优化的查询性能：TimescaleDB使用了分区和数据分片技术，将数据分散到多个分区中，从而可以并行处理查询操作，提供优化的查询性能。
+- 连续聚合：这是TimescaleDB的一个强大特性，它允许在数据插入的同时计算和维护聚合数据，从而大大减少了后续查询的计算成本。
+- 自动数据分层：TimescaleDB支持数据分层，可以将历史数据分为不同的层级，从而更有效地管理长期存储的数据。这有助于在保持查询性能的同时控制存储成本。
+- 高可用性和容错性：TimescaleDB支持在集群中复制数据以实现高可用性和容错性，确保数据的可靠性和持久性。
+- 丰富的时间序列函数和操作：TimescaleDB提供了许多针对时间序列数据的内置函数和操作，使您可以轻松地进行时间序列分析和操作。
+
 1. 安装TimescaleDB插件
 安装TimescaleDB可以通过在PostgreSQL上加载TimescaleDB插件来完成。首先，确保已经安装了PostgreSQL数据库，并且具有管理员权限。然后，在命令行中执行以下步骤：
 ```

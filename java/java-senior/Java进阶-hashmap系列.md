@@ -221,3 +221,10 @@ void transfer(Entry[] newTable){
 
 * 在ConcurrentHashMap中，引入了一个“分段锁”的概念，具体可以理解为把一个大的Map拆分成N个小的HashTable，根据key.hashCode()来决定把key放到哪个HashTable中。就是把Map分成了N个Segment，put和get的时候，都是现根据key.hashCode()算出放到哪个Segment中。
 * 通过把整个Map分为N个Segment（类似HashTable），可以提供相同的线程安全，但是效率提升N倍。
+
+| 集合类               | Key       | Value     | Super       | 说明              |
+|-------------------|-----------|-----------|-------------|-----------------|
+| Hashtable         | 不允许为 null | 不允许为 null | Dictionary  | 线程安全            |
+| ConcurrentHashMap | 不允许为 null | 不允许为 null | AbstractMap | 锁分段技术（JDK8:CAS） |
+| TreeMap           | 不允许为 null | 允许为 null  | AbstractMap | 线程不安全           |
+| HashMap           | 允许为 null  | 允许为 null  | AbstractMap | 线程不安全           |

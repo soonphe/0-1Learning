@@ -1679,6 +1679,9 @@ A: 在搜索引擎中，每个文档都有一个对应的文档 ID，文档内�
 
 ## 系统设计和场景题
 
+### 分布式session
+redis集群存储用户信息，WebConfig implements WebMvcConfigurer，重写addInterceptors方法，添加拦截器，拦截器中通过redis获取用户信息，存入ThreadLocal中，然后在controller中获取用户信息
+
 ### 秒杀系统
 限流，锁ip，锁用户
 

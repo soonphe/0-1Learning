@@ -21,6 +21,25 @@ Jenkins是一个开源软件项目，是基于Java开发的一种持续集成工
 更新 Jenkins 版本： brew upgrade jenkins
 ```
 
+**修改端口（默认8080）**
+```
+停止当前运行的Jenkins服务：brew services stop jenkins
+
+找到Jenkins配置文件。默认情况下，配置文件位于/usr/local/opt/jenkins/homebrew.mxcl.jenkins.plist。
+编辑plist文件，找到HTTPPort 的值，并将其更改为你想要的端口号。
+    <string>--httpPort=你的端口号</string>
+    
+重新启动Jenkins服务：brew services start jenkins
+```
+
+**修改局域网IP访问**
+使用brew安装jenkins会避免很多其他安装方式产生的用户权限问题，但是会将httpListenAddress默认设置为127.0.0.1，这样我们虽然可以在本地用localhost:8080访问，但是本机和局域网均无法用ip访问。解决办法为修改两个路径下的plist配置。并重启
+```
+/usr/local/Cellar/jenkins/2.448/homebrew.mxcl.jenkins.plist    
+~/Library/LaunchAgents/homebrew.mxcl.jenkins.plist
+将上面两个plist中的httpListenAddress后的ip地址，修改为本机IP或者0.0.0.0即可。
+```
+
 基于Docker安装Jenkins环境
 ```
 docker search jenkins
@@ -305,13 +324,6 @@ tar -zxvf timber.tar.gz
 3. 项目中添加jenkinsfile，内容同上面的pipline
 4. Jenkins——系统管理——系统设置——设置 SSH Servers：输入IP、用户名、密码、远程目录
 
-### jenkins配置局域网IP访问
-使用brew安装jenkins会避免很多其他安装方式产生的用户权限问题，但是会将httpListenAddress默认设置为127.0.0.1，这样我们虽然可以在本地用localhost:8080访问，但是本机和局域网均无法用ip访问。解决办法为修改两个路径下的plist配置。并重启
-
-/usr/local/Cellar/jenkins/2.448/homebrew.mxcl.jenkins.plist    
-~/Library/LaunchAgents/homebrew.mxcl.jenkins.plist
-将上面两个plist中的httpListenAddress后的ip地址，修改为本机IP或者0.0.0.0即可。
-
 ### 常见问题解析
 
 #### shell脚本执行nohup java -jar 失败，手动执行脚本成功 
@@ -344,7 +356,7 @@ ssh -l root 192.168.1.181
 
 #### jenkins打包vue 全局工具中找不到node版本
 解决办法
-去官网找个文件 （文末带百度云共享文件 2018年12月22日10:20:07）
+去官网找个文件
 
 hudson.plugins.nodejs.tools.NodeJSInstaller
 

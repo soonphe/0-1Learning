@@ -142,3 +142,226 @@ public class WebSocketConfig implements WebSocketConfigurer {
         }
     </script>
 ```
+
+
+### Websocket使用UserId
+简洁方式
+```
+// 1. 前端连接时传入userId
+let userId = 1;
+let ws = new WebSocket('ws://localhost:8080/websocket/' + userId);
+  
+// 2. 后端接收userId
+@OnOpen
+public void onOpen(Session session, @PathParam("userId") Integer userId) {
+    this.session = session;
+    this.userId = userId;
+    webSocketSet.add(this);
+    addOnlineCount();
+    log.info("有新连接加入！当前在线人数为：{}", getOnlineCount());
+}
+
+// 3. 后端发送消息
+public void sendMessage(String message) {
+    for (WebSocketServer item : webSocketSet) {
+        try {
+            item.session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+```
+
+**详细方式**
+在这个代码实例中，我们定义了一个名为WebSocketConfig的配置类，该类实现了WebSocketConfigurer接口。在registerWebSocketHandlers方法中，我们添加了一个WebSocket处理器myHandler，并将其映射到路径/echo/{userId}。这里的{userId}是一个路径变量，可以用于在WebSocket会话中标识特定用户。我们还通过setAllowedOrigins("*")允许所有源的WebSocket连接。这个例子展示了如何在WebSocket中使用用户ID，并且是一个基本的WebSocket配置模板。
+```
+java
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.config.annotation.*;
+
+@Configuration
+@EnableWebSocket
+public class WebSocketConfig implements WebSocketConfigurer {
+
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(myHandler(), "/echo/{userId}")
+                .setAllowedOrigins("*");
+    }
+
+    @Bean
+    public WebSocketHandler myHandler() {
+        return new MyCustomWebSocketHandler();
+    }
+}
+```
+在Spring WebSocket中，使用路径变量（如{userId}）来区分不同的WebSocket连接是一种常见做法。当用户尝试建立WebSocket连接时，你可以根据路径中的userId来识别用户，并据此定制WebSocket会话的行为。下面是如何在Spring WebSocket中使用这个userId的详细步骤：
+
+自定义WebSocket处理器
+首先，你需要一个自定义的WebSocketHandler。在这个处理器中，你可以重写handleTextMessage等方法来处理接收到的消息，并根据用户的ID执行相应的操作。
+```
+java
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+public class MyCustomWebSocketHandler extends TextWebSocketHandler {
+
+    @Override
+    public void handleTextMessage(WebSocketSession session, TextMessage message) {
+        // 从WebSocketSession中获取用户ID
+        String userId = session.getAttributes().get("userId").toString();
+        
+        // 根据用户ID处理消息
+        // ...
+        
+        // 发送响应消息
+        session.sendMessage(new TextMessage("Response for user: " + userId));
+    }
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) {
+        // 在连接建立时，从session的路径变量中提取用户ID
+        Map<String, Object> pathVariables = session.getAttributes().get(
+                WebSocketHandler.WEBSOCKET_URI_TEMPLATE_VARIABLES);
+        String userId = (String) pathVariables.get("userId");
+        
+        // 将用户ID存储到session的attributes中，方便后续使用
+        session.getAttributes().put("userId", userId);
+        
+        // 可以在这里根据用户ID进行额外的初始化操作
+        // ...
+    }
+}
+```
+注册WebSocket处理器和路径
+在WebSocketConfig中，你需要注册这个处理器，并将它映射到一个包含路径变量的URL上。
+```
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.config.annotation.*;
+
+@Configuration
+@EnableWebSocket
+public class WebSocketConfig implements WebSocketConfigurer {
+
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(myHandler(), "/echo/{userId}")
+                .addInterceptors(new MyWebSocketInterceptor()) // 如果需要的话，添加拦截器
+                .setAllowedOrigins("*");
+    }
+
+    @Bean
+    public WebSocketHandler myHandler() {
+        return new MyCustomWebSocketHandler();
+    }
+}
+```
+在Spring WebSocket的WebSocketHandler中，你可以通过访问WebSocketSession对象的getAttributes()方法来获取在连接建立时设置的属性，比如用户的ID。通常，在afterConnectionEstablished方法中，你会从路径变量中提取userId并将其存储在WebSocketSession的attributes中。之后，在处理消息时，你可以从相同的attributes中检索这个userId。
+```
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+import java.util.Map;
+
+public class MyCustomWebSocketHandler extends TextWebSocketHandler {
+
+    private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+
+    //handleTextMessage方法负责处理接收到的文本消息。它首先尝试从WebSocketSession的attributes中获取userId。如果userId存在且为字符串类型，则根据这个userId处理消息，并发送响应。如果userId不存在或类型不正确，可以选择关闭WebSocket连接或发送一个错误消息。
+    @Override
+    public void handleTextMessage(WebSocketSession session, TextMessage message) {
+        // 从WebSocketSession的attributes中获取用户ID
+        Object userIdObj = session.getAttributes().get("userId");
+        if (userIdObj != null && userIdObj instanceof String) {
+            String userId = (String) userIdObj;
+            
+            // 根据用户ID处理消息
+            System.out.println("Received message from user: " + userId);
+            System.out.println("Message content: " + message.getPayload());
+            
+            // 发送响应消息
+            session.sendMessage(new TextMessage("Response for user: " + userId));
+        } else {
+            // 如果userId不存在或不是String类型，可以关闭连接或发送错误消息
+            session.close(CloseStatus.BAD_DATA);
+        }
+    }
+
+    //afterConnectionEstablished方法在WebSocket连接建立后被调用。它从WebSocketSession的attributes中提取路径变量，然后提取出userId并将其存储回session的attributes中，以便后续的消息处理中使用。
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        // 获取路径变量
+        //Map<String, Object> pathVariables = (Map<String, Object>) session.getAttributes().get(WebSocketHandler.WEBSOCKET_URI_TEMPLATE_VARIABLES);
+        //Map<String, Object> pathVariables = session.getAttributes().get(WebSocketHandler.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        // 从路径变量中提取用户ID
+        if (pathVariables != null && pathVariables.containsKey("userId")) {
+            String userId = (String) pathVariables.get("userId");
+            // 将用户ID存储到session的attributes中
+            session.getAttributes().put("userId", userId);
+        }
+        
+        Map<String, Object> pathVariables = (Map<String, Object>) session.getAttributes().get("userId");
+        URI uri = session.getUri();
+        if (uri != null) {
+            String query = uri.getPath();
+            if (query != null) {
+                String[] split = query.split("=.");
+                if (split.length > 1) {
+                    String userId = split[1];
+                    session.getAttributes().put("userId", userId);
+                }
+            }
+        }
+        // 检查是否有相同userId的会话已经存在
+        if (sessions.containsKey(userId)) {
+            // 如果存在，关闭旧的会话或做其他处理
+            WebSocketSession existingSession = sessions.get(userId);
+            if (existingSession.isOpen()) {
+                existingSession.close(CloseStatus.NORMAL);
+            }
+        }
+        // 将新的会话添加到映射中
+        sessions.put(userId, session);
+        
+        // 其他初始化操作...
+    }
+    
+    //afterConnectionClosed方法在WebSocket连接关闭时被调用，用于从sessions映射中移除对应的会话。
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        // 当连接关闭时，从映射中移除对应的会话
+        for (String userId : sessions.keySet()) {
+            if (sessions.get(userId) == session) {
+                sessions.remove(userId);
+                break;
+            }
+        }
+        // 其他清理操作...
+    }
+
+}
+```
+前端建立WebSocket连接
+在前端，你需要使用JavaScript来建立WebSocket连接。你需要根据用户的ID动态构建WebSocket的URL。
+```
+let userId = 'someUserId'; // 获取或设置用户的ID
+let wsUri = "ws://yourserver.com/echo/" + userId;
+let socket = new WebSocket(wsUri);
+
+socket.onmessage = function(event) {
+console.log('Received data from server: ', event.data);
+};
+
+socket.onopen = function(event) {
+console.log('Connection established');
+// 发送消息到服务器
+socket.send('Hello Server!');
+};
+
+socket.onerror = function(error) {
+console.error('WebSocket Error: ', error);
+};
+
+socket.onclose = function(event) {
+console.log('
+```

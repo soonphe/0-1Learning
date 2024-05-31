@@ -32,20 +32,22 @@ demo
         ├── anotaion -- 注解层
         ├── config -- 配置项
         ├── constans -- 常量池
+            └── enums -- 公共枚举
         ├── controller -- 内置Controller层（看情况使用）
         ├── domian -- 领域层
-        ├── enums -- 枚举
         ├── events -- 事件层
         ├── exception -- 异常
-        ├── enums -- 公共枚举
         ├── job -- 分布式任务
         ├── mapper -- Dao层
-        ├── model -- 实体
+        ├── entity/model -- 实体
         ├── mq -- mq层
+        ├── pojo -- pojo层
+            ├── dto -- 服务间传输dto对象
+            └── vo -- 用户查询vo对象
         ├── service -- service层
+            └── impl -- service层
         ├── spi -- 服务调用层
-        ├── utils -- 公共工具层
-        └── vo -- vo对象
+        └── utils -- 公共工具层
     └── resources -- vo对象
         ├── mapper -- mapper.xml
         ├── application.yml -- 配置文件
@@ -56,7 +58,7 @@ demo
 ├── job module -- 分布式任务模块
 ├── elasticsearch module -- 搜索引擎模块
 ├── else module -- 其他模块
-├── web -- 独立的controller模块
+├── web module -- 独立的controller模块
 └── README -- 项目说明
 ```
 
@@ -78,6 +80,5 @@ demo
 4. 代码目录结构说明，更详细点可以说明软件的基本原理。
 5. 常见问题说明。
 ```
-
-我觉得有以上几点是比较好的一个README。在软件开发初期，由于开发过程中以上内容可能不明确或者发生变化，并不是一定要在一开始就将所有信息都补全。但是在项目完结的时候，是需要撰写这样的一个文档的。
+在软件开发初期，由于开发过程中以上内容可能不明确或者发生变化，并不是一定要在一开始就将所有信息都补全。但是在项目完结的时候，是需要撰写这样的一个文档的。
 可以参考Redis源码中Readme的写法，这里面简洁但是清晰的描述了Redis功能和源码结构。

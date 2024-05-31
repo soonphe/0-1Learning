@@ -266,7 +266,7 @@ spring:
         namespace:
 ```
 代码：
-```//配置管理
+```
 @RestController
 @RequestMapping("/config")
 @RefreshScope

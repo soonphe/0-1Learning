@@ -758,7 +758,7 @@ wc -l access.log：统计行数
 按时间维度统计日志次数：
 cat debug.log | grep '入参'|  awk -F ' ' '{print $2;}' |  awk -F: '{a[$1":"($2-$2%5)]++} END{for(i in a){split(i,t);print i" 至",t[1]":"t[2]+4," 访问 "a[i] " 次" | "sort -t: -k1n -k2n"}}'
 
-```$xslt
+```
 1.要提取访问量最大的IP，需要先从日志中把IP段提取出来。 
 
 $ cat aa.txt |awk -F " " '{print $1}' 
@@ -822,7 +822,7 @@ systemctl status nginx   # 查看 Nginx 运行状态
 这么做有很多不好的地方，第一我们要编写这个脚本，这就很耗时耗力了。第二，当这个进程挂掉的时候，linux不会自动重启它的，想要自动重启的话，我们还要自己写一个监控重启脚本
 ```
 supervisor管理进程
-```$xslt
+```
 通过fork/exec的方式把这些被管理的进程，当作supervisor的子进程来启动。我们只要在supervisor的配置文件中，把要管理的进程的可执行文件的路径写进去就OK了。
 省下了自己写控制脚本的麻烦了，被管理进程作为supervisor的子进程，当子进程挂掉的时候，父进程可以准确获取子进程挂掉的信息的，所以当然也就可以对挂掉的子进程进行自动重启了，当然重启还是不重启，也要看你的配置文件里面有木有设置autostart=true了
 ```
