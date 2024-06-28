@@ -48,6 +48,7 @@ n 10.14.2 // 指定安装版本
 sudo n 17.4.0 切换指定版本
 n 命令行 查看/切换 你需要的node版本 上下切换 回车选择 q退出
 
+当前长期稳定版：Node.js v21.7.3 npm 10.5.0
 
 ### npm常用命令
 npm -v  #查看版本
@@ -64,6 +65,7 @@ npm init                #生成package.json
 npm adduser             #注册用户
 npm publish             #创建模块
 npm install -g npm   #更新最新版本，无权限添加sudo
+npm install -g <package_name>@latest  #更新全局安装的npm包：
 npm -g install npm@6.8.0  #更新到指定版本，运行指令，无权限添加sudo
 
 npm cache clean --force   # 清除缓存
@@ -614,4 +616,38 @@ npm install -g vswagger-cli
 
 直接上图看效果
 index.js 文件是接口存放文件 instance.js 文件是配置 开发/预发/线上 接口访问的域名 util.js 文件是工具方法
+
+### 关于vue中的ref
+ref 被用来给元素或子组件注册引用信息。引用信息将会注册在父组件的 $refs 对象上。如果在普通的 DOM 元素上使用，引用指向的就是 DOM 元素；如果用在子组件上，引用就指向组件实例：
+组件元素只能通过 ref 获取的标签方法、变量、....  ；
+普通的元素标签可以使用 ref或者id或者... 获取标签 ;
+使用方法：this.$refs.ref名称
+```
+<template>  
+<Student ref="studentEl"></Student>
+</template>
+<script>
+    const studentByRef = this.$refs.studentEl;
+    studentByRef.showStudentName()
+</script>
+```
+
+### vue element菜单无限嵌套
+使用siderbar-item属性引入 :item="child"
+也可以自定义子菜单组件
+```
+<sidebar-item
+  v-for="child in item.subs"
+  :key="child.id"
+  :is-nest="true"
+  :item="child"
+  :base-path="resolvePath(child.url.substring(6) + '/index')"
+  :name="child.name"
+  class="nest-menu"
+/>
+```
+
+### vue左侧菜单滑动不流畅问题
+overflow-y: auto;
+max-height: 100%;
 

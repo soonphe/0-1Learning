@@ -12,8 +12,8 @@ Gradle wrapper：用来管理版本与相关控制
 gradle-wrapper.properties：是gradle-wrapper的配置文件，里面配置了gradle的版本
 gradle配置必须与Gradle plugin版本匹配，否则编译就会失败
 
-Gradle plugin：位于项目的根目录下的build.gradle中配置的插件
-gradle配置必须与Gradle wrapper版本不匹配，编译就会失败。
+**Gradle plugin：位于项目的根目录下的build.gradle中配置的插件**
+> gradle配置必须与Gradle wrapper版本不匹配，编译就会失败。
 
 gradlew：W意思是wrapper，它是一个用bash命令包装过的gradle编译启动脚本，里面会进行环境变量检测和设置。最终进行编译的还是gradle
 
@@ -154,3 +154,71 @@ Android自定义属性可分为以下几步:
 * 点击事件传递顺序 Activity -> Window -> View
 * 一旦一个元素拦截了某事件,那么一个事件序列里面后续的Move,Down事件都会交给它处理.并且它的onInterceptTouchEvent不会再调用
 * View的onTouchEvent默认都会消耗事件,除非它的clickable和longClickable都是false(不可点击),但是enable属性不会影响
+
+### java和kotlin混用
+Android Studio添加Kotlin插件
+
+项目根目录-引入依赖插件
+```
+buildscript {
+    ... 
+    dependencies {
+        //gradle插件
+        classpath 'com.android.tools.build:gradle:4.2.2'
+        //kotlin插件
+        //classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0'
+    }
+}
+```
+
+app目录-应用插件：kotlin-android
+```
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
+```
+
+app引入-kotlin支持：
+```
+    //    implementation 'androidx.core:core-ktx:1.10.1'    //需要compilersdk到33
+    //    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0" //支持到kotlin1.8
+implementation 'androidx.core:core-ktx:1.3.2'
+implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0"
+
+app中指定jdk版本
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+```
+在 kotlin 1.8.0 之前，kotlin 的标准库 kotlin-stdlib 的 jvmTarget 是 Java 1.6，但是如果程序的 jvmTarget 是 1.7 或 1.8，则可以手动添加 kotlin-stdlib-jdk7 或 kotlin-stdlib-jdk8 来使用 kotin 对相关 Java 版本提供的 API
+在 kotlin 1.8.0 中 kotlin 标准库的 jvmTarget 修改为了 1.8（kotlinc 的 jvmTarget 默认为 1.8，支持到 18），且将 kotlin-stdlib-jdk7 和 kotlin-stdlib-jdk8 中的代码也打包到了 kotlin-stdlib 中，同时将 kotlin-stdlib-jdk7:1.8.0 和 kotlin-stdlib-jdk8:1.8.0 及之后的版本中的 sourceSets 置为了空，而是仅仅将 kotlin-stdlib 作为其依赖进行传递，以保证兼容。
+因此在 Kotlin1.8+ 中只需添加 kotlin-stdlib 的依赖即可，不再需要手动添加 kotlin-stdlib-jdk7 或 kotlin-stdlib-jdk8 的依赖。
+
+
+添加kotlin代码
+```
+// Kotlin 文件中的代码
+fun helloWorld() {
+    println("Hello, World!")
+}
+```
+
+添加java支持(貌似没啥用)
+```
+android {
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+}
+```
+java调用kotlin代码
+```
+// Java 文件中的代码
+public class Main {
+    public static void main(String[] args) {
+        MyKotlinFileKt.helloWorld();
+    }
+}
+```

@@ -513,4 +513,51 @@ public class JsonClient {
 四、Netty的future.channel().closeFuture().sync();到底有什么用？
 主线程执行到这里就 wait 子线程结束，子线程才是真正监听和接受请求的，closeFuture()是开启了一个channel的监听器，负责监听channel是否关闭的状态，如果监听到channel关闭了，子线程才会释放，syncUninterruptibly()让主线程同步等待子线程结果
 
-### 
+### netty关闭连接
+netty关闭连接：
+* 		通过Channel 实例关闭连接：
+Channel channel = ...; // 获取到的Channel实例
+channel.close();
+* 		通过ChannelHandlerContext 实例关闭连接：
+ChannelHandlerContext ctx = ...; // 获取到的ChannelHandlerContext实例
+ctx.close();
+* 		如果你想关闭所有的连接，可以关闭ChannelGroup 中的所有通道：
+ChannelGroup channelGroup = ...; // 获取到的ChannelGroup实例
+channelGroup.close();
+* 		如果你想在一定的时间后关闭连接，可以使用scheduleAtFixedRate 方法来定时关闭：
+Channel channel = ...; // 获取到的Channel实例
+ScheduledFuture<?> future = ctx.executor().schedule(() -> {
+channel.close();
+}, 5, TimeUnit.SECONDS);
+
+### netty报错java.io.IOException: Connection reset by peer
+常见原因：
+1）服务器的并发连接数超过了其承载量，服务器会将其中一些连接关闭； 如果知道实际连接服务器的并发客户数没有超过服务器的承载量，则有可能是中了病毒或者木马，引起网络流量异常。可以使用netstat -an查看网络连接情况。 
+ 2）客户关掉了浏览器，而服务器还在给客户端发送数据； 
+ 3）浏览器端按了Stop； 这两种情况一般不会影响服务器。但是如果对异常信息没有特别处理，有可能在服务器的日志文件中，重复出现该异常，造成服务器日志文件过大，影响服务器的运行。可以对引起异常的部分，使用try…catch捕获该异常，然后不输出或者只输出一句提示信息，避免使用e.printStackTrace();输出全部异常信息。 
+ 4）防火墙的问题； 如果网络连接通过防火墙，而防火墙一般都会有超时的机制，在网络连接长时间不传输数据时，会关闭这个TCP的会话，关闭后在读写，就会导致异常。 如果关闭防火墙，解决了问题，需要重新配置防火墙，或者自己编写程序实现TCP的长连接。实现TCP的长连接，需要自己定义心跳协议，每隔一段时间，发送一次心跳协议，双方维持连接。 
+ 5）JSP的buffer问题。 JSP页面缺省缓存为8k，当JSP页面数据比较大的时候，有可能JSP没有完全传递给浏览器。这时可以适当调整buffer的大小。
+
+常见原因及解决方案：
+超时、socketIO 发送的数据量太大、客户端关闭连接、服务端关闭连接、网络问题、防火墙问题（是否存在白名单）、JSP的buffer问题等。
+
+### netty回调方法顺序
+调用顺序：
+* handlerAdded
+- channelRegistered
+- channelActive
+- channelReadComplete
+- channelInactive
+- channelUnregistered
+* handlerRemoved
+
+### netty发送消息添加状态监听
+```
+  tcpChannel.writeAndFlush(response).addListener(future -> {
+  if (future.isSuccess()) {
+  log.info("===下发S02消息成功===");
+  } else {
+  log.error("===下发S02消息失败===");
+  }
+  });
+```

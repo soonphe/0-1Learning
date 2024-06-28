@@ -551,6 +551,24 @@ lsof -i:$PORT"查看应用该端口的程序（$PORT指对应的端口号）
 查看所有端口使用情况：netstat -natp tcp （在mac中使用netstat -tlp tcp或netstat -tlp udp 来指定其后使用的协议）
 
 
+- Nmap：主要用于检测TCP连接,UDP连接和Unix域套接字的信息。
+- ss：检测TCP连接和UDP连接信息,但 ss的输出更加精简,主要包含源和目的连接等基本信息。（Socket Statistics）命令主要功能是显示套接字信息。与netstat命令的使用十分的相似，都是用于显示套接字信息，而ss命令的优势在于它能够显示更多TCP和连接状态的详情信息，并且速度更快更高效。
+    * ss -s 列出当前socket详细信息
+    * ss -l 显示本地打开的所有端口
+    * ss -pl 显示每个进程具体打开的socket
+    * ss |wc -l ：列出已建立的连接
+    * ss | head -n 3 :列出已建立的连钱
+    * ss -lt：监听TCP协议的套接字信息(***)
+    * ss -tnl：查看主机监听的端口（-n表示不解析域名，显示的是IP+端口的格式）（***）
+    * ss -tlp  |head -10：显示在运行进程的信息（***）
+    * ss -tn state established | grep ':8081' | wc -l  查询指定端口的tcp连接数 
+        * 		-t 表示只显示TCP连接。
+        * 		-n 表示不解析服务名称，只显示数字。
+        * 		state established 表示只显示处于建立状态的连接。
+        * 		grep ':端口号' 是用来过滤出你感兴趣的端口号的连接。
+        * 		wc -l 用来计算行数，即连接数。
+- netstat -nat：使用netstat检测TCP连接
+
 ### 进程命令
 查看进程命令：ps（显示与进程相关的PID号）	
 ```

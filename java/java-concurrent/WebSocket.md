@@ -365,3 +365,40 @@ console.error('WebSocket Error: ', error);
 socket.onclose = function(event) {
 console.log('
 ```
+
+### websocket水平拓展受限
+websocket也可以用ngix实现负载均衡水平扩展，需要用到消息订阅服务吗？
+websocket连接是有状态的，而ng作为中转默认情况下是随机转发流量的。假设服务端有多台机器，客户端经过ng代理和某个服务端建立wb连接后，对客户端而言和这个服务端的链路是确定，下次客户端发消息，ng可能会转发到其他机器。
+如果服务端是有状态，需要有个代理服务配合存储中间件（redis)记录连接状态来替换ng的角色。
+如果服务端本身无状态，考虑到用websocket的业务意图，一般也需要存储中间件管理会话，利用发布订阅来通知消息给其他端
+
+### 多页面共享socket
+多页面共享socket（判断socket是否连接）
+```
+// 在主页面或者一个单独的JavaScript模块中
+let ws;
+function setupWebSocket() {
+ws = new WebSocket('ws://your-websocket-server');
+ws.onopen = function(event) {
+console.log('WebSocket connected');
+};
+ws.onmessage = function(event) {
+// 处理接收到的消息
+console.log('Received message:', event.data);
+};
+ws.onerror = function(error) {
+console.error('WebSocket error observed:', error);
+}
+ws.onclose = function() {
+console.log('WebSocket disconnected');
+};
+}
+// 在其他页面中，你可以使用这个已经建立的WebSocket实例
+if (ws && ws.readyState === WebSocket.OPEN) {
+// WebSocket已经连接，可以直接发送消息
+ws.send('Your message here');
+} else {
+// WebSocket还没有连接，或者已经关闭，你可能需要重新建立连接
+setupWebSocket();
+}
+```

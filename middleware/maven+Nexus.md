@@ -30,7 +30,9 @@ mvn clean package ****  -DskipTests -DskipRat	打包项目跳过测试
 mvn -U 		#强制刷新本地仓库不存在release版和所有的snapshots版本。
 mvn clean install -P test 						#-P test的意思是使用 test profile 进行项目的构建
 mvn clean install -Dmaven.test.skip=true 
-mvn clean package -Dmaven.test.skip=true -P dev	#使用dev环境打包 
+mvn clean package -Dmaven.test.skip=true -P dev	#使用dev环境打包
+
+mvn -Dmaven.test.skip=true clean install -U  #跳过测试，强制更新本地仓库
 ```
 
 使用示例：
@@ -794,3 +796,18 @@ maven自带插件配置
 				</executions>
 			</plugin>
 ```
+
+### aliyun仓库
+仓库地址：https://developer.aliyun.com/mvn/view
+
+| Repository    | Type   | Policy   | Path                                              |
+|---------------|--------|----------|---------------------------------------------------|
+| central       | proxy  | RELEASE  | https://maven.aliyun.com/repository/central       |
+| google        | proxy  | RELEASE  | https://maven.aliyun.com/repository/google        |
+| gradle-plugin | proxy  | RELEASE  | https://maven.aliyun.com/repository/gradle-plugin |
+| jcenter       | proxy  | RELEASE  | https://maven.aliyun.com/repository/jcenter       |
+| spring        | proxy  | RELEASE  | https://maven.aliyun.com/repository/spring        |
+| spring-plugin | proxy  | RELEASE  | https://maven.aliyun.com/repository/spring-plugin |
+| public        | group  | RELEASE  | https://maven.aliyun.com/repository/public        |
+| releases      | hosted | RELEASE  | https://maven.aliyun.com/repository/releases      |
+| snapshots     | hosted | SNAPSHOT | https://maven.aliyun.com/repository/snapshots     |

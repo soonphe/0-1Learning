@@ -86,23 +86,43 @@ Elastic-Job是一个分布式任务调度框架，它基于Zookeeper和分布式
 
 ### 依赖
 ```
+        《旧》
         <dependency>
 			<groupId>org.apache.shardingsphere.elasticjob</groupId>
 			<artifactId>elasticjob-lite-core</artifactId>
 			<version>3.0.0-beta</version>
 		</dependency>
-		<!-- 按需引入 -->
-		<dependency>
-            <groupId>org.apache.shardingsphere.elasticjob</groupId>
-            <artifactId>elasticjob-cloud-executor</artifactId>
-            <version>${latest.release.version}</version>
-        </dependency>
         <!-- spring命名空间 -->
 		<dependency>
 			<groupId>org.apache.shardingsphere.elasticjob</groupId>
 			<artifactId>elasticjob-lite-spring-namespace</artifactId>
 			<version>3.0.0-beta</version>
 		</dependency>
+		<!-- zookeeper注册中心管理 -->
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-framework</artifactId>
+			<version>5.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-recipes</artifactId>
+			<version>5.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-client</artifactId>
+			<version>5.1.0</version>
+		</dependency>
+		
+		
+		《新》
+        <!-- Elastic-Job,已包含curator-test及其他三项依赖 -->
+        <dependency>
+            <groupId>org.apache.shardingsphere.elasticjob</groupId>
+            <artifactId>elasticjob-lite-spring-boot-starter</artifactId>
+            <version>3.0.1</version>
+        </dependency>
 ```
 
 ### 配置文件
@@ -112,23 +132,38 @@ elasticjob:
     type: RDB #追踪类型
   regCenter:
     serverLists: 192.168.161.224:2181,192.168.161.44:2181,192.168.161.112:2181  #ZooKeeper的访问地址
+    # 注册中心的命名空间，用于区分不同的应用
     namespace: cluster
     maxSleepTime: 40000
     baseSleepTime: 20000
     namespace: ${spring.application.name} #避免任务名称相同报错，哪怕实现类不同也会报错
+  jobs:
+    mySimpleJob:
+      elasticJobClass: com.soonphe.timber.portal.job.MySimpleJob
+      # cron表达式，用于定义作业的触发时间
+      cron: 0/5 * * * * ?
+      # 作业分片总数，用于并行执行作业
+      shardingTotalCount: 3
+      # 分片参数，用于指定每个分片的参数，格式数字=xxx,数字从0开始，如果多于前面的shardingTotalCount，也不会报错，只不过多的不会被执行
+      shardingItemParameters: 0=A,1=B,2=C
+      ## 作业参数，可选
+      jobParameter: param
+      failover: true
+      misfire: false
+      description: my simple job
 ```
 注册中心配置项
 
-|属性名	|类型	|缺省值	|描述|
-|---|---|---|---|
-|serverLists|	String	||	连接 ZooKeeper 服务器的列表|
-|namespace	|String		||ZooKeeper 的命名空间|
-|baseSleepTimeMilliseconds	|int	|1000	|等待重试的间隔时间的初始毫秒数|
-|maxSleepTimeMilliseconds	|String	|3000	|等待重试的间隔时间的最大毫秒数|
-|maxRetries|	String	|3	|最大重试次数
-|sessionTimeoutMilliseconds	|boolean|	60000|	会话超时毫秒数|
-|connectionTimeoutMilliseconds|	boolean	|15000	|连接超时毫秒数|
-|digest	|String	|无需验证	|连接 ZooKeeper 的权限令牌|
+| 属性名	                          | 类型	       | 缺省值	   | 描述                   |
+|-------------------------------|-----------|--------|----------------------|
+| serverLists                   | 	String	  |        | 	连接 ZooKeeper 服务器的列表 |
+| namespace	                    | String		  |        | ZooKeeper 的命名空间      |
+| baseSleepTimeMilliseconds	    | int	      | 1000	  | 等待重试的间隔时间的初始毫秒数      |
+| maxSleepTimeMilliseconds	     | String	   | 3000	  | 等待重试的间隔时间的最大毫秒数      |
+| maxRetries                    | 	String	  | 3	     | 最大重试次数               |
+| sessionTimeoutMilliseconds	   | boolean   | 	60000 | 	会话超时毫秒数             |
+| connectionTimeoutMilliseconds | 	boolean	 | 15000	 | 连接超时毫秒数              |
+| digest	                       | String	   | 无需验证	  | 连接 ZooKeeper 的权限令牌   |
 
 **namespace说明**
 ZooKeeper中注册任务的时候，真正冲突的并不纯粹是因为任务名称，而是namespace + 任务名称，全部一样，才会出现问题。
@@ -142,6 +177,16 @@ public class MyJob implements SimpleJob {
     
     @Override
     public void execute(ShardingContext context) {
+    		// 作业执行逻辑
+		System.out.println("MySimpleJob is running.");
+		StringBuilder sb = new StringBuilder(shardingContext.getJobName());
+		sb.append("： ");
+		sb.append("分片总数: [" + shardingContext.getShardingTotalCount() + "]; ");
+		sb.append("作业参数: [" + shardingContext.getJobParameter() + "]; ");
+		sb.append("当前分片项: [" + shardingContext.getShardingItem() + "]; ");
+		sb.append("当前分片参数: [" + shardingContext.getShardingParameter() + "]; ");
+		System.out.println(sb.toString());
+		
         switch (context.getShardingItem()) {
             case 0: 
                 // do something by sharding item 0
@@ -664,3 +709,23 @@ JOB_EXECUTION_LOG 记录每次作业的执行历史。 分为两个步骤：
 |creation_time|	TIMESTAMP|	是|	记录创建时间|
 
 JOB_STATUS_TRACE_LOG 记录作业状态变更痕迹表。 可通过每次作业运行的 task_id 查询作业状态变化的生命周期和运行轨迹。
+
+
+### ES启动报错
+Failed to introspect Class [org.apache.shardingsphere.elasticjob.reg.zookeeper.ZookeeperRegistryCenter] from ClassLoader [sun.misc.Launcher$AppClassLoader@18b4aac2]
+原因
+spring-boot-starter-parent 版本太低，无法推荐到合适的curator版本.
+解决方法
+pom文件添加，指定版本, 5.1.0为高版本spring-boot-starter-parent推荐的版本
+```
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+```

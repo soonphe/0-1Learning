@@ -435,6 +435,21 @@ server {
 除非你使用隐藏的域名转发，但是实际还要加 `:` 端口
 
 一台服务器可以被2个及以上域名访问，但一个域名不能同时访问2台服务器。
+
+### mac下nginx文件服务器403问题
+查看nginx日志
+> 2024/06/07 17:27:46 [error] 58322#0: *27 directory index of "/Users/luoxiaosheng/upload/" is forbidden, client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost"
+
+指定目录权限
+```
+[~]$ chmod -R 777 /Users/luoxiaosheng/upload/
+sudo chown -R _www:_www /Users/luoxiaosheng/upload/
+
+[~]$ less /usr/local/var/log/nginx/error.log   
+[~]$ vim /usr/local/etc/nginx/nginx.conf    
+[~]$ sudo nginx -s reload
+```     
+
   
   
 
