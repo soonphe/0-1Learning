@@ -423,6 +423,91 @@ server {
     }
 ```
 
+### nginx不配置server_name
+Nginx不设置server_name是可以的。
+在Nginx配置中,server_name用于指定域名或IP地址,以匹配请求的主机头。如果不设置server_name,Nginx将会使用默认的server块来处理请求
+
+Nginx的请求路由转发，可以分成两个阶段。
+- 第一个阶段是匹配定义的server。首先根据请求中的目的地址和端口进行匹配。如果相同的目的地址和端口同时还会对应多个servers，再根据server_name属性进行进一步匹配。需要强调的是，只有当listen指令无法找到最佳匹配时才会考虑评估server_name指令。
+- 第二阶段，在匹配到server后，Nginx根据请求URL中的path信息再匹配server中定义的某一个location。
+
+### nginx多次转发后匹配域名server_name
+在Nginx中，如果你想要在两次转发之后匹配server_name，你可以在Nginx配置文件中使用proxy_set_header指令将原始的Host头部传递给后端服务器，并确保在第二个location块中使用proxy_pass进行转发。
+```
+server {
+    listen 80;
+    server_name example.com;
+ 
+    location /first-stage/ {
+        proxy_set_header Host $host;            # 保留原始的 Host 头部
+        proxy_set_header X-Original-Host $host; # 额外的请求头，保存原始 Host
+        proxy_pass http://backend1;
+    }
+ 
+    location /second-stage/ {
+        proxy_set_header Host $host;
+        proxy_pass http://backend2;
+    }
+}
+```
+请求首先到达/first-stage/时，它会被转发到backend1服务器，并保持原始的Host头部不变。当请求到达/second-stage/时，它会被转发到backend2服务器，同样保持Host头部不变。
+
+在后端服务器上，可以根据Host头部来匹配server_name，以便进行适当的处理。
+```
+server {
+    listen 80;
+    server_name backend1.com;
+    location / {
+        # 处理来自第一个阶段的请求
+    }
+}
+ 
+server {
+    listen 80;
+    server_name backend2.com;
+    location / {
+        # 处理来自第二个阶段的请求
+    }
+}
+```
+如果二次转发域名等同于本次域名，或直接为IP转发
+```
+http {
+    upstream backend1 {
+        server 192.168.1.100:8000; # 替换为实际的IP地址
+    }
+
+    upstream backend2 {
+        server backend2.example.com; # 或者另一个IP地址
+    }
+    
+    server {
+        listen 80;
+
+        server_name www.example1.com; # 最好明确指定要处理的域名
+
+        location / {
+            proxy_set_header Host $host;
+            # 直接将请求转发到backend1对应的IP地址
+            proxy_pass http://backend1;
+        }
+    }
+
+    server {
+        listen 80;
+
+        server_name www.example2.com; # 最好明确指定要处理的域名
+
+        location / {
+            proxy_set_header Host $host;
+            # 将请求转发到backend2
+            proxy_pass http://backend2;
+        }
+    }
+}
+```
+
+
 ### 域名和IP和端口
 域名是只能80端口吗？
 

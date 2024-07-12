@@ -18,6 +18,79 @@
 
 - webpack: 它主要的用途是通过CommonJS的语法把所有浏览器端需要发布的静态资源做相应的准备，比如资源的合并和打包。
 
+### 工具介绍
+* nvm nodejs管理工具
+  - nvm全名node.js version management，顾名思义是一个nodejs的版本管理工具。 通过它可以安装和切换不同版本的nodejs
+  - github地址： https://github.com/coreybutler/nvm-windows/releases
+  - brew安装：brew install nvm
+  - 配置文件：echo "source $(brew --prefix nvm)/nvm.sh" >> .bash_profile
+  - 常用命令：显示nvm版本： nvm -v
+  ```
+  # 显示可以安装的所有nodejs版本
+  nvm list available
+  # 安装指定版本的nodejs
+  nvm install <version>
+  # 显示已安装版本列表
+  nvm list
+  # 使用指定版本node
+  nvm use [version]
+  # 卸载指定版本node
+  nvm uninstall <version>
+  ```
+
+* node.js js运行环境
+  - 官方解释：Node.js is an open-source, cross-platform JavaScript runtime environment. 翻译过来：Node.js是一个开源、跨平台的JavaScript运行时环境。
+  - 官网地址：https://nodejs.org/en/
+
+* Vite 前端构建工具
+  - Vite是尤雨溪团队开发的，官方称是下一代新型前端构建工具，能够显著提升前端开发体验。 上面称是下一代，当前一代当然是我们熟悉的webpack
+  - Vite 官网：https://cn.vitejs.dev/
+  ```
+  Vite 优势
+  开发环境中，无需打包操作，可快速的冷启动。
+  轻量快速的热重载（HMR）。
+  真正的按需编译，不再等待整个应用编译完成。
+  我们到官网 https://cn.vitejs.dev/guide/ 根据官网一步步往下走即可
+  Vite 需要 Node.js 版本 18+ 或 20+。然而，有些模板需要依赖更高的 Node 版本才能正常运行，当你的包管理器发出警告时，请注意升级你的 Node 版本
+  ```
+  - 创建vite项目
+  ```
+  $ npm create vite@latest
+  例如，要构建一个 Vite + Vue 项目，运行:
+  # npm 7+, 需要额外加 --:
+  npm create vite@latest my-vue-app -- --template vue
+  ```
+  - vite项目结构
+  ```
+  
+  ```
+
+* NRM镜像管理工具
+  - nrm 全称是：（npm registry manager） 是npm的镜像管理工具 有时候国外的资源太慢，使用它就可以快速地在npm镜像源间快速切换
+  - 安装命令：sudo npm install -g nrm
+  ```
+  # 查看镜像列表
+  nrm ls
+  # 查看当前使用的镜像
+  nrm current 
+  # 添加镜像
+  nrm add <名称> <远程地址或私服地址>
+  # 删除镜像
+  nrm del <名称>
+  # 切换镜像
+  nrm use <名称> 
+  # 测试镜像网络传输速度
+  nrm test <名称>
+  # 查看nrm版本号
+  nrm <-version | -V> 
+  # 查看nrm相关信息
+  nrm <-help | -h>
+  # 打开镜像主页
+  nrm home <名称> [browser]
+  # 上传npm包或命令程序
+  nrm publish [<tarball>|<folder>]
+  ```
+
 
 ### npm和yarn区别：
 Yarn是由Facebook、Google、Exponent 和 Tilde 联合推出了一个新的 JS 包管理工具 ，正如官方文档中写的，Yarn 是为了弥补 npm 的一些缺陷而出现的
@@ -36,6 +109,11 @@ npm update taco —save	yarn upgrade taco	更新某个依赖项目
 npm install taco --global	yarn global add taco	安装某个全局依赖项目
 npm publish/login/logout	yarn publish/login/logout	发布/登录/登出，一系列NPM Registry操作
 npm run/test	yarn run/test	运行某个命令
+```
+
+pnpm:集成npm和yarn优点
+```
+$ pnpm install element-plus
 ```
 
 ### node常用命令
@@ -86,6 +164,23 @@ npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/rep
 npm恢复官方源：npm set registry https://registry.npmjs.org/
 
 npm临时切换下载源：npm install node-sass --registry=http://registry.npm.taobao.org
+
+淘宝镜像原地址2024年1月22日已过期
+切换新源：npm config set registry https://registry.npmmirror.com
+如果执行完后依旧是报同样的报错，请依次执行以下两行命令
+npm cache clean --force
+npm config set strict-ssl false
+
+其他镜像源
+npm 官方原始镜像网址是：https://registry.npmjs.org/
+淘宝最新 NPM 镜像：https://registry.npmmirror.com
+阿里云 NPM 镜像：https://npm.aliyun.com
+腾讯云 NPM 镜像：https://mirrors.cloud.tencent.com/npm/
+华为云 NPM 镜像：https://mirrors.huaweicloud.com/repository/npm/
+网易 NPM 镜像：https://mirrors.163.com/npm/
+中科院大学开源镜像站：http://mirrors.ustc.edu.cn/
+清华大学开源镜像站：https://mirrors.tuna.tsinghua.edu.cn/
+腾讯，华为，阿里的镜像站基本上比较全
 
 ### npm install 安装报错解决思路：
 1、删除  package-lock.json文件

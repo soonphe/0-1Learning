@@ -275,8 +275,8 @@ java.util.function包下面有大量的函数式接口，主要分为以下几�
 * Function 输入参数为类型T， 输出为类型R， 记作 T -> R
 Function<T,R>,主要方法：R apply(T t),这是一个修改者，默认方法：compose()：优先执行，andThen(),稍后执行，identity()：直接传自身。
 
-* Consumer 输入参数为类型T， 输出为void， 记作 T -> 
-Supplier<T>,主要方法：T get(),这是一个生产者，可以提供一个T对象。
+* Consumer 输入参数为类型T， 输出为void， 记作 T ->
+Consumer<T>,主要方法：T get(),这是一个生产者，可以提供一个T对象。
 
 * Supplier 没有输入参数， 输出为类型T， 记作 void -> T
 Supplier<T>,主要方法：T get(),这是一个生产者，可以提供一个T对象。
@@ -376,3 +376,80 @@ public class Test01 {
     }
 }
 ````
+
+### 关于Function中函数无法缓存
+参考代码：
+```
+    public static void main(String[] args) throws IOException {
+
+        /**
+         * 这里的cache无法缓存，每次调用都会重新初始化
+         */
+        Function<String, Integer> errorCache = input -> {
+            final Map<String, Integer> cache = new HashMap<>(5);
+            Function<String, Integer> stringZySyncLogFunction = (job) -> cacheMethod(job);
+            return cache.computeIfAbsent(input, stringZySyncLogFunction);
+        };
+
+        /**
+         * 这里的cache无法缓存，每次调用都会重新初始化
+         */
+        Function<String, Function<String, Integer>> errorCache_FIX2 =  (String obj) -> {
+            final Map<String, Integer> cache2 = new HashMap<>(5); // 这样修复就可以了
+            return input -> {
+                Function<String, Integer> stringZySyncLogFunction = (job) -> cacheMethod("inner"+job);
+                cache2.computeIfAbsent(input, stringZySyncLogFunction);
+                return errorCache.apply(input);
+            };
+        };
+
+//        Integer job1 = errorCache.apply("job1");
+//        Integer job1_1 = errorCache.apply("job1");
+//        Integer job2 = errorCache.apply("job2");
+
+//        supplier.get().apply("job1");
+//        supplier.get().apply("job1");
+//        supplier.get().apply("job2");
+
+//        Function<String, Integer> errorCache_FIX = supplier.get();
+//        Integer job1 = errorCache_FIX.apply("job1");
+//        Integer job1_1 = errorCache_FIX.apply("job1");
+//        Integer job2 = errorCache_FIX.apply("job2");
+
+        Integer job11 = errorCache_FIX2.apply("job1").apply("job1");
+        Integer job1_11 = errorCache_FIX2.apply("job1").apply("job1");
+        Integer job21 = errorCache_FIX2.apply("job2").apply("job1");
+
+
+        Function<String, Integer> cache = cacheFunction((String job) -> {
+            return cacheMethod(job);
+        });
+//        Integer job1 = cache.apply("job1");
+//        Integer job1_1 = cache.apply("job1");
+//        Integer job2 = cache.apply("job2");
+    }
+
+    private static Integer cacheMethod(String job) {
+        System.out.println(job + "-运行了");
+        return new Random().nextInt();
+    }
+
+    /**
+     * 这里的cache可以缓存，只在初始化调用一次
+     */
+    public static Supplier<Function<String, Integer>> supplier = () -> {
+        final Map<String, Integer> cache = new HashMap<>(5); // 这样修复就可以了
+        return input -> {
+            Function<String, Integer> stringZySyncLogFunction = job -> cacheMethod(job);
+            return cache.computeIfAbsent(input, stringZySyncLogFunction);
+        };
+    };
+
+    // 创建一个缓存函数的方法
+    public static <T, R> Function<T, R> cacheFunction(Function<T, R> function) {
+        final Map<T, R> cache = new HashMap<>(5);
+        return input -> {
+            return cache.computeIfAbsent(input, function);
+        };
+    }
+```

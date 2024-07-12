@@ -590,3 +590,45 @@ html{
     })(window,document);
   </script>
 ```
+
+
+### gulp和webpack
+**webpack：一个模块打包工具（更适合单页面spa模块开发）**
+Webpack更侧重于模块打包，把开发中的所有资源（图片、js文件、css文件等）看成模块。Webpack是通过loader（加载器）和plugins（插件）对资源进行处理的
+
+**gulp：基于流格式的打包构建工具（更适合多页面模块mpa开发）**
+gulp：前端自动化打包构建工具，基于流格式的打包构建工具
+打包:把文件压缩,整合,移动,混淆
+
+gulp的常见api：gulp.src()、gulp.dest()、gulp.task()、gulp.watch()、gulp.series()、gulp.parallel()
+
+- gulp.src()方法： 创建一个流，用于从文件系统读取 Vinyl 对象。
+- 语法：gulp.src(globs, [options])
+  - globs参数是文件匹配模式(类似正则表达式)，用来匹配文件路径(包括文件名)，当然这里也可以直接指定某个具体的文件路径。当有多个匹配模式时，该参数可以为一个数组。
+  - options为一个可选的参数对象，通常我们不需要用到
+  注：BOMs(字节顺序标记)在 UTF-8 中没有任何作用，除非使用 removeBOM 选项禁用，否则 src() 将从读取的 UTF-8 文件中删除BOMs。
+
+- gulp.dest()方法：创建一个用于将 Vinyl 对象写入到文件系统的流。
+- 语法：gulp.dest(path[,options])
+  - path为写入文件的路径
+  - options为一个可选的参数对象，通常我们不需要用到
+
+- gulp.task方法：用来定义任务
+- 语法：gulp.task(name[, deps], fn)
+  - name为任务名
+  - deps 是当前定义的任务需要依赖的其他任务，为一个数组。当前定义的任务会在所有依赖的任务执行完毕后才开始执行。如果没有依赖，则可省略这个参数
+  - fn 为任务函数，我们把任务要执行的代码都写在里面。该参数也是可选的。
+
+- gulp.watch方法：用来监视文件的变化，当文件发生变化后，我们可以利用它来执行相应的任务，例如文件压缩等。
+- 语法1：gulp.watch(glob[, opts], tasks)
+  - glob 为要监视的文件匹配模式，规则和用法与gulp.src()方法中的glob相同
+  - opts 为一个可选的配置对象，通常不需要用到
+  - tasks 为文件变化后要执行的任务，为一个数组
+
+- gulp.series方法：将任务函数和/或组合操作组合成更大的操作，这些操作将按顺序依次执行。
+对于使用 series() 和 parallel() 组合操作的嵌套深度没有强制限制
+语法1：gulp.series(…tasks)
+
+- gulp.parallel方法：将任务功能和/或组合操作组合成同时执行的较大操作。
+对于使用 series() 和 parallel() 进行嵌套组合的深度没有强制限制。
+语法1：gulp.parallel(…tasks)

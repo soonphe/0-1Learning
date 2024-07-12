@@ -344,4 +344,75 @@ WHERE time > NOW() - INTERVAL '1 hour'
 GROUP BY minute;
 ```
 
+### postgresql使用地图数据库
+参考文档：
 
+
+postgresql type geography
+PostgreSQL的geography类型是一种用于存储和查询地理空间数据的数据类型。它使用一种地理空间参考系统（通常是WGS84），允许执行如距离计算、方向计算等地理空间运算。
+
+要使用geography类型，首先需要确保PostGIS扩展已经安装并被启用。以下是如何在PostgreSQL中创建一个包含geography类型列的表的示例：
+```
+-- 确保PostGIS扩展已安装并启用
+CREATE EXTENSION IF NOT EXISTS postgis;
+ 
+-- 创建一个包含geography类型列的表
+CREATE TABLE locations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    geog GEOGRAPHY(Point, 4326) -- 使用点类型，SRID为4326（WGS84）
+);
+ 
+-- 插入一个地点数据
+INSERT INTO locations (name, geog) VALUES ('New York', 'POINT(-74.006 40.7128)');
+ 
+-- 查询特定距离内的地点
+SELECT * FROM locations WHERE ST_DWithin(geog, ST_GeogFromText('POINT(-74.006 40.7128)'), 1000);
+```
+如需要查看postgresql安装了哪些拓展
+```
+SELECT * FROM pg_extension;
+
+结果示例：
+oid,    extname,extowner,extnamespace,extrelocatable,extversion
+
+14381	plpgsql	10	11	f	1.0
+16979	postgis	10	2200	f	3.0.0
+17982	postgis_topology	10	17981	f	3.0.0
+18125	fuzzystrmatch	10	2200	t	1.1
+18137	postgis_tiger_geocoder	10	18136	f	3.0.0
+18565	address_standardizer	10	2200	t	3.0.0
+18572	address_standardizer_data_us	10	2200	t	3.0.0
+18615	postgis_raster	10	2200	f	3.0.0
+16445	timescaledb	10	2200	f	1.7.0
+```
+
+使用示例：计算与给定点位的距离（参数为字符串，需要自行转化为geography格式）
+```
+    select
+    t.ID as id,
+    t.AREA_CODE as areaCode,
+    t.NAME as name,
+    t.SHORTNAME as shortname,
+    t.apprise as apprise,
+    t.train_gps as trainGps,
+    t.video_intro_url as videoIntroUrl,
+    t.school_img as schoolImg,
+    t.is_open_timing as isOpenTiming,
+    t.consult_phone as consultPhone,
+    t.stars as stars,
+   
+    round((ST_Distance(
+--      ST_SetSRID(ST_MakePoint(114.55750231062069::NUMERIC,30.488116978027715::NUMERIC),4326)::geography,
+        ST_SetSRID(ST_MakePoint(split_part('114.55750231062069,30.488116978027715',',',1)::NUMERIC,split_part('114.55750231062069,30.488116978027715',',',1)::NUMERIC),4326)::geography,
+        ST_SetSRID(ST_MakePoint(split_part(t.train_gps,',',1)::NUMERIC,split_part(t.train_gps,',',2)::NUMERIC),4326)::geography
+    )/1000)::NUMERIC ,3)  as distance
+    from school t
+    where t.id = '2144751407927662'
+```
+函数说明：
+- split_part：分隔字符串，参数：字符串，分割字符，取位数
+- ST_MakePoint：创建一个2D XY、3D XYZ 或 4D XYZM 的点几何对象，参数为2-4个：ST_MakePoint(float x, float y, float z, float m);
+- ST_SetSRID：为创建的点指定一个空间参考标识码
+- ST_Distance：计算距离，传入两个点位
+- ::geography:指定为地理空间数据类型
