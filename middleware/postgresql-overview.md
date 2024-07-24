@@ -47,9 +47,9 @@ decimal 可变 用户指定精度 up to 131072 digits before the decimal point; 
 numeric 可变 用户指定精度 up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
 real 4 bytes 变长，不精确 6位十进制精度
 double precision 8 bytes 变长，不精确 15位十进制精度
-smallserial 2 bytes small自增序列 1 to 32767
-serial 4 bytes integer 自增序列 1 to 2147483647
-bigserial 8 bytes bigint自增序列 1 to 9223372036854775807
+smallserial 2 bytes small自增序列 1 to 32767                等效serial2
+serial 4 bytes integer 自增序列 1 to 2147483647             等效serial4
+bigserial 8 bytes bigint自增序列 1 to 9223372036854775807   等效serial8
 
 ### 查看postgresql版本
 查看postgresql版本：SELECT version();
@@ -68,7 +68,7 @@ kill进程：SELECT pg_terminate_backend(pid);
 * 建立自增主键序列：CREATE SEQUENCE table_name_id_seq START 1;，设置id字段的默认值为nextval('t_user_id_seq')
 ```
 创建自增序列 CREATE SEQUENCE table_name_id_seq START 1;
-字段默认值中设置 nextval(‘table_name_id_seq’)
+字段默认值中设置 nextval('table_name_id_seq')
 获取当前序列值：SELECT currval('sequence_name');
 获取下一个序列值：SELECT nextval('sequence_name');
 

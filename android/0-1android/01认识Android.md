@@ -84,7 +84,11 @@ Activity Name 就填入 HelloWorldActivity，Layout Name 就填入 hello_world_l
 ~~~~
 
 这段代码表示对 HelloWorldActivity这个活动进行注册，没有在 AndroidManifest.xml里 注册的活动是不能使用的。
-其中 intent-filter里的两行代码非常重要，<action android:name= "android.intent.action.MAIN"/>和<category android:name="android.intent.category.LAUNCHER"/> 表示 HelloWorldActivity是这个项目的主活动，在手机上点击应用图标，首先启动的就是这 个活动。
+其中 intent-filter里的两行代码非常重要，
+```
+<action android:name= "android.intent.action.MAIN"/>和<category android:name="android.intent.category.LAUNCHER"/> 
+```
+表示 HelloWorldActivity是这个项目的主活动，在手机上点击应用图标，首先启动的就是这 个活动。
 
 #### 活动Activity
 活动是 Android应用程序的门面，凡是在应用中你看得到的东西，都是放在活动中的。

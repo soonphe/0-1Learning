@@ -181,6 +181,25 @@ pipeline {
    }
 }
 ```
+解析：
+- pipeline 部分：代表整条流水线，包含整条流水线的逻辑。
+- agent 部分：指定流水线的执行位置（Jenkins agent）。流水线中的每个阶段都必须在某个地方（物理机、虚拟机或Docker容器）执行，agent 部分即指定具体在哪里执行。
+- stages 部分：流水线中多个stage的容器。stages 部分至少包含一个 stage。steps 部分：代表阶段中的一个或多个具体步骤（step）的容器。steps 部分至少包含一个步骤，本例中，echo就是一个步骤。在一个 stage 中有且只有一个steps。
+  - stage 部分：代表流水线的某个阶段。每个阶段都必须有名称，本例中，"CheckOut" 就是此阶段的名称。
+    - steps：执行的具体步骤
+
+
+**为什么要用 Pipeline**
+Pipeline 通过代码来实现，其实就具有很多代码的优势了，比如：
+- 支持传参：可以在 Pipeline 代码里面配置用户要输入或选择的参数，这个功能真的太棒了。比如可以传 Gitlab 分支名、部署哪个服务等。
+- 更好地版本化：将 pipeline 代码提交到软件版本库中进行版本控制。
+- 更好地协作：pipeline 的每次修改对所有人都是可见的。除此之外，还可以对pipeline进行代码审查
+- 更好的重用性：手动操作没法重用，但是代码可以重用。
+
+当然 pipeline 的缺点也是有的：
+- 学习成本高：需要熟悉 pipeline 的语法规则。
+- 复杂：代码不够直观，编写的逻辑可能很复杂，容易出错。
+
 
 ### Jenkins流水线语法（pipeline-syntax生成流水线脚本）：
 > 任意Job 左侧都有流水线语法，如：http://jenkins地址/pipeline-syntax/

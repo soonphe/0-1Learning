@@ -4,12 +4,20 @@
 ![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
-
 ## 认识Java
 
-* Java简介
-* Java开发环境的搭建
-* Java程序开发的流程
+## 目录
+- [Java简介](#Java简介)
+- [Java语言的版本](#Java语言的版本)
+- [Java语言是什么？它的主要特点？](#Java语言是什么？它的主要特点？)
+- [JDK安装与环境配置](#JDK安装与环境配置)
+- [Mac下查看已安装的jdk版本及其安装目录](#Mac下查看已安装的jdk版本及其安装目录)
+- [第一个Java程序](#第一个Java程序)
+- [注释的使用](#注释的使用)
+- [空白符和行号](#空白符和行号)
+- [类和主函数](#类和主函数)
+- [修饰符](#修饰符)
+
 
 ### Java简介
 * JVM是Java Virtual Machine（Java虚拟机）的缩写，

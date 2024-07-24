@@ -40,6 +40,11 @@ adb 包含在 Android SDK 平台工具软件包中。您可以使用 SDK 管理�
 su root	切换到root用户
 su shell切换到普通用户
 
+远程调试：
+adb devices
+adb tcpip 5555（端口号，可以指定其他值），该命令将会重启手机上的adbd，开启网络调试功能：
+adb connect 192.168.1.137:5555，如果需要手机确认就点击确认，提示connected即为连接成功
+
 推送资源：
 adb -s BaytrailDB47EC8B push D:\JuzhongWork\Download /storage/sdcard0/
 adb -s 0123456789ABCDEF push D:\JuzhongWork\Download /storage/sdcard0/

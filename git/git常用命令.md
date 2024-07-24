@@ -226,3 +226,117 @@ git push -u gitlab  --all
 1. 确认用户名、邮箱
 2. 查看是否存在项目权限
 3. 查看仓库链接方式，如果是SSH，确认是否配置ssh key，建议直接配置http测试推送
+
+### gitlab 流水线
+GitLab CI/CD 流水线配置主要通过在项目根目录下的 .gitlab-ci.yml 文件来定义。以下是一个简单的例子，展示了如何配置一个基础的流水线来自动化测试和部署。
+
+```
+stages:
+  - build
+  - test
+  - deploy
+ 
+job_build:
+  stage: build
+  script:
+    - echo "Building the project..."
+    - mvn clean install
+  only:
+    - master
+ 
+job_test:
+  stage: test
+  script:
+    - echo "Running tests..."
+    - mvn test
+  only:
+    - master
+    - tags
+ 
+job_deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the application..."
+    - mvn deploy
+  only:
+    - master
+  when: manual
+```
+
+这个配置文件定义了三个阶段：构建（build）、测试（test）和部署（deploy）。每个作业定义了运行的任务和在哪个阶段执行。only 关键字指定了哪些分支和标签触发作业。when: manual 表示部署作业将需要手动启动。
+
+要配置 GitLab CI/CD，你需要：
+1. 在项目的根目录创建或编辑 .gitlab-ci.yml 文件。
+2. 将上述配置复制粘贴进去。
+3. 提交 .gitlab-ci.yml 文件并推送到 GitLab 仓库。
+
+一旦提交并推送了 .gitlab-ci.yml 文件，GitLab 将自动检测更改并开始使用配置好的流水线。每次推送到远程仓库的 master 分支或带有 tags 的 commit 都会触发流水线。
+
+示例：docker远程推送镜像，远程ssh重新部署
+```
+stages:
+  - build
+  - deploy
+
+
+variables:
+  ## 镜像版本号      
+  Docker_ImageTag: "latest"
+
+
+  ## 镜像名称
+  Docker_Image: "eshop.webapi:$Docker_ImageTag" 
+
+
+  ## 阿里云镜像名称
+  Ali_Docker_Image: "$Ali_Docker_Registry/eshop/$Docker_Image"
+
+
+build:
+  stage: build
+  script:
+    ## 构建镜像  
+    - docker build -f "./EShop.WebApi/Dockerfile" -t $Docker_Image .
+
+
+    ## 将镜像标记为阿里云镜像名称
+    - docker tag $Docker_Image $Ali_Docker_Image
+    
+    ## 登录阿里云私人镜像仓库
+    - docker login -u $Ali_Docker_UserName --password "$Ali_Docker_Password" $Ali_Docker_Registry
+    
+    ## 将镜像推送到阿里云镜像仓库
+    - docker push $Ali_Docker_Image
+  only:
+    - main  
+
+
+
+
+deploy:
+  stage: deploy
+  before_script:
+  
+    ## 安装ssh-agent
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    
+    ## 将GitLab服务器私钥添加到ssh-agent代理中
+    - chmod 400 "$SSH_PRIVATE_KEY"
+    - ssh-add "$SSH_PRIVATE_KEY"
+    
+    ## 创建~/.ssh目录
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    
+    ## 创建SSH_KNOWN_HOSTS
+    - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+
+  script:
+    ## 使用ssh免密登录应用服务器，执行部署eshop.webapi容器命令
+    - ssh -t $ESHOP_SERVER_IP "(docker stop EShop.WebApi && docker rm EShop.WebApi || echo 'Container EShop.WebApi not found, skipping removal.') && docker login -u $Ali_Docker_UserName --password "$Ali_Docker_Password" $Ali_Docker_Registry && docker run -d --name EShop.WebApi -p 9527:80 $Ali_Docker_Image"
+  only:
+    - main
+```

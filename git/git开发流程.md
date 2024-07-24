@@ -10,7 +10,9 @@
 
 ### git开发流程
 1. 根据开发任务，建立git分支, 分支名称模式为feature/任务名，比如关于API相关的一项任务，建立分支feature
+```
 git checkout -b feature
+```
 
 2. 运行git branch 确认切换到了feature/api分支
 

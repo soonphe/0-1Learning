@@ -18,14 +18,14 @@ Docker 包含三个基本概念，分别是
 可以使用一个images启动多个容器，镜像启动会启动容器，容器的修改可以更新或者新建一个容器
 
 ### docker和docker compose、Docker Swarm、k8s
-Docker：容器化平台、工具
-docker compose：使用 Docker 定义和运行多容器应用程序。使用 YML 文件来配置应用程序需要的所有服务。然后，使用一个命令，就可以从 YML 文件配置中创建并启动所有服务
-Docker Swarm：Docker容器的本机集群解决方案，管理分布在服务器集群中的大量容器
-Kubernetes：编排系统，是Docker等容器平台的容器协调器
+- Docker：容器化平台、工具
+- docker compose：使用 Docker 定义和运行多容器应用程序。使用 YML 文件来配置应用程序需要的所有服务。然后，使用一个命令，就可以从 YML 文件配置中创建并启动所有服务
+- Docker Swarm：Docker容器的本机集群解决方案，管理分布在服务器集群中的大量容器
+- Kubernetes：编排系统，是Docker等容器平台的容器协调器
 
-Docker desktop启动Kubernetes：
-相关文档：https://blog.csdn.net/chen801090/article/details/107108301
-Docker Preferences中Kubernetes设置中使用Enable Kubernetes
+**Docker desktop启动Kubernetes：**
+- 相关文档：https://blog.csdn.net/chen801090/article/details/107108301
+备注：Docker Preferences中Kubernetes设置中使用Enable Kubernetes
 
 ### docker环境安装
 三种方式安装：
@@ -35,6 +35,10 @@ https://www.docker.com/products/docker-desktop
 ```
 brew search docker
 brew install docker
+
+brew services docker start：如果service命令启动不了用下面的
+systemctl start docker  启动docker
+systemctl stop docker   关闭Docker服务
 ```
 3.手动安装
 ```
@@ -52,14 +56,11 @@ systemctl start docker
 ```
 
 ### Docker 常用命令
-service docker start：如果service命令启动不了用下面的
-systemctl start docker  启动docker
-systemctl stop docker   关闭Docker服务
-
+```
 docker version          查看Docker版本
 docker search java      搜索镜像（查看版本需要去官网：https://hub.docker.com/u/library）
 docker pull images      下载镜像
-```
+
 docker pull java:8
 docker pull mysql:5.7
 docker pull redis:6.2.4
@@ -73,7 +74,7 @@ docker pull jenkins
 docker pull node
 docker pull minio
 docker pull alpine  #一个基于 Alpine Linux 的最小 Docker 镜像，包索引完整，大小只有 5 MB！
-```
+
 docker rmi java:8       • 指定名称删除镜像
 docker rmi -f java:8    • 指定名称删除镜像（强制）
 docker rmi -f $(docker images)  • 强制删除所有镜像
@@ -102,10 +103,11 @@ docker inspect -f "{{.Mounts}}" nginx
 
 docker info | grep "Docker Root Dir"        • 查看Docker镜像的存放位置
 docker exec -it $ContainerName /bin/bash  进入Docker容器内部的bash
-
+```
 
 ### 新建并启动容器：docker run -p 80:80 --name nginx -d nginx:1.17.0
-docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+> docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
 OPTIONS说明：
 ```
     -a stdin: 指定标准输入输出内容类型，可选 STDIN/STDOUT/STDERR 三项；
@@ -128,6 +130,8 @@ OPTIONS说明：
     --volume , -v: 绑定一个卷
 ```
 
+命令示例
+```
 docker run -p 80 -i -t ubuntu /bin/bash		指定容器端口
 docker run -p 8080:80 -i -t ubuntu /bin/bash	指定宿主机和容器端口
 docker run -p 0.0.0.0:80 -i -t ubuntu /bin/bash	指定ip和容器端口
@@ -136,13 +140,13 @@ docker run -p 0.0.0.0:8080:80 -i -t ubuntu /bin/bash	指定ip宿主机端口和�
 docker run -it -d -p 127.0.0.1:5000:5000 docker.io/centos:latest /bin/bash  将容器的5000端口映射到指定地址127.0.0.1的5000端口上：
 docker run -it -d -p 127.0.0.1::4000 docker.io/centos:latest /bin/bash  将容器的4000端口映射到127.0.0.1的任意端口上：
 docker run -itd -p 8000:80 docker.io/centos:latest /bin/bash    将容器的80端口映射到宿主机的8000端口上
-
+```
 
 ### docker设置国内镜像地址
 常见docker国内镜像地址：
-http://registry.docker-cn.com
-http://hub-mirror.c.163.com
-http://mirror.ccs.tencentyun.com
+- http://registry.docker-cn.com
+- http://hub-mirror.c.163.com
+- http://mirror.ccs.tencentyun.com
 
 Docker for Mac的用户，您可以参考以下配置步骤：
 Docker Desktop 应用图标 -> Perferences，在左侧导航菜单选择 Docker Engine，在右侧输入栏编辑 json 文件，最后选择Apply & Restart
@@ -159,8 +163,6 @@ Docker Desktop 应用图标 -> Perferences，在左侧导航菜单选择 Docker 
   "registry-mirrors": ["http://hub-mirror.c.163.com","http://mirror.ccs.tencentyun.com"]
 }
 ```
-
-
 
 ### 构建镜像
 我们使用命令 docker build ， 从零开始来创建一个新的镜像。

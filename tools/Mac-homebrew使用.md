@@ -376,3 +376,18 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
 source ~/.zshrc
 brew update
 ```
+
+### brew切换jdk版本
+brew 切换当前jdk为21版本 要在macOS上使用Homebrew切换当前JDK版本到21，你需要首先确保你已经安装了JDK 21版本。以下是步骤和示例代码：
+
+- 检查已安装的JDK版本： /usr/libexec/java_home -V
+
+- 如果JDK 21已安装，你可以使用**update-alternatives**来切换版本（如果系统上安装了多个JDK版本的话）： 
+sudo update-alternatives --config java 
+然后选择JDK 21。
+
+- 如果没有安装JDK 21，你需要安装它： brew install openjdk@21
+
+- 安装完成后，你可以设置JAVA_HOME环境变量指向JDK 21： export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+
+- 你可以通过运行以下命令来验证当前JDK版本： java -version

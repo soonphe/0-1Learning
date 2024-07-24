@@ -56,11 +56,12 @@ Res目录->New->Directory->创建Layout目录->New->Layout Resourcce file->将�
         android:text="Button 1"></Button>
 </LinearLayout>
 ``````
+```
 android: id 是唯一标识符，不允许重复
 android:layout_width 指定了当前元素 的宽度，这里使用 match_parent 表示让当前元素和父元素一样宽。
 android:layout_height 指定 了当前元素的高度，这里使用 wrap_content，表示当前元素的高度只要能刚好包含里面的内 容就行。
 android:text 指定了元素中显示的文字内容。
-
+```
 
 随后在Activity中加载这个布局，使用setcontentView给当前加载一个布局，一般方法是传入布局文件的id。
 项目添加的任何资源都会在R文件中生成一个布局文件的id，因此上述xml文件的id已经添加进入了，只需要引用即可。

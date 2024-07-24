@@ -28,6 +28,7 @@ views
 
 2、单文件组件标签的顺序
 约定格式：
+```
 <template>
 </template>
 <script>
@@ -36,9 +37,11 @@ export default {
 </script>
 <style>
 </style>
+```
 3、组件的引入
 建议统一使用大写驼峰的形式，好处就是形式统一，方便代码快速定位。
 反例：
+```
 <template>
     <title-bar></title-bar> 
 </template>
@@ -50,7 +53,9 @@ export default {
     }
 }
 </script>
+```
 好例子：
+```
 <template>
     <TitleBar></TitleBar>   
 </template>
@@ -62,6 +67,7 @@ export default {
     }
 }
 </script>
+```
 顺便可以将 TitleBar 组件的name属性也命名为"TitleBar" 方便全局代码查找。
 再啰嗦一句，som-ui 给的实例代码基本都是以横杆作为组件的命名，可以做个转换。
 <!--原来-->
@@ -79,6 +85,7 @@ export default {
 定义mixin.less
 
 在业务组件中使用
+```
 @import '~style/mixin';
 figcaption {
   .Height(48px);
@@ -86,24 +93,29 @@ figcaption {
   .centerBlock();
   .mLineEs(3);
 }
-
+```
 
 ### 四、静态资源的引入
 1、路径书写规范
 规定统一通过别名方式的路径引入，不推荐使用相对路径，如果是同一目录下可以接受。
 反例：
+```
 <img src="../../assets/img/brand.png" />
 .background-container {
     background-image: url(../../assets/img/brand.png);  
 }
+```
 好例子（定义路径别名）：
+```
 <img src="~assets/img/brand.png" />
 .background-container {
     background-image: url(~assets/img/brand.png);   
 }
+```
 2、文件的格式
 色值单一的图片文件，建议使用svg的格式。如果色彩比较丰富，就使用jpg格式，大小是视觉稿上显示的两倍。
 改下vue.config 的配置 让它可以支持将svg格式的文件转为base64。
+```
     chainWebpack: config => {
         const svgRule = config.module.rule('svg');
         svgRule.uses.clear();
@@ -120,19 +132,22 @@ figcaption {
                 }
             });
     }
-
+```
 
 ### 五、公共方法的使用
 1、高频方法
 推荐直接绑定在vue实例的原型上，方便全局直接调用，最常见的就是http的请求方法。
 反例：
+```
 // app.js
 import API from 'utils/api';
 ...
 API(params).then(()=>{
     ....
 })
+```
 好例子：
+```
 // main.js
 Vue.prototype.$api = function(){
     ....
@@ -141,8 +156,10 @@ Vue.prototype.$api = function(){
 this.$api(params).then(()=>{
     ....
 })
+```
 2、非高频方法
 建议使用模块的方式引入
+```
 // tools.js
 export function throttle(){
     ....
@@ -150,12 +167,14 @@ export function throttle(){
 export function timeFormat(){
     ....
 }
+```
+```
 //app.js
 import {throttle, timeFormat} from 'utils/tools';
 ...
 throttle();
 timeFormat();
-
+```
 
 ### 六、业务实践中的要点
 1、API 请求代码自动生成

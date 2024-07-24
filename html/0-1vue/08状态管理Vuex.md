@@ -51,11 +51,15 @@ var vmB = new Vue({
 ```
 
 ### 安装
+```
 <script src="/path/to/vue.js"></script>
 <script src="/path/to/vuex.js"></script>
+```
 
+```
 npm：
 npm install vuex --save
+```
 
 ### 开始
 每一个 Vuex 应用的核心就是 store（仓库）。“store”基本上就是一个容器，它包含着你的应用中大部分的状态 (state)。Vuex 和单纯的全局对象有以下两点不同：
@@ -114,11 +118,11 @@ methods: {
 ```
 
 ### 核心概念
-State：状态
-Getters：获取对象
-Mutations：变化
-Actions：动作
-Modules：模块
+- State：状态
+- Getters：获取对象
+- Mutations：变化
+- Actions：动作
+- Modules：模块
 
 #### state
 单一状态树
@@ -211,6 +215,7 @@ computed: {
 
 #### Getter
 Vuex 允许我们在 store 中定义“getter”（可以认为是 store 的计算属性）。就像计算属性一样，getter 的返回值会根据它的依赖被缓存起来，且只有当它的依赖值发生了改变才会被重新计算。
+
 Getter 接受 state 作为其第一个参数：
 ```
 const store = new Vuex.Store({
@@ -227,7 +232,8 @@ const store = new Vuex.Store({
   }
 })
 ```
-通过属性访问
+
+**通过属性访问**
 Getter 会暴露为 store.getters 对象，你可以以属性的形式访问这些值：
 ```
 store.getters.doneTodos // -> [{ id: 1, text: '...', done: true }]
@@ -257,7 +263,7 @@ getters: {
 store.getters.getTodoById(2) // -> { id: 2, text: '...', done: false }
 ```
 
-mapGetters 辅助函数
+**mapGetters 辅助函数**
 mapGetters 辅助函数仅仅是将 store 中的 getter 映射到局部计算属性：
 ```
 import { mapGetters } from 'vuex'
@@ -337,6 +343,7 @@ mutations: {
   }
 }
 ```
+
 Mutation 需遵守 Vue 的响应规则
 既然 Vuex 的 store 中的状态是响应式的，那么当我们变更状态时，监视状态的 Vue 组件也会自动更新。这也意味着 Vuex 中的 mutation 也需要与使用 Vue 一样遵守一些注意事项：
 1. 最好提前在你的 store 中初始化好所有所需属性。

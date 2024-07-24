@@ -233,8 +233,6 @@ If you have any questions, leave me a message and I will reply to the best of my
 
 
 ## Thanks for other people's open source projects
-好多项目都不开源了，这里有借鉴其他开源项目，本项目也会一直开源
->  [LearningNotes](https://github.com/francistao/LearningNotes "")
 
 
 ## license

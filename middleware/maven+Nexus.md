@@ -10,8 +10,9 @@
 - mvn clean	对项目进行清理，删除target目录下编译的内容
 - mvn compile	编译项目源代码
 - mvn test	对项目进行运行测试
-- mvn package	打包文件并存放到项目的target目录下，打包好的文件通常都是编译后的class文件
-- mvn install	在本地仓库生成仓库的安装包，可供其他项目引用，同时打包后的文件放到项目的target目录下
+- mvn package	在本地打包，但是本地maven仓库并没有这个新打的包,打包文件并存放到项目的target目录下，打包好的文件通常都是编译后的class文件
+- mvn install	不仅在本地打包，并且注入到了本地的maven仓库，在本地仓库生成仓库的安装包，可供其他项目引用，同时打包后的文件放到项目的target目录下
+- mvn clean deploy  在本地打包，且注入到本地maven仓库，而且并把这个新包注入了远程的maven仓库
 
 - 其他命令
 ```

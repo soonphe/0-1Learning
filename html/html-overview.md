@@ -10,8 +10,10 @@
 ### Ajax：
 Ajax：“Asynchronous JavaScript and XML”，翻译过来就是异步JavaScript和XML。
 要创建Ajax，主角是XMLHttpRequest（下简称XHR）对象。
+```
 第一步：创建XHR对象
 var xhr = new XMLHttpRequest();
+
 第二步：向服务器发送请求
 方法：open(method,url,async) 和 send(string)
 open()方法传入三参数
@@ -20,6 +22,7 @@ open()方法传入三参数
 • async：布尔值，true表示异步，false表示同步（可选，默认为true）
 1 xhr.open("GET","demo.asp?t=" + Math.random(),true);
 2 xhr.send();
+
 第三步：服务器响应
 XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形式的响应数据和XML形式的响应数据
 还有三个关于响应状态的属性也经常用到：
@@ -37,7 +40,7 @@ XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形�
 2     if (xhr.readyState == 4 && xhr.status == 200) {
 3     console.log(xhr.responseText);
 4 };
-
+```
 
 
 ### Icon
@@ -47,6 +50,7 @@ XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形�
 3. iconfont：几百个公司的开源图标库，还有各式各样的小图标，还支持自定义创建图标库
 
 **iconfont 三种使用姿势**
+```
 1.unicode
 第一步：引入自定义字体 `font-face 第二步：定义使用iconfont的样式 第三步：挑选相应图标并获取字体编码，应用于页面
 
@@ -69,10 +73,9 @@ XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形�
 <use xlink:href="#icon-xxx"></use>
 </svg>
 
-
 使用svg-sprite：引入 svg-sprite-loader
 svgo：清除svg中多余的东西
-
+```
 
 ### Content-Type几种值的区别及用法
 - application/json
@@ -150,34 +153,39 @@ import {Rate,Row,Button} from 'element-ui'
 
 
 ### 路由Router跳转携带参数
+```
 this.$router.push({
     // 由于动态路由也是传递params的，所以在 this.$router.push() 方法中 path不能和params一起使用，否则params将无效。需要用name来指定页面
     // path: ({path: '/advert/add', params: {typeList: this.typeList}}) 错误
     // 通过路由名称跳转，携带参数（已成功）
     // name: 'advertAdd', params: {typeList: this.typeList}
 });
-
+```
 接收：
+```
           this.listQuery.clueId = this.$route.query.clueId;
           this.listQuery.cpid = this.$route.query.cpid;
-          
+```       
 页面间传值：
+```
     // path: '/clue/detail', query: { clue: row }	//query方式页面刷新不丢失
     path: '/clue/detail', query: { clueId: row.id, cpid: row.cpid } //但无法支持对象不丢失
+```
 页面跳转携带参数还可以使用vuex
 
 
 ### public/index.html 初始页
-插值：
 因为 index 文件被用作模板，所以你可以使用 lodash template 语法插入内容：
+```
 <%= VALUE %> 用来做不转义插值；
 <%- VALUE %> 用来做 HTML 转义插值；
 <% expression %> 用来描述 JavaScript 流程控制。
 <link rel="icon" href="<%= BASE_URL %>favicon.ico">	//引用客户端环境变量
-
+```
 
 ### 指令
 v-bind——缩写：:，动态地绑定一个或多个特性，或一个组件 prop 到表达式。
+```
 <a v-bind:href="url" v-bind:class="klass">click me</a>
 <a :class="{active:isActive}">click me</a> //动态判断是否加载class
 <!-- prop 绑定。“prop”必须在 my-component 中声明。-->
@@ -196,37 +204,49 @@ components
 .lazy - 取代 input 监听 change 事件
 .number - 输入字符串转为有效的数字
 .trim - 输入首尾空格过滤
+```
 常用指令：v-text:v-html,v-show,v-if,v-else,v-for,v-slot,v-pre,v-cloak,v-once
 
 ### 特殊特性：
 key：虚拟 DOM 算法
 有相同父元素的子元素必须有独特的 key。重复的 key 会造成渲染错误。
 最常见的用例是结合 v-for：
+```
 <ul>
   <li v-for="item in items" :key="item.id">...</li>
 </ul>
+```
 
 ### ref：给元素或子组件注册引用信息
 引用信息将会注册在父组件的 $refs 对象上。
 如果在普通的 DOM 元素上使用，引用指向的就是 DOM 元素；
+```
 <!-- `vm.$refs.p` will be the DOM node -->
 <p ref="p">hello</p>
+```
 如果用在子组件上，引用就指向组件实例：
+```
 <!-- `vm.$refs.child` will be the child component instance -->
 <child-component ref="child"></child-component>
+```
 
 ### is：用于动态组件且基于 DOM 内模板的限制来工作。
+```
 <!-- 当 `currentView` 改变时，组件也跟着改变 -->
 <component v-bind:is="currentView"></component>
+```
 
 ### 内置组件：
+```
 component：渲染一个“元组件”为动态组件
 <!-- 动态组件由 vm 实例的属性值 `componentId` 控制 -->
 <component :is="componentId"></component>
+```
 
 ### transition：元素作为单个元素/组件的过渡效果
 Props：name (CSS 过渡类名,会自动拓展),mode离开/进入的过渡时间序列，例 "out-in" 和 "in-out"
 事件：before-enter，before-leave，before-appear，enter，leave，appear。。
+```
 <!-- 简单元素 -->
 <transition>
   <div v-if="ok">toggled content</div>
@@ -236,12 +256,13 @@ Props：name (CSS 过渡类名,会自动拓展),mode离开/进入的过渡时间
   <component :is="view"></component>
 </transition>
   <transition @after-enter="transitionComplete"> //事件钩子
+```
 
 ### transition-group：元素作为多个元素/组件的过渡效果
 Props：tag - string，默认为 span，哪个属性应该被渲染
 move-class - 覆盖移动过渡期间应用的 CSS 类。
-除了 mode，其他特性和 <transition> 相同。
-事件：事件和 <transition> 相同。
+除了 mode，其他特性和 `<transition>` 相同。
+事件：事件和 `<transition>` 相同。
 
 ### keep-alive：主要用于保留组件状态或避免重新渲染。
 
@@ -249,10 +270,12 @@ move-class - 覆盖移动过渡期间应用的 CSS 类。
 
 ### vue对路径@不识别问题：
 webstorm配置webpack引用路径
+```
 node_modules\@vue\cli-service\webpack.config.js
-
+```
 
 ### 组建注册与引用：components
+```
 Vue.component('命名'，{template,data等，注：这里自动使用new Vue(),所有省略了new}
 )
 
@@ -261,15 +284,20 @@ Vue.component('命名'，{template,data等，注：这里自动使用new Vue(),�
 Vue.component('todo-item', {
   template: '<li>这是个待办项</li>'
 })
+```
 
 ### 生命周期钩子
-craeted（创建），mounted（挂载），updated（更新），destoryed（销毁）
+
+created（创建），mounted（挂载），updated（更新），destoryed（销毁）
 例：
+```
   created: function () {
     // `this` 指向 vm 实例
     console.log('a is: ' + this.a)
   }
+```
 不要在选项属性或回调上使用箭头函数，
+
 比如 created: () => console.log(this.a) 或 vm.$watch('a', newValue => this.myMethod())。
 因为箭头函数是和父级上下文绑定在一起的，this 不会是如你所预期的 Vue 实例，
 经常导致 Uncaught TypeError: Cannot read property of undefined 或 Uncaught TypeError: this.myMethod is not a function 之类的错误。
@@ -278,11 +306,14 @@ craeted（创建），mounted（挂载），updated（更新），destoryed（�
 ### VueX
 两种方式可以操作存取：
 
-存对象：
+- 存对象：
+```
 import { mapActions } from 'vuex'
   methods: {
     ...mapActions(['saveAdvert', 'saveAdvertType', 'clearAdvert']),
-最后调用this.saveAdvertType(this.list)
+
+最后调用
+this.saveAdvertType(this.list)
 
 取对象：
 import { mapState } from 'vuex'	//这里的mapState 只用于获取值
@@ -292,8 +323,9 @@ import { mapState } from 'vuex'	//这里的mapState 只用于获取值
       // typeList: state => state.Advert.advertType
     })
   },
-
+```
 推荐使用方式：
+```
 存对象：
 this.$store.dispatch('advert/saveAdvert', this.list)
 this.$store.dispatch('app/toggleSideBar')	//无参
@@ -306,36 +338,44 @@ this.$store.dispatch('advert/saveAdvertType',this.typeList)	//有参
       'permission_routes',
       'sidebar'
     ]),
-
+```
 
 
 ### import Layout from '@/layout'
 这里是“@”相当于“../” 
 
 ### 获取环境信息：
+```
 process.env.VUE_APP_API_HOST,
+```
 
 ### registry源
+```
 npm下载源切换
 //npm修改为淘宝源
 npm config set registry https://registry.npm.taobao.org
 // 验证是否成功
 npm config get registry
+```
 
 ### data () {  与  data：  的区别：
+```
 data：如果多次引用统一组件，data中的值只有一份，一次改变就都改变，
 data（）使用返回值方法，每次调用都是新的返回值
+```
 
 ### 锚点
+```
 @change="goAnchor"
 
 跳跃：
 goAnchor(){
 this.$el.querySelector('#table'+this.tabPosition).scrollIntoView();
 },
-
+```
 
 ### filters（变换状态等）
+```
 组件内声明过滤器：
     filters: {
         statusFilter(status) {
@@ -356,9 +396,10 @@ this.$el.querySelector('#table'+this.tabPosition).scrollIntoView();
 注：
 {{ msg | filter('arg1','arg2') }}
 // msg对应函数中的第一个参数data，arg1为第二个参数，类推
-
+```
 
 ### formatter（变换状态等）
+```
 method中定义：
         typeFormat(row, column) {
             if (row.state === 0) {
@@ -373,11 +414,13 @@ method中定义：
 <el-table-column prop="state" label="状态" align="center" :formatter="typeFormat">
 </el-table-column>
 注：el-table-column中不用写template
-
+```
 
 if-else判断显示：
+```
 <span v-if="scope.row.state === 0">未审核</span>
 <span v-else-if="scope.row.state === 1">审核未通过</span>
+```
 
 也可以使用foreach循环匹配
 ```

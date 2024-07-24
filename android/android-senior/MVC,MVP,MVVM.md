@@ -1,8 +1,6 @@
-#MVC,MVP,MVVM的区别
----
+## MVC,MVP,MVVM
 
-
-#MVC
+### MVC
 软件可以分为三部分
 
 * 视图（View）:用户界面
@@ -17,31 +15,26 @@
 
 Tips：所有的通信都是单向的。
 
-#互动模式
-接受用户指令时，MVC可以分为两种方式。一种是通过View接受指令，传递给Controller。
+互动模式: 接受用户指令时，MVC可以分为两种方式。
+- 一种是通过View接受指令，传递给Controller。
+- 另一种是直接通过Controller接受指令
 
-另一种是直接通过Controller接受指令
 
-
-#MVP
-
+### MVP
 MVP模式将Controller改名为Presenter，同时改变了通信方向。
 
 1. 各部分之间的通信，都是双向的
 2. View和Model不发生联系，都通过Presenter传递
 3. View非常薄，不部署任何业务逻辑，称为"被动视图"(Passive View)，即没有任何主动性，而Presenter非常厚，所有逻辑都部署在那里。
 
-###为什么需要MVP
-
+#### 为什么需要MVP
 1. 尽量简单
 	大部分的安卓应用只使用View-Model结构,程序员现在更多的是和复杂的View打交道而不是解决业务逻辑。当你在应用中只使用Model-View时，到最后，你会发现“所有的事物都被连接到一起”。复杂的任务被分成细小的任务，并且很容易解决。越小的东西，bug越少，越容易debug，更好测试。在MVP模式下的View层将会变得简单，所以即便是他请求数据的时候也不需要回调函数。View逻辑变成十分直接。
 2. 后台任务
 	当你编写一个Actviity、Fragment、自定义View的时候，你会把所有的和后台任务相关的方法写在一个静态类或者外部类中。这样，你的Task不再和Activity联系在一起，这既不会导致内存泄露，也不依赖于Activity的重建。
 	
-###优缺点
-
+#### MVP优缺点
 优点：
-
 1. 降低耦合度，实现了Model和View真正的完全分离，可以修改View而不影响Modle
 2. 模块职责划分明显，层次清晰
 3. 隐藏数据
@@ -51,13 +44,12 @@ MVP模式将Controller改名为Presenter，同时改变了通信方向。
 7. 代码灵活性
 
 缺点：
-
 1. Presenter中除了应用逻辑以外，还有大量的View->Model，Model->View的手动同步逻辑，造成Presenter比较笨重，维护起来会比较困难。
 2. 由于对视图的渲染放在了Presenter中，所以视图和Presenter的交互会过于频繁。
 3. 如果Presenter过多地渲染了视图，往往会使得它与特定的视图的联系过于紧密。一旦视图需要变更，那么Presenter也需要变更了。
 4. 额外的代码复杂度及学习成本。
 
-**在MVP模式里通常包含4个要素：**
+#### 在MVP模式里通常包含4个要素:
 
 1. View :负责绘制UI元素、与用户进行交互(在Android中体现为Activity);
 2. View interface :需要View实现的接口，View通过View interface与Presenter进行交互，降低耦合，方便进行单元测试;
@@ -65,7 +57,7 @@ MVP模式将Controller改名为Presenter，同时改变了通信方向。
 4. Presenter :作为View与Model交互的中间纽带，处理与用户交互的负责逻辑。
 
 
-#MVVM
+### MVVM
 
 MVVM模式将Presenter改名为ViewModel，基本上与MVP模式完全一致。
 
