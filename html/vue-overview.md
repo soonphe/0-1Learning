@@ -163,6 +163,8 @@ npm切换淘宝源：npm config set registry http://registry.npm.taobao.org
 npm切换华为云：npm config set registry https://mirrors.huaweicloud.com/repository/npm/
 npm恢复官方源：npm set registry https://registry.npmjs.org/
 
+npm taobao镜像源已过期 切换新源：npm config set registry https://registry.npmmirror.com
+
 npm临时切换下载源：npm install node-sass --registry=http://registry.npm.taobao.org
 
 淘宝镜像原地址2024年1月22日已过期
@@ -746,3 +748,29 @@ ref 被用来给元素或子组件注册引用信息。引用信息将会注册�
 overflow-y: auto;
 max-height: 100%;
 
+
+### vue状态管理大菠萝：Pinia
+```
+"pinia": "^2.0.34",
+/* 创建pinia */
+const pinia = createPinia()
+const app = createApp(App)
+
+/* 使用插件 */{}
+app.use(pinia)
+```
+它有三个概念：state、getter、action，相当于组件中的： data、 computed 和 methods
+
+### Vue 和 Electron：开发跨平台桌面应用 
+Vue.js是一套用于构建用户界面的渐进式JavaScript框架
+Electron是一个使用JavaScript、HTML和CSS构建跨平台桌面应用的开源框架。它将Chromium和Node.js引擎组合在一起，使得你可以使用Web技术构建原生应用。Electron支持Windows、macOS和Linux等多个平台。
+参考文档：https://blog.csdn.net/qq_37460847/article/details/126918641
+
+### Vite：（下一代的前端构建工具）
+Vite是尤雨溪团队开发的，官方称是下一代新型前端构建工具，能够显著提升前端开发体验。
+上面称是下一代，当前一代当然是我们熟悉的webpack
+Vite 优势
+* 开发环境中，无需打包操作，可快速的冷启动。
+* 轻量快速的热重载（HMR）。
+* 真正的按需编译，不再等待整个应用编译完成。
+  Vite 官网：https://cn.vitejs.dev/

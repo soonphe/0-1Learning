@@ -581,6 +581,91 @@ final方法，获得运行时类型。
 9．notifyAll方法
 该方法唤醒在该对象上等待的所有线程。
 
+### java 缩略图
+```
+<!-- 缩略图 -->
+<dependency>
+	<groupId>net.coobird</groupId>
+	<artifactId>thumbnailator</artifactId>
+	<version>0.4.14</version>
+</dependency>
+
+代码：
+ByteArrayOutputStream stream = new ByteArrayOutputStream();
+Thumbnails.of(new InputStream[]{is}).imageType(2).scalingMode(ScalingMode.PROGRESSIVE_BILINEAR).size(width, high).toOutputStream(stream);
+```
+
+### nginx限制文件上传大小
+Nginx 默认的最大上传文件大小限制是1MB。如果你需要更改这个限制，你需要在 Nginx 配置文件中设置 client_max_body_size 指令。
+client_max_body_size 100M;
+
+### springboot限制文件上传大小
+spring:
+servlet:
+multipart:
+max-file-size: 100MB
+max-request-size: 100MB
+
+### tcp不间断重连(参考文档：https://blog.csdn.net/qq_41142992/article/details/139408581)（并未解决）
+ubuntu 设置open files
+临时生效：		ulimit -n 65535
+永久设置（会在重启后保留）：
+编辑/etc/security/limits.conf文件，并添加或修改以下行：
+* soft nofile 65535
+* hard nofile 65535
+修改/etc/pam.d/common-session和/etc/pam.d/common-session-noninteractive文件，添加以下行：
+session required pam_limits.so
+重启系统
+
+查看指定端口tcp连接信息（tcpdump tcp port 80）
+
+### 文件返回
+```
+// 设置响应的内容类型（根据你的文件类型设置）
+response.setContentType("text/plain");
+// 设置响应头，以告诉浏览器这是一个附件，应该被下载而不是显示
+String fileName = "file.txt"; // 客户端将看到的文件名
+response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+// 读取文件并写入到输出流中
+try (FileInputStream inputStream = new FileInputStream(filePath);
+ServletOutputStream outputStream = response.getOutputStream()) {
+
+        byte[] buffer = new byte[4096]; // 缓冲区大小
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        // 输出流在try-with-resources块结束时会自动关闭
+    } catch (FileNotFoundException e) {
+        // 处理文件未找到的情况
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+```
+首先设置响应的内容类型（对于文本文件，通常是text/plain），
+然后设置Content-Disposition响应头，以告诉浏览器这是一个应该被下载的附件。
+我们使用FileInputStream来读取文件的内容，并将其写入到ServletOutputStream中。
+我们使用了一个缓冲区来提高效率，并在循环中读取和写入数据，直到文件的所有内容都被发送。最后，当try-with-resources块结束时，ServletOutputStream和FileInputStream都会自动关闭。
+
+
+### SpringData
+Spring Data : Spring 的一个子项目。用于简化数据库访问，支持NoSQL 和 关系数据存储。其主要目标是使数据库的访问变得方便快捷。
+- SpringData 项目所支持 NoSQL 存储：
+  - MongoDB （文档数据库）
+  - Neo4j（图形数据库）
+  - Redis（键/值存储）
+  - Hbase（列族数据库）
+- SpringData 项目所支持的关系数据存储技术：
+  - JDBC
+  - JPA
+
+Spring Data中用到的分页：
+```
+Ipage分页
+pagehelp分页
+springData分页
+Pageablepageable=PageRequest.of(pageNUmber,pageSize);
+```
 
 ### Java相关问题
 ```

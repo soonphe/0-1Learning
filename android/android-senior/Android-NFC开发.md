@@ -5,7 +5,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## Andorid NFC开发
+## Android NFC开发
 
 1.NFC的工作模式
 NFC支持如下3种工作模式：读卡器模式（Reader/writer mode）、仿真卡模式(Card Emulation Mode)、点对点模式（P2P mode）。
@@ -20,14 +20,13 @@ NFC支持如下3种工作模式：读卡器模式（Reader/writer mode）、仿�
 该模式与蓝牙、红外差不多，用于不同NFC设备之间进行数据交换
 
 一、NFC的配置总结
-第一：屏幕没有锁住 。     第二：NFC功能已经在设置中打开
+第一：屏幕没有锁住 。     
+第二：NFC功能已经在设置中打开
 当系统检测到一个NFC标签的时候，他会自动去寻找最合适的activity去处理这个intent.
 NFC发出的这个Intent将会有三种action:
-ACTION_NDEF_DISCOVERED:当系统检测到tag中含有NDEF格式的数据时，且系统中有activity声明可以接受包含NDEF数据的Intent的时候，系统会优先发出这个action的intent。
-
-ACTION_TECH_DISCOVERED：当没有任何一个activity声明自己可以响应ACTION_NDEF_DISCOVERED时，系统会尝试发出TECH的intent.即便你的tag中所包含的数据是NDEF的，但是如果这个数据的MIMEtype或URI不能和任何一个activity所声明的想吻合，系统也一样会尝试发出tech格式的intent，而不是NDEF.
-
-ACTION_TAG_DISCOVERED:当系统发现前两个intent在系统中无人会接受的时候，就只好发这个默认的TAG类型的
+- ACTION_NDEF_DISCOVERED:当系统检测到tag中含有NDEF格式的数据时，且系统中有activity声明可以接受包含NDEF数据的Intent的时候，系统会优先发出这个action的intent。
+- ACTION_TECH_DISCOVERED：当没有任何一个activity声明自己可以响应ACTION_NDEF_DISCOVERED时，系统会尝试发出TECH的intent.即便你的tag中所包含的数据是NDEF的，但是如果这个数据的MIMEtype或URI不能和任何一个activity所声明的想吻合，系统也一样会尝试发出tech格式的intent，而不是NDEF.
+- ACTION_TAG_DISCOVERED:当系统发现前两个intent在系统中无人会接受的时候，就只好发这个默认的TAG类型的
 ——————————————————————————————————————————————————————————————
 NDEF格式其实就类似于硬盘的NTFS，下面我们看一下NDEF数据：
 

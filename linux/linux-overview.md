@@ -98,9 +98,7 @@ ssh root@目标IP
   systemctl restart sshd.service
 
 
-### 
-**进程和线程**
-
+### 进程与线程
 关系：
 
 一个进程可以创建和撤销另一个线程，同一个进程中的线程可以并发执行。

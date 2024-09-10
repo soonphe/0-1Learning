@@ -254,6 +254,78 @@ public class Test {
 }
 ```
 
+### Kotlin 特殊符号的用法：双感叹号!!，问号?，双冒号::
+
+- 双问号??用法
+   在Kotlin中!!跟?都是用于判断空参数异常的。?.意思是这个参数可以为空,并且程序继续运行下去，!!.的意思是这个参数如果为空,就抛出异常。
+```
+在Kotlin中
+
+val nullClass: NullClass? = null
+nullClass?.nullFun()
+
+翻译成Java
+
+NullClass nullClass = null;
+        
+if (nullClass!=null) {
+    ullClass.nullFun();
+}
+```
+在一开始的时候我们声明了一个类,并且在类名后面加了一个? 意思就是这个类可以为空,然后在下面用到这个类里面的一个方法时又加了一个问号,意思就是,当程序运行到这一行时,如果这个参数为空,就跳过这一行,程序继续执行下去。
+所以?.的用法就是相当于Java里的if()判断null。
+一般?.的用法是：在新建一个参数的类名后面加一个? 表示这个参数可以为空。还有就是在用到这个参数的时候后面加? 表示空参数就跳过并且程序继续执行。
+
+- 双感叹号!!只用于用到这个参数的时候在后面加!!,表示空参数就抛出异常。
+```
+在Kotlin中
+
+val nullClass: NullClass?=null
+nullClass!!.nullFun()
+翻译成Java
+
+NullClass nullClass = null;
+        
+if (nullClass!=null) {
+    nullClass.nullFun();
+}else {
+    throw new NullPointerException();
+}
+```
+在第二行参数后面加个!!,意思就是当程序执行到这行,判断这个参数如果是空参数,就抛出异常。
+
+所以!!.的用法就是相当于Java里的if()else()判断null。
+
+- 双冒号::
+   Kotlin 中双冒号操作符表示把一个方法当做一个参数，传递到另一个方法中进行使用，通俗的来讲就是引用一个方法。先来看一下例子：
+```
+fun main(args: Array<String>) {
+    println(lock("param1", "param2", ::getResult))
+}
+
+/**
+ * @param str1 参数1
+ * @param str2 参数2
+ */
+fun getResult(str1: String, str2: String): String = "result is {$str1 , $str2}"
+
+/**
+ * @param p1 参数1
+ * @param p2 参数2
+ * @param method 方法名称
+ */
+fun lock(p1: String, p2: String, method: (str1: String, str2: String) -> String): String {
+    return method(p1, p2)
+}
+```
+
+
+### kotlin中val和var
+- var：kotlin我们可以在变量前使用var关键字来替换变量的具体类型。
+- val：与var相似的一个关键字是val，其用来声明常量，赋值后不能再进行修改。
+
+
+
 
 
 

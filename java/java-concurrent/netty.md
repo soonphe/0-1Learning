@@ -142,14 +142,54 @@ public class SocketInitializer extends ChannelInitializer<SocketChannel> {
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline pipeline = socketChannel.pipeline();
         // 添加对byte数组的编解码，netty提供了很多编解码器，你们可以根据需要选择
+        // 将JSON对象和数组的字节流拆分为单独的对象/数组，并将其传递到ChannelPipeline
         pipeline.addLast(new JsonObjectDecoder());
         pipeline.addLast(new StringDecoder());
         pipeline.addLast(new StringEncoder());
+        //对请求的字符串应用行分隔符，并将其编码为ByteBuf
         pipeline.addLast(new LineEncoder());
         // 添加上自己的处理器
         pipeline.addLast(socketHandler);
     }
 }
+```
+关于netty解码器：
+抽象解码器
+- ByteToMessageDecoder: 用于将字节转为消息，需要检查缓冲区是否有足够的字节,用于将接收到的二进制数据(Byte)解码，得到完整的请求报文(Message)。
+- ReplayingDecoder: 继承ByteToMessageDecoder，不需要检查缓冲区是否有足够的字节,但是 ReplayingDecoder速度略慢于ByteToMessageDecoder,同时不是所有的ByteBuf都支持。
+  - 选择：项目复杂性高则使用ReplayingDecoder，否则使用 ByteToMessageDecoder
+  - ReplayingDecoder是byte-to-message解码的一种特殊的抽象基类，byte-to-message解码读取缓冲区的数据之前需要检查缓冲区是否有足够的字节，使用
+  - ReplayingDecoder就无需自己检查；若ByteBuf中有足够的字节，则会正常读取；若没有足够的字节则会停止解码。
+  - 也正因为这样的包装使得ReplayingDecoder带有一定的局限性。
+    1. 不是所有的操作都被ByteBuf支持，如果调用一个不支持的操作会抛出DecoderException。
+    2. ByteBuf.readableBytes()大部分时间不会返回期望值
+- MessageToMessageDecoder: 用于从一种消息解码为另外一种消息（例如POJO到POJO）
+  - ByteToMessageDecoder是将二进制流进行解码后，得到有效报文。而MessageToMessageDecoder则是将一个本身就包含完整报文信息的对象转换成另一个Java对象。
+  - 举例: 前面介绍了ByteToMessageDecoder的部分子类解码后，会直接将包含了报文完整信息的ByteBuf实例交由之后的ChannelInboundHandler处理，此时，你可以在ChannelPipeline中，再添加一个MessageToMessageDecoder，将ByteBuf中的信息解析后封装到Java对象中，简化之后的ChannelInboundHandler的操作
+
+ByteToMessageDecoder提供的一些常见的实现类：
+```
+FixedLengthFrameDecoder：定长协议解码器，我们可以指定固定的字节数算一个完整的报文
+LineBasedFrameDecoder：  行分隔符解码器，遇到\n或者\r\n，则认为是一个完整的报文
+DelimiterBasedFrameDecoder：    分隔符解码器，与LineBasedFrameDecoder类似，只不过分隔符可以自己指定
+LengthFieldBasedFrameDecoder：长度编码解码器，将报文划分为报文头/报文体，根据报文头中的Length字段确定报文体的长度，因此报文提的长度是可变的
+JsonObjectDecoder：json格式解码器，当检测到匹配数量的"{" 、”}”或”[””]”时，则认为是一个完整的json对象或者json数组。
+```
+
+关于MessageToMessageDecoder：
+```
+MessageToMessageDecoder的类声明如下：
+/**
+  * 其中泛型参数I表示我们要解码的消息类型。例前面，我们在ToIntegerDecoder中，把二进制字节流转换成了一个int类型的整数。
+  */
+public abstract class MessageToMessageDecoder<I> extends ChannelInboundHandlerAdapter
+
+类似的，MessageToMessageDecoder也有一个decode方法需要覆盖 ，如下：
+/**
+* 参数msg，需要进行解码的参数。例如ByteToMessageDecoder解码后的得到的包含完整报文信息ByteBuf
+* List<Object> out参数：将msg经过解析后得到的java对象，添加到放到List<Object> out中
+*/
+protected abstract void decode(ChannelHandlerContext ctx, I msg, List<Object> out) throws Exception;
 ```
 
 定义Socket服务端

@@ -533,8 +533,18 @@ sudo chown -R _www:_www /Users/luoxiaosheng/upload/
 [~]$ less /usr/local/var/log/nginx/error.log   
 [~]$ vim /usr/local/etc/nginx/nginx.conf    
 [~]$ sudo nginx -s reload
-```     
+```
 
+### nginx与Haproxy
+Nginx：
+* 多功能：Nginx不仅是一款优秀的负载均衡器，还能够作为高性能的Web服务器、反向代理服务器以及缓存服务器使用。
+* 配置结构：采用类似编程语言的配置风格，具有清晰的文档结构，易于理解和维护。
+* 扩展性：虽然其开源版本提供了丰富的基础功能，但若需要更高级的功能（如会话保持、健康检查等），可能需要借助第三方模块或购买商业版Nginx Plus。
+
+Haproxy：
+* 专注负载均衡：Haproxy专精于负载均衡任务，尤其擅长处理HTTP协议，且性能优异。
+* 配置方式：采用命令式配置结构，定义和引用的方式可能需要一定的学习曲线，但对于特定负载均衡任务可能更为直接。
+* 内置功能：官方版本即支持会话保持、健康检查、多种负载均衡策略等，基础功能覆盖全面，但在扩展性上相比Nginx可能稍显不足，第三方资源相对较少。
   
   
 

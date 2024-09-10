@@ -8,30 +8,22 @@ ffmpeg相关依赖（会自动下载）
 
 ### FFmpeg静态库
 - libavformat:用于各种音视频封装格式的生成和解析。
-libavutil:核心工具库，做一些基本音视频处理操作。
-libavcodec:音视频各种格式的编解码。
-libswscale:图像进行格式转换模块。
-libavfilter:音视频滤镜库。
-libpostproc:后期处理模块。
-libswresample:用于音频重采样。
-libadvice:用于硬件的音视频采集。
-libavresample:这个是老版本下编译出来，新版本用libswresample代替。
+- libavutil:核心工具库，做一些基本音视频处理操作。
+- libavcodec:音视频各种格式的编解码。
+- libswscale:图像进行格式转换模块。
+- libavfilter:音视频滤镜库。
+- libpostproc:后期处理模块。
+- libswresample:用于音频重采样。
+- libadvice:用于硬件的音视频采集。
+- libavresample:这个是老版本下编译出来，新版本用libswresample代替。
 
 可执行文件：
-1.ffmpeg 用于转码、推流、dump媒体文件
-2.ffplay 用于播放媒体文件
-3.ffprobe 用于获取媒体文件信息
-4.ffserver 用于简单流媒体服务器
+1. ffmpeg 用于转码、推流、dump媒体文件
+2. ffplay 用于播放媒体文件
+3. ffprobe 用于获取媒体文件信息
+4. ffserver 用于简单流媒体服务器
 
-### FFmpeg 常用命令
-**ffprobe常用命令**
-- ffprobe 文件名：查看音频视频文件信息
-- ffprobe -show_format 文件名 ：查看文件的输出格式信息，时间长度，文件大小，比特率，流数目等。
-- ffprobe -print_format json -show_streams 文件名：以json格式输出详细信息
-- ffprobe -show_frames 文件名：显示帧信息
-- ffprobe -show_packets 文件名：查看包信息
-
-**ffplay常用命令**
+### ffplay常用命令
 - ffplay 文件名 ：播放音频、视频文件
 - ffplay 文件名 -loop 10 ：循环播放文件10次
 - ffplay 文件名 -ast 1 ：播放视频第一路音频流 参数如果是2 就是第二路音频流 如果没有就会静音。
@@ -43,16 +35,39 @@ libavresample:这个是老版本下编译出来，新版本用libswresample代�
 - ffplay 文件名 -sync video ：指定ffplay使用视频为基准进行音视频同步
 - ffplay 文件名 -ext video ：指定ffplay使用外部时钟为基准进行音视频同步
 
-**ffmpeg常用命令**
+### ffprobe常用命令
+- ffprobe 文件名：查看音频视频文件信息
+- ffprobe -show_format 文件名 ：查看文件的输出格式信息，时间长度，文件大小，比特率，流数目等。
+- ffprobe -print_format json -show_streams 文件名：以json格式输出详细信息
+- ffprobe -show_frames 文件名：显示帧信息
+- ffprobe -show_packets 文件名：查看包信息
+
+### ffmpeg常用命令
 - ffmpeg -formats ：列出ffmpeg支持的所有格式
-- ffmpeg -i 输入文件 -ss 00:00:50.0 -codec copy -t 20 输出文件名：剪切一段媒体文件
--i 指定输入文件
--ss 从指定时间开始
--codec 强制使用codec编解码方式 copy代表不进行重新编码
--t 指定时长 秒
+- ffmpeg -i input.mp4 -ss 00:00:50.0 -codec copy -t 20 output.mp4：剪切一段媒体文件
 - ffmpeg -i input.mp4 -t 00:00:50 -c copy small-1.mp4 -ss 00:00:50 -codec copy small-2.mp4 ：将一个时间比较长的视频文件切割为多个文件
 - ffmpeg -i input.mp4 -vn -acodec copy output.m4a：提取一个视频文件中的音频文件（-vn 取消视频输出 -acodec 指定音频编码 copy代表不进行重新编码）
 - ffmpeg -i input.mp4 -an -vcodec copy output.mp4：使一个视频中的音频静音，只保留视频（-an 取消音频输出 -vcodec 指定视频编码 copy代表不进行重新编码）
+- ffmpeg -i input.mp4 -vn -codec:a libmp3lame -q:a 4 output.mp3            提取视频文件为MP3
+- ffmpeg -i input.mp4 -vn -c:a aac -b:a 192k output.m4a             提取视频文件为m4a
+- ffmpeg -i input.mp3 -ss 00:00:00 -t 5 -acodec copy output.mp3           将音频音频从指定位置剪辑5秒输出
+
+参数解析：
+```
+-i 指定输入文件
+-ss 从指定时间开始
+-vn: 表示不包含视频流（即仅提取音频）。
+-codec:a libmp3lame: 指定输出音频编码器为 libmp3lame，这是 MP3 编码。
+-q:a 4: 音频质量设置，范围从 0（最好）到 5（最差），通常使用范围在 0 到 9。
+-c:a aac 指定输出音频编码为AAC。
+-b:a 192k 设置音频比特率为192k。
+
+-codec 强制使用codec编解码方式 copy代表不进行重新编码
+-acodec copy 表示复制音频编码流。
+-t 指定时长 秒
+-output.mp3: 输出文件的名称，这里是转换后的 MP3 文件。
+```
+
 - ffmpeg -i output.mp4 -an -vcodec copy -bsf:v h264_mp4toannexb output.h264 ：视频数据使用h264_mp4toannexb这个bitstream filter来转换为原始的H264数据。 从mp4文件中抽取视频流导出为裸H264数据
 - ffmpeg -i test.aac -i test.h264 -acodec copy -bsf:a aac_adtstoasc -vcodec copy -f mp4 output.mp4：使用aac音频数据和H264的视频生成MP4文件（-f 指定输出格式）
 - ffmpeg -i input.wav -acodec libfdk_aac output.aac ：对音频文件的编码格式做转换
@@ -85,6 +100,78 @@ libavresample:这个是老版本下编译出来，新版本用libswresample代�
 - ffplay -f dshow -i video="Integrated Camera"：使用前置摄像头进行捕捉画面
 
 
+### 推流的几种方式
+```
+RTMP
+rtmp://xxx/static-train-simulator/20240418489545_in
+FLV
+http://xxx:1360/static-train-simulator/20240418489545_in.flv
+HLS
+http://xxx:1240/static-train-simulator/20240418489545_in.m3u8
+WebRTC
+webrtc://xxx:1240/static-train-simulator/20240418489545_in
+```
+
+flv本地文件推流推流
+- ffmpeg -re -i ipnut.mp4 -acodec copy -vcodec copy -f flv rtmp://xxx
+- ffmpeg -stream_loop -1 -re -i input.mp4 -c copy -f flv  rtmp://192.168.1.232:1935/http_flv/stream_key
+- ffmpeg -re -i input.MP4 -c:v libx264 -preset veryfast -maxrate 3000k -bufsize 6000k -pix_fmt yuv420p -g 50 -c:a aac -b:a 160k -ar 44100 -ac 2 -f flv rtmp://xxx:2045/static-train-simulator/20240328093947_in
+
+flv读取摄像头并推流：（未验证）
+- ffmpeg -f v4l2 -framerate 30 -video_size 1280x720 -i /dev/video0 -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 2000k -pix_fmt yuv420p -g 50 -f flv rtmp://yourserver/live/stream_key
+- ffmpeg -f dshow -i video="Integrated Camera":audio="麦克风阵列 (Synaptics SmartAudio HD)" -vcodec libx264 -acodec copy -preset:v ultrafast -tune:v zerolatency -f flv "rtmp://192.168.20.107:1935/live/home"
+
+hls切片
+- ffmpeg -re -i input.mp4 -c:v libx264 -c:a aac -strict -2 -f hls -hls_list_size 0 -hls_time 5 /Users/luoxiaosheng/Downloads/ts/test.m3u8
+hls切片+推流
+- ffmpeg -re -i input.mp4 -c:v libx264 -c:a aac -strict experimental -b:a 128k -b:v 256k -f hls -hls_time 10 output.m3u8
+
+参数：
+```
+stream_loop -1 表示循环推本地mp4文件
+-re 按原始帧率读取
+-c:v libx264：视频编码器使用libx264。
+-preset veryfast：使用快速编码预设。
+-maxrate 1000k：视频编码最大码率。
+-bufsize 2000k：码率控制缓冲区大小。
+-pix_fmt yuv420p：像素格式。
+-g 50：I帧间隔。
+-c:a aac：音频编码器使用AAC。
+-b:a 160k：音频编码比特率。
+-ar 44100：音频采样率。
+-ac 2：音频通道数。
+-f flv：输出格式为FLV，FLV是一种流媒体格式，常用于RTMP推流
+rtmp://yourserver/live/stream：RTMP输出地址。
+
+-f v4l2: 指定输入格式为v4l2，即Video4Linux2，通常用于访问Linux系统上的摄像头。
+-framerate 30: 设置帧率为30。
+-i /dev/video0: 指定输入设备，通常是摄像头的文件路径。
+
+- hls time n: 设置每片的长度，默认值为2。单位为秒
+- hls list size n:设置播放列表保存的最多条目，设置为0会保存有所片信息，默认值为5
+- his wrap n设置多少片之后开始覆盖，如果设置为0则不会覆盖，默认值为0.,这个选项能够避免在磁盘上存储过多的片，而且能够限制写入磁盘的最多的片的数量
+- hls start number n:设置播放列表中sequence number的值为number，默认值为0
+```
+
+M3U8文件是指UTF-8编码格式的M3U文件。M3U文件是记录了一个索引纯文本文件，打开它时播放软件并不是播放它，而是根据它的索引找到对应的音视频文件的网络地址进行在线播放。
+TS（Transport Stream，传输流）是一种封装的格式，它的全称为MPEG2-TS。主要应用于数字广播系统，比如DVB、ATSC与IPTV。传输流最初是为广播而设计的。后来，通过在标准的188字节数据包中添加4字节的时间码（TC），从而使该数据包成为192字节的数据包，使其适用于数码摄像机，录像机和播放器。
+
+m3u8 文件其实是 HTTP Live Streaming（缩写为 HLS） 协议的部分内容，而 HLS 是一个由苹果公司提出的基于 HTTP 的流媒体网络传输协议
+简而言之，HLS 是新一代流媒体传输协议，其基本实现原理为将一个大的媒体文件进行分片，将该分片文件资源路径记录于 m3u8 文件（即 playlist）内，其中附带一些额外描述（比如该资源的多带宽信息···）用于提供给客户端。客户端依据该 m3u8 文件即可获取对应的媒体资源，进行播放。
+
+m3u8文件：
+```
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:8
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:8.333333,
+test0.ts
+#EXTINF:3.533333,
+test1.ts
+#EXT-X-ENDLIST
+```
+
 ### 推流格式说明
 > RTSP （Real-Time Stream Protocol）由Real Networks 和 Netscape共同提出的，基于文本的多媒体播放控制协议。RTSP定义流格式，流数据经由RTP传输；RTSP实时效果非常好，适合视频聊天，视频监控等方向。一般摄像头都是RTSP格式的。h5原生不支持这种格式。优点，可以控制到视频帧，因此可以承载实时性很高的应用。这个优点是相对于HTTP方式的最大优点。复杂度主要集中在服务器端，可以进行倍速播放功能，其他视频协议都无法支持。 网络延时低，一般在0.5S以内；缺点，就是服务器端的复杂度也比较高，实现起来也比较复杂。ios端不支持该协议，对移动端支持较弱；除了 Firefox 浏览器可以直接播放 RTSP 流之外,几乎没有其他浏览器可以直接播放 RTSP 流。RTSP协议，此协议和RTMP效果差不多，在技术上只是区别于传输数据上占用多少通道、传输格式流不太一样而已，RTSP其实也可以用于直播。但依然是因为市场环境，RTSP目前主要应用在安防监控上，和RTMP一样，早已形成了自己的盈利链
 
@@ -109,34 +196,7 @@ libavresample:这个是老版本下编译出来，新版本用libswresample代�
 - 方案一：Nginx添加模块nginx-rtmp-module
 - 方案二：Nginx添加模块http-flv-module
 
-nginx-http-flv-module是基于nginx-rtmp-module 的流媒体服务器。它具备了所有nginx-rtmp-module的功能，并且新增多种新功能，功能对比如下。详见https://github.com/winshining/nginx-http-flv-module
-
-nginx添加模块编译
-```
-// 下载nginx
-# mkdir -p /root/nginx
-# cd /root/nginx
-# yum -y install pcre-devel openssl openssl-devel        //安装依赖
-# wget http://nginx.org/download/nginx-1.21.6.tar.gz        //下载nginx包
-# tar xf nginx-1.21.6.tar.gz
-//下载nginx-http-flv-module
-# mkdir -p /opt/nginx-1.21.6/module
-# cd /opt/nginx-1.21.6/module
-# wget https://github.com/winshining/nginx-http-flv-module/archive/refs/heads/master.zip
-# unzip master.zip
-# cd /root/nginx/nginx-1.21.6
-//安装目录是/opt/nginx-1.21.6，安装模块nginx-http-flv-module-master【重点就是这个】和ssl用于日后配置https证书
-# ./configure --prefix=/opt/nginx-1.21.6 --add-module=/opt/nginx-1.21.6/module/nginx-http-flv-module-master --with-http_ssl_module 
-# make
-# make install // 如果你是热部署升级，一定不要执行这个命令
-// 修改nginx配置文件 避免粘贴过来格式混乱，在 Vim 视图，输入如下命令:set paste，可以使 vim 进入 paste 模式，这时候再整段复制黏贴，就OK了
-# vim /opt/nginx-1.21.6/conf/nginx.conf
-//修改完成，检查nginx配置文件是否正确，启动nginx 即可,记得开放防火墙、安全组端口1935 和88
-# cd /opt/nginx-1.21.6/sbin
-# ./nginx -t
-# ./nginx 
-```
-
+nginx-http-flv-module是基于nginx-rtmp-module 的流媒体服务器。 它具备了所有nginx-rtmp-module的功能，并且新增多种新功能，功能对比如下。详见https://github.com/winshining/nginx-http-flv-module
 ```
 #增加如下配置即可
 # 推流时会发布到多个子进程
@@ -205,45 +265,48 @@ http {
 }
 ```
 
-### 推流
-方案一：根据本次项目需要推送windows上位机屏幕数据流到云端，因此采取OBS推流
-1. 下载OBS-Studio-26.0.2-Full-Installer-x64.exe，安装在windows上位机
-2. 运行软件点击 ： 文件->设置->推流,串流密码随意设置，如111，这个是为了区分等会拉流时候stream_key
-3. 窗口采集，选定需要推流的页面
-4. 点击开始推流，出现最下面live开始读秒就说明成功了
-
-方案二：用ffmpeg将视频流推到nginx上
-安装ffmpeg
-```
-# mkdir -p /usr/local/ffmpeg
-# cd /usr/local/ffmpeg
-# wget https://github.com/FFmpeg/FFmpeg/archive/refs/heads/master.zip
-# unzip  master.zip
-# ./configure
-# 如果提示nasm/yasm not found or too old. Use --disable-x86asm for a crippled build.
-# yum install yasm
-# ./configure # 再次编译
-# make
-# make install
-```
-将本地视频文件zhangsan.mp4进行推流
-```
-# ffmpeg -stream_loop -1 -re -i zhangsan.mp4 -c copy -f flv  rtmp://192.168.1.232:1935/http_flv/stream_key
--i 要处理视频文件的路径，此处地址是一个监控摄像头
--s 像素
--f 强迫采用flv格式
-```
-
 ### 拉流
 - 推流地址 rtmp://192.168.1.232:1935/hls/stream_key
-
 - rtmp拉流地址：rtmp://192.168.1.232:1935/hls/stream_key(与推流地址相同，但都可以播放)
-
 - http-flv拉流地址：http://192.168.1.232:88/flv_live?port=1935&app=live&stream=stream_key
-
 - hls-m3u8拉流地址：http://192.168.1.232:88/hls/stream_key/index.m3u8
+备注：关于m3u8 因为要缓存文件，所以hls_fragment 和hls_playlist_length 尽量稍微保留久一些，不然会出现读取了m3u8，但是媒体块ts被系统更新了，导致媒体文件不能正常播放M3U8
 
-关于m3u8 因为要缓存文件，所以hls_fragment 和hls_playlist_length 尽量稍微保留久一些，不然会出现读取了m3u8，但是媒体块ts被系统更新了，导致媒体文件不能正常播放M3U8 是索引文件如下图所示
+- ffplay 命令进行拉流操作：ffplay rtmp://39.105.129.233/myapp/   推流完毕后 , 推流的命令行直接退出 , 拉流的命令行需要手动退出 ;
+- ffmpeg 命令进行拉流操作：ffmpeg -i rtmp://39.105.129.233/myapp/ -c copy output.flv
 
+### mp3和m4a 
+mp3和m4a：
+- M4A是MPEG-4音频标准的文件的扩展名。而MP3则是属于MPEG-3音频标准
+* M4A属于苹果专用的音频格式，而MP3则是一种通用音频格式。
+* M4A属于高品质压缩类型的音乐文件，而MP3则是低品质有损压缩。
+- M4A是使用高级音频编码（AAC）编码的音频文件格式，而MP3则使用有损压缩编码。在音质上，M4A通常被认为优于MP3
 
+### html中的video标签
+```
+<video controls="" autoplay="" name="media">
+	<source src="xxx" type="video/mp4">
+</video>
+```
+video和source是html5的新标签
+<video> 元素支持三种视频格式：MP4、WebM、Ogg
+* MP4 = MPEG 4文件使用 H264 视频编解码器和AAC音频编解码器
+* WebM = WebM 文件使用 VP8 视频编解码器和 Vorbis 音频编解码器
+* Ogg = Ogg 文件使用 Theora 视频编解码器和 Vorbis音频编解码器
+
+video加载加密视频
+```
+<video class="_1bL7cF" preload="auto" x5-video-player-type="h5-page" playsinline="" webkit-playsinline="" src="https://vodkgeyttp9.vod.126.net/cloudmusic/obj/w5zDkcKQw6LDiWzDgcK2/9307099946/2982/a4d2/ea7e/90e004ffb551677743f401c59099799b.data?wsSecret=8b87543dee2e4b43528b3ce57d3346e1&amp;wsTime=1724223436"></video>
+
+<video webkit-playsinline="" playsinline="" x-webkit-airplay="" x5-playsinline="" preload="preload" autoplay="autoplay" style="width: 100%; height: 100%;" src="blob:https://jpjk.bdsana.com/5420cdd4-53d2-4c2b-8c51-38fa9ad1b69e"></video>
+```
+blob:https并不是一种协议，而是html5中blob对象在赋给video标签后生成的一串标记，blob对象对象包含的数据，浏览器内部会解析
+要使用 blob 来表征数据资源，需做到以下两点：
+1、服务端返回的为资源的二进制数据
+2、前端接收到二进制数据后，使用 URL.createObjectURL(blobData) 方法将服务端返回的二进制数据转换为 blob 的 url 资源挂载到相应的资源对象。
+
+关于blob加密视频资源下载
+1、利用Chrome 浏览器插件
+2、第二种方法 找到m38u文件, 使用 window 下载工具 M3U8下载工具
+3、审查 下载的 JS 资源
 

@@ -1,9 +1,15 @@
-## Android定位信息
+# 0-1Learning
+
+![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
+
+
+## Android-GPS定位信息
 
 ### 主要实现方法
 - onGpsStatusChanged：gps状态改变
 - onLocationChanged：定位信息改变时
-
 
 启动定位：
 ```
@@ -23,9 +29,9 @@
     }
 ```
 
-### 示例代码
+### 监听gps定位变化信息
+示例代码
 ```
-
 public class GPSLocation implements GpsStatus.Listener, LocationListener {
     private static GPSLocation gpsLocation;
     private final LocationManager locationManager;

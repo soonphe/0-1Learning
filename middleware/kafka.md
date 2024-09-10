@@ -65,63 +65,60 @@ brew install kafka
 /usr/local/etc/kafka/zookeeper.properties
 
 - 启动zookeeper服务：
-nohup zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties &
-说明：如果是windows则使用./zookeeper-server-start.sh
+brew启动：brew services start zookeeper
+sh启动：nohup zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties &
+windows则使用：./zookeeper-server-start.sh  config/server.properties &
+如果没有zookeeper服务，则可以启动kafka自带的zookeeper服务：> nohup bin/zookeeper-server-start.sh /usr/local/etc/kafka/server.properties &
 
 - 启动kafka服务：
-nohup kafka-server-start /usr/local/etc/kafka/server.properties &
-
-- 如果是二进制包文件安装，则使用bin目录下文件启动（与上面二选一即可）：
-  - 如果没有zookeeper服务，则可以启动kafka自带的zookeeper服务：> nohup bin/zookeeper-server-start.sh config/zookeeper.properties &
-  - 启动kafka：> bin/kafka-server-start.sh config/server.properties &
+brew启动：brew services start kafka
+sh启动：nohup kafka-server-start /usr/local/etc/kafka/server.properties &
+启动kafka，指定配置文件，后台启动并打印日志到 /usr/local/etc/kafka/kafka.log ：nohup kafka-server-start /usr/local/etc/kafka/server.properties > /usr/local/etc/kafka/kafka.log 2>&1 &
 
 - 停止kafka和zookeeper服务（先关闭Kafka,等关闭完之后再关闭Zookeeper，否则，Kafka brokers无法关闭）
 kafka-server-stop
 zookeeper-server-stop
 
-- 创建topic（示例名称topic_a）
-kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_a
-
-- 如果是二进制包文件安装，则使用bin目录下文件启动（与上面二选一即可），如：bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_a
-
+### kafka相关命令
 - 查看创建的topic
-kafka-topics --list --zookeeper localhost:2181
+对于 Kafka 2.7.x 及以前版本：kafka-topics --list --zookeeper localhost:2181
+对于 Kafka 2.8.x 及更高版本：kafka-topics --list --bootstrap-server localhost:9092
+
+- 创建topic（以下皆以3.7.0版本）（示例名称topic_a）
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic topic_a
+
+- 查看指定topic 详细信息（分区数、副本数）
+kafka-topics --bootstrap-server localhost:9092 --describe --topic topic_a
+
+- 删除指定topic
+kafka-topics --delete --bootstrap-server localhost:9092 --topic topic_a
 
 - 修改分区数
-kafka-topics --zookeeper localhost:2181 --alter --topic topic_a  --partitions 2   //修改为2个
+kafka-topics --bootstrap-server localhost:9092 --alter --topic topic_a  --partitions 2   //修改为2个
 
 - 终端1发送消息
 kafka-console-producer --broker-list localhost:9092 --topic topic_a
 
 - 终端2接受消息
-kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a --from-beginning 
+kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a --from-beginning
+--from-beginning 选项会从头开始消费消息，如果只想消费新的消息，可以去掉这个选项。
 此时，在终端1中输入信息回车，终端2会立即显示在屏幕上面，如有结果输出，即安装成功
 
 **命令补充拓展：**
+- 控制台指定topic 的内部生产消息
+  kafka-console-producer --broker-list localhost:9092 --topic topic_a
 
-- 指定分区消费消息
-kafka-console-consumer --bootstrap-server localhost:9092 --topic test --partition 1 --from-beginning
-
-- 启动kafka，指定配置文件，后台启动并打印日志到 /usr/local/etc/kafka/kafka.log
-nohup kafka-server-start /usr/local/etc/kafka/server.properties > /usr/local/etc/kafka/kafka.log 2>&1 &
-
-- 查看已有的topic
-kafka-topics --list --bootstrap-server localhost:9092
-
-- 查看指定topic 详细信息
-kafka-topics --bootstrap-server localhost:9092 --describe --topic topic_a
+- 控制台指定topic 的内部消费消息
+  kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a
 
 - 查询指定topic内容：
-kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a --from-beginning
+  kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a --from-beginning
+
+- 指定分区消费消息
+  kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a --partition 1 --from-beginning
 
 - 查询指定topic内容并使用grep匹配字符串：
 kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a --from-beginning | grep '1234'
-
-- 控制台指定topic 的内部生产消息
-kafka-console-producer --broker-list localhost:9092 --topic topic_a
-
-- 控制台指定topic 的内部消费消息
-kafka-console-consumer --bootstrap-server localhost:9092 --topic topic_a
 
 - 查看kafka的group列表
 kafka-consumer-groups --bootstrap-server localhost:9092 --list

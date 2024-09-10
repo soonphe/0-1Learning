@@ -5,8 +5,14 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## Andorid OkHttp
+## Android-OkHttp
+Android为我们提供了两种HTTP交互的方式：HttpURLConnection和 Apache HTTP Client
+OKHttp是一款高效的HTTP库，支持连接同一地址的链接共享同一个socket，通过连接池来减小响应延迟，还有透明的GZIP压缩，请求缓存等
 
+gradle依赖：
+```
+compile 'com.squareup.okhttp:okhttp:2.4.0'
+```
 
 ### OkHttp基础请求方式：
 ```
@@ -24,6 +30,71 @@ String post(String url, String json) throws IOException {
 }
 ```
 
+### 常见用法
+```
+  //得到OKHttpClient对象
+  OkHttpClient okHttpClient=new OkHttpClient();
+ 
+  <!-- get请求 -->
+  //得到Request对象
+  Request request = new Request.Builder()
+          .url("https://www.baidu.com/")
+          .build();
+ 
+  <!-- post请求 -->
+//构建RequestBody对象，调用add()方法构建我们的键值对
+RequestBody body=new FormBody.Builder()
+        .add("district","%E5%8C%97%E4%BA%AC")
+        .build();
+//在构建Request对象时，调用post方法，传入RequestBody对象
+Request request=new Request.Builder()
+        .url("https://www.baidu.com/")
+        .post(body)
+        .build();
+ 
+  //OkhttpClient #newCall()得到Call对象
+  Call call=okHttpClient.newCall(request);
+  //Call#execute()同步请求网络
+  Response response = call.execute();
+  //Call#enqueue()异步请求网络
+  call.enqueue(new Callback() {
+    @Override
+    public void onFailure(Call call, IOException e) {
+      Log.e("fail",e.toString());
+    }
+ 
+    @Override
+    public void onResponse(Call call, Response response) throws IOException{
+      Log.e("success",response.body().toString());
+    }
+  }); 
+```
+
+### okhttp缓存设置 
+```
+    File sdcache =getExternalCacheDir();
+    int cacheSize = 10 * 1024 * 1024; //10 MiB
+    client.setCache(new Cache(sdcache.getAbsoluteFile(), cacheSize));
+    new Thread(new Runnable(){
+        @Override
+        public void run() {
+            try {
+                execute();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }).start();
+```
+
+但有时候即使在有缓存的情况下我们依然需要去后台请求最新的资源（比如资源更新了）这个时候可以使用强制走网络来要求必须请求网络数据。
+```
+Request request = new Request.Builder()
+.url("http://publicobject.com/helloworld.txt")
+.build();
+request =request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();        //FORCE_CACHE：强制只使用缓存的数据
+Response response =client.newCall(request).execute();
+```
 
 ### Okhttp连接超时
 错误日志
@@ -31,17 +102,14 @@ String post(String url, String json) throws IOException {
 2021-09-23 16:18:13.863||[HSFBizProcessor-DEFAULT-8-thread-19]||| OkHttp error url: http://xxx.gateway.com:9966/api/query/es/getOrderListByQuery
 java.net.SocketTimeoutException: timeout
 ```
-- 解决方案：
-  修改最大连接数：
+- 解决方案： 修改超时时长，连接池最大连接数
 ```
-newOkHttpClient.Builder()
+new OkHttpClient.Builder()
 .connectTimeout(CONNECT_TIMEOUT,TimeUnit.SECONDS)
 .readTimeout(READ_TIMEOUT,TimeUnit.SECONDS)
 .connectionPool(newConnectionPool(32,5,TimeUnit.MINUTES))
 .build();
 ```
-- 参考文档：
-  https://blog.csdn.net/Vincent2014Linux/article/details/98881462
 
 ### java使用okhttp
 引入依赖：

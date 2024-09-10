@@ -9,17 +9,20 @@
 
 ### 要点
     前置条件：具备一定的java基础
-    0.Framework
+    0.Framework *
     1.Activity、Service、Fragment
     2.网络
     3.数据库
-    4.UI、View与自定义View
-    5.touch事件分发
-    6.动画
-    7.进程间通信与线程间通信
-    8.Handler与内存泄漏
-    9.Android常用技术、框架、工具
-    10.APP性能优化
+    4.UI与自定义View *
+    5.React Native 混合开发（H5混合开发）
+    6.JNI开发 *
+    7.touch事件分发 
+    8.动画
+    9.进程间通信与线程间通信
+    10.Handler与内存泄漏
+    11.Android常用技术、框架、工具
+    12.APP性能优化
+    13.系统设计与场景
 
 ### Framework
 简述一下什么是Android Framework
@@ -51,7 +54,22 @@ Widgets　　可以添加到主屏幕界面(home screen)的可视应用程序组
 linux kernel,lib dalvik vm ,application framework, app
 ```
 
-### Activity
+**Serializable和Parcelable**
+Serializable (Java自带)和Parcelable (Android特有)都是用来序列化的。
+
+Serializable和Parcelable二者差异：
+在使用内存的时候，Parcelable比Serializable性能高，所以推荐使用Parcelable。
+Serializable在序列化的时候会产生大量的临时变量，从而引起频繁的GC。
+Parcelable不能使用在要将数据存储在磁盘上的情况，因为Parcelable不能很好的保证数据的持续性在外界有变化的情况下。尽管Serializable效率低点，但此时还是建议使用Serializable 。
+
+**android 65k限制**
+Android的65K限制‌指的是在Android应用程序开发中，单个DEX文件（Dalvik Executable）能够引用的方法总数上限为65536个。
+这个限制包括应用程序本身的代码以及所有依赖库中的方法。当应用程序（包括其所有库依赖项）的方法总数超过这个限制时，会遇到构建错误，因为DEX文件不能包含超过65535个方法的引用。
+
+为了解决这个问题，Android提供了MultiDex的支持，从Android 5.0（API 21）开始，Android支持在应用中使用多个DEX文件，这允许突破65K方法限制。
+通过在build.gradle文件的defaultConfig部分启用MultiDex，并在应用的dependencies块中添加MultiDex支持库，可以解决这个问题
+
+### Activity、Service、Fragment
 Activity和Fragment生命周期有哪些？
 ```
 Activity——onCreate->onStart->onResume->onPause->onStop->onDestroy
@@ -96,6 +114,16 @@ startService：onCreate()- >onStartCommand()->startService()->onDestroy()
 BindService：onCreate()->onBind()->onUnbind()->onDestroy()
 ```
 
+讲一下android中进程的优先级？
+
+```
+前台进程
+可见进程
+服务进程
+后台进程
+空进程
+```
+
 ### 网络
 *AsyncTask原理
 ```
@@ -126,12 +154,61 @@ call 方法中 doInBackground 执行结束后，调用 postResult 方法,通过�
 finish 方法中判断如果任务取消则调用 onCancelled 如果未取消则调用 onPostExecute ，最后更新任务的状态
 ```
 
+Handler机制
+```
+1、handler封装消息的发送（主要包含消息发送给谁）
+2、Looper——消息封装的载体。（1）内部包含一个MessageQueue，所有的Handler发送的消息都走向这个消息队列；（2）Looper.Looper方法，就是一个死循环，不断地从MessageQueue取消息，如果有消息就处理消息，没有消息就阻塞。
+3、MessageQueue，一个消息队列，添加消息，处理消息
+4、handler内部与Looper关联，handler->Looper->MessageQueue,handler发送消息就是向MessageQueue队列发送消息。
+
+总结：handler负责发送消息，Looper负责接收handler发送的消息，并把消息回传给handler自己。
+```
+handler postdelay 是否会阻塞线程，对内存的影响
+```
+Handler.postDelayed不会造成线程阻塞。
+Handler.postDelayed方法允许在指定的延迟时间后将一个Runnable对象添加到消息队列中，然后在主线程中执行该任务。这种技术的主要优势是可以在后台线程中执行耗时操作，而不会阻塞主线程，从而保持应用的响应性能。它常用于定时更新UI元素、执行定时任务、轮询服务器等场景。
+
+Handler.postDelayed的工作原理是将消息插入到MessageQueue中，通过MessageQueue.enqueueMessage方法实现。
+这个过程使用了同步锁来保证线程操作的安全，避免了线程阻塞。
+虽然存在对线程阻塞的描述，但实际上，Handler对Message的处理是管道操作，MessageQueue对所有Message统一进行了管理。
+在Looper.loop不停对MessageQueue遍历的时候，如果队列头部的Message没到执行时间，会计算剩余执行时间，然后调用nativePollOnce()阻塞线程，直到阻塞时间到或者下一次有Message进队。这种阻塞是为了等待消息的执行时间到达，而不是因为Handler.postDelayed本身造成的线程阻塞。
+
+Handler导致内存泄漏一般发生在发送延迟消息的时候，当Activity关闭之后，延迟消息还没发出，那么主线程中的MessageQueue就会持有这个消息的引用，而这个消息是持有Handler的引用，而handler作为匿名内部类持有了Activity的引用，所以就有了以下的一条引用链。
+主线程 —> threadlocal —> Looper —> MessageQueue —> Message —> Handler —> Activity
+其根本原因是因为这条引用链的头头，也就是主线程，是不会被回收的，所以导致Activity无法被回收，出现内存泄漏，其中Handler只能算是导火索。
+而我们平时用到的子线程通过Handler更新UI，其原因是因为运行中的子线程不会被回收，而子线程持有了Actiivty的引用（不然也无法调用Activity的Handler），所以就导致内存泄漏了，但是这个情况的主要原因还是在于子线程本身。
+```
+
 *httpResponseCode
 ```
 200 - 请求成功
 301 - 资源（网页等）被永久转移到其它URL
 404 - 请求的资源（网页等）不存在
 500 - 内部服务器错误
+```
+
+gson原理
+```
+gson解析流程：
+（1）Gson对象创建使用的是门面模式。
+（2）而排除器使用的是代理模式  com.google.gson.internal.Excluder
+（3）字段命名策略使用的是策略模式  com.google.gson.FieldNamingStrategy#translateName
+（4）实例构造器  com.google.gson.internal.ConstructorConstructor  根据不同的数据类型返回一个构造器。
+（5）TypeAdapter的工厂列表
+List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>();  决定json的解析顺序
+jsonstr — > 排除器---->自定义TypeAdapter—>gson自带的TypeAdapter----> 反射ReflectiveTypeAdapterFactory解析。
+（6）GsonBuilder的创建  使用的是建造者模式  最终通过create方法创建Gson对象出来
+（7）toJson()
+（8）JsonWriter 写操作类
+（9）fromJson
+（10）JsonReader  com.google.gson.stream.JsonReader#doPeek  将json从栈中取出进行词法分析
+（11）getAdapter()
+（12）调用TypeAdapter的read方法
+
+2.5JSON反射机制
+com.google.gson.internal.bind.ReflectiveTypeAdapterFactory#create
+其他的解析器都没办法解析的时候，会使用这种反射的解析器来解析。
+
 ```
 
 ### 数据库
@@ -150,7 +227,7 @@ ContentProvider内容提供者，如联系人
 数据量小时使用文件效率高
 ```
 
-### UI、View与自定义View
+### UI与自定义View
 Android中常用的五种布局
 ```
 FrameLayout（框架布局）
@@ -176,15 +253,70 @@ SurfaceView中采用了双缓存技术，在单独的线程中更新界面
 View在UI线程中更新界面
 ```
 
-如何设计一个图片加载框架
+RemoteViews
 ```
-异步加载：线程池
-切换线程：Handler，没有争议吧
-缓存：LruCache、DiskLruCache
-防止OOM：软引用、LruCache、图片压缩、Bitmap像素存储位置
-内存泄露：注意ImageView的正确引用，生命周期管理
-列表滑动加载的问题：加载错乱、队满任务过多问题
-当然，还有一些不是必要的需求，例如加载动画等。
+远程View，它表示的是一个View结构，它可以在其他进程中显示，为了跨进程更新它的界面，RemoteViews提供了一组基础的操作来实现这个效果。
+```
+
+WebView和JS
+```
+
+```
+
+
+### React Native 混合开发（H5混合开发）
+框架：RN, flutter, uniapp
+
+React Native开发流程：
+1.创建React Native项目：
+2.添加原生模块：
+3.编写React Native组件：
+4.调用原生API或者组件：
+注意：具体的原生模块和视图名称需要根据实际情况进行替换。在实际开发中，还需要处理平台特定代码，比如Java（Android）和Objective-C/Swift（iOS）的适配等。
+
+### JNI开发
+在Android中使用JNI进行开发通常涉及以下步骤：
+1. 编写Java原生接口(JNI)函数。
+2. 编译C/C++源代码，生成共享库(.so文件)。
+3. 在Android应用中加载并使用这些共享库。
+
+```
+步骤1：编写Java原生接口函数
+在Java类中添加本地方法声明，并使用native关键字。
+public class MyNativeClass {
+    static {
+        System.loadLibrary("mynative");
+    }
+ 
+    public native static int getNumber();
+}
+
+步骤2：使用javah生成JNI头文件
+在命令行中使用javah工具生成本地方法的C/C++头文件。
+javah -jni com.example.MyNativeClass
+这将生成一个com_example_MyNativeClass.h文件。
+
+步骤3：实现JNI函数
+编写C/C++源文件，实现在com_example_MyNativeClass.h中声明的函数。
+#include <jni.h>
+#include "com_example_MyNativeClass.h"
+ 
+JNIEXPORT jint JNICALL Java_com_example_MyNativeClass_getNumber(JNIEnv *env, jclass clazz) {
+    return 42;
+}
+
+步骤4：编译C/C++代码
+使用NDK编译器将C/C++源代码编译成共享库。
+cd /path/to/your/jni/source
+ndk-build
+
+步骤5：加载共享库
+在Android应用的AndroidManifest.xml中添加所需的共享库。
+<application ...>
+    ...
+    <uses-library android:name="mynative" />
+</application>
+确保共享库.so文件位于libs/目录下的对应ABI子目录中，或者在应用的build.gradle文件中指定路径
 ```
 
 ### touch事件分发
@@ -314,11 +446,6 @@ decode format：解码格式，选择ARGB_8888/RBG_565/ARGB_4444/ALPHA_8，存�
 ```
 
 ### Android常用技术、框架、工具
-JNI开发流程
-```
-
-```
-
 热修复的原理：
 ```
 1：JavaSisst
@@ -328,12 +455,37 @@ JNI开发流程
 
 插件化，动态加载原理：
 ```
+Android插件化的核心原理是基于Java的类加载机制
 
+Android插件化的核心原理是基于Java的类加载机制。在Java中，ClassLoader负责加载类。每个ClassLoader都有一个父ClassLoader，当我们尝试加载一个类时，ClassLoader会首先尝试让它的父ClassLoader加载这个类，这就是所谓的双亲委托机制。这种机制可以确保同一个类只会被加载一次。
+
+在Android插件化中，我们可以创建一个新的ClassLoader来加载插件中的类。这个ClassLoader的父ClassLoader是宿主应用的ClassLoader，因此，插件中的类可以访问宿主应用中的类，但是宿主应用中的类不能访问插件中的类。
+
+1.2 资源加载
+在Android中，资源文件是通过Resources对象来加载的。每个APK都有一个独立的Resources对象，用于加载它自己的资源文件。
+在Android插件化中，我们可以创建一个新的Resources对象来加载插件中的资源文件。这个Resources对象的AssetManager是通过反射创建的，可以加载任意路径的APK文件。
+
+1.3 四大组件支持
+在Android插件化中，四大组件（Activity，Service，BroadcastReceiver，ContentProvider）的支持是一个重要的问题。因为在Android系统中，这些组件都需要在AndroidManifest.xml中进行声明，而插件APK的AndroidManifest.xml是不会被解析的，所以我们需要采取一些特殊的手段来支持这些组件。
+
+Activity：Activity是最常用的组件，也是最需要支持的组件。在插件化中，我们可以通过Proxy Activity代理或者Hook方式来支持Activity。
+Service：Service的支持也是通过代理或者Hook方式来实现的。我们可以在宿主中预先声明一些代理Service，然后在运行时将这些代理Service替换为插件中的Service。
+BroadcastReceiver：BroadcastReceiver的支持相对比较简单，我们可以在运行时动态注册BroadcastReceiver，或者通过Hook方式来支持静态注册的BroadcastReceiver。
+ContentProvider：ContentProvider的支持是最复杂的，因为ContentProvider在应用启动时就会被创建，而且每个ContentProvider都需要一个唯一的authority。我们可以通过Hook方式来支持ContentProvider，或者使用一些特殊的技巧，例如使用同一个authority来支持多个ContentProvider。
+
+1.4 两种支持Activity的方式
+所有的插件框架在解决的问题都不是如何动态加载类，而是动态加载的Activity没有在AndroidManifest中注册，该如何能正常运行。如果Android系统没有AndroidManifest的限制，那么所有插件框架都没有存在的必要了。因为Java语言本身就支持动态更新实现的能力。
+Proxy Activity代理：这种方式是通过在宿主应用中预先声明一些代理Activity，然后在运行时将这些代理Activity替换为插件中的Activity。这种方式的优点是实现简单，但是有一些限制，例如无法支持插件中的Activity在AndroidManifest.xml中声明的一些属性。
+Hook方式：这种方式是通过Hook AMS（Activity Manager Service），替换AMS中的一些方法，从而绕过AMS的检查。这种方式的优点是可以完全支持插件中的Activity，但是实现复杂，需要对Android系统有深入的了解。
 ```
 
 断点续传实现原理：
 ```
-
+断点续传是指在网络不稳定或者传输中断的情况下，能够从上次中断的地方继续传输文件的技术。在Android中实现断点续传通常涉及到以下几个步骤：
+1.使用HttpURLConnection或OkHttp等网络库进行文件下载或上传。
+2.记录已经传输的文件大小。
+3.设置HTTP请求头Range以指定从哪个位置开始传输。
+4.使用Thread或ThreadPool进行多线程下载提高效率。
 ```
 
 所使用的开源框架的实现原理，源码：
@@ -364,9 +516,19 @@ weight，这是权重的适配。
 **9.**Gson
 ```
 
-
-
 ### APP性能优化
+常见的性能优化工具：profiler，MAT
+
+android Debug和Release状态的不同
+```
+Android的Debug和Release状态在编译配置、调试信息、代码优化、资源处理、签名配置等方面存在显著差异。‌
+‌编译配置‌：Debug模式通常具有较低的优化级别，侧重于缩短编译时间和提高调试效率，而Release模式则启用更高级别的编译优化，包括代码内联、循环展开、死代码移除等，以提高应用性能和减少最终包的大小。此外，Debug模式编译的应用包含丰富的调试信息，如变量名和方法调用栈，而Release模式则剥离这些信息以减少应用体积和提高安全性。
+‌调试信息‌：Debug模式包含调试信息，便于开发者进行调试，而Release模式则不保存调试信息，以减小体积和提高运行速度。
+‌代码优化‌：Release模式经常使用代码混淆工具如ProGuard或R8进行代码混淆和资源优化，以防止反编译和保护代码不被轻易理解，而Debug构建不会执行这些步骤，因为这些优化可能会干扰调试。
+‌资源处理‌：Release模式对资源文件进行更加严格的压缩和优化，以减少应用的体积，而Debug模式则不进行这些优化。
+‌签名配置‌：在Debug模式下，Android Studio会自动使用一个默认的debug.keystore对应用进行签名，而在Release模式下，需要使用开发者自己的密钥库和密钥对应用进行签名。
+```
+
 如何对 Android 应用进行性能分析
 ```
 android 性能主要之响应速度 和UI刷新速度。
@@ -404,6 +566,7 @@ Android LayoutInflater原理分析，带你一步步深入了解View(一)
 图片缓存，采用内存缓存LRUCache和硬盘缓存DiskLRUCache
 Bitmap优化，采用适当分辨率大小并及时回收
 ```
+
 网络请求优化
 ```
 连接复用 :节省连接建立时间，如开启 keep-alive。
@@ -449,227 +612,222 @@ ANR的关键是处理超时，所以应该避免在UI线程，BroadcastReceiver 
 当然，也有可能cpu占用不高，那就是 主线程被block住了。
 ```
 
+内存泄露问题：
+```
+静态类持有Activity引用会导致内存泄露
+```
+
+
+### 系统设计与场景
+**自己设计一个图片加载框架**
+```
+异步加载：线程池
+切换线程：Handler，没有争议吧
+缓存：LruCache、DiskLruCache
+防止OOM：软引用、LruCache、图片压缩、Bitmap像素存储位置
+内存泄露：注意ImageView的正确引用，生命周期管理
+列表滑动加载的问题：加载错乱、队满任务过多问题
+当然，还有一些不是必要的需求，例如加载动画等。
+```
+
+---
+### 补充：
+**Fragment的生命周期和activity如何的一个关系**
+
+**Fragment生命周期**
+
+注意和Activity的相比的区别,按照执行顺序
+* onAttach(),onDetach()
+* onCreateView(),onDestroyView()
+
+**为什么在Service中创建子线程而不是Activity中**
+这是因为Activity很难对Thread进行控制，当Activity被销毁之后，就没有任何其它的办法可以再重新获取到之前创建的子线程的实例。而且在一个Activity中创建的子线程，另一个Activity无法对其进行操作。但是Service就不同了，所有的Activity都可以与Service进行关联，然后可以很方便地操作其中的方法，即使Activity被销毁了，之后只要重新与Service建立关联，就又能够获取到原有的Service中Binder的实例。因此，使用Service来处理后台任务，Activity就可以放心地finish，完全不需要担心无法对后台任务进行控制的情况。
+
+**Intent的使用方法，可以传递哪些数据类型。**
+通过查询Intent/Bundle的API文档，我们可以获知，Intent/Bundle支持传递基本类型的数据和基本类型的数组数据，以及String/CharSequence类型的数据和String/CharSequence类型的数组数据。而对于其它类型的数据貌似无能为力，其实不然，我们可以在Intent/Bundle的API中看到Intent/Bundle还可以传递Parcelable（包裹化，邮包）和Serializable（序列化）类型的数据，以及它们的数组/列表数据。
+所以要让非基本类型和非String/CharSequence类型的数据通过Intent/Bundle来进行传输，我们就需要在数据类型中实现Parcelable接口或是Serializable接口。
+
+**Service的两种启动方法，有什么区别**
+1.在Context中通过``public boolean bindService(Intent service,ServiceConnection conn,int flags)`` 方法来进行Service与Context的关联并启动，并且Service的生命周期依附于Context(**不求同时同分同秒生！但求同时同分同秒屎！！**)。
+2.通过`` public ComponentName startService(Intent service)``方法去启动一个Service，此时Service的生命周期与启动它的Context无关。
+3.要注意的是，whatever，**都需要在xml里注册你的Service**，就像这样:
+```
+<service
+        android:name=".packnameName.youServiceName"
+        android:enabled="true" />
+```
+
+**广播(Broadcast Receiver)的两种动态注册和静态注册有什么区别。**
+  静态注册：在AndroidManifest.xml文件中进行注册，当App退出后，Receiver仍然可以接收到广播并且进行相应的处理
+  动态注册：在代码中动态注册，当App退出后，也就没办法再接受广播了
+
+**目前能否保证service不被杀死**
+
+**Service设置成START_STICKY**
+
+* kill 后会被重启（等待5秒左右），重传Intent，保持与重启前一样
+
+**提升service优先级**
+* 在AndroidManifest.xml文件中对于intent-filter可以通过``android:priority = "1000"``这个属性设置最高优先级，1000是最高值，如果数字越小则优先级越低，**同时适用于广播**。
+* 【结论】目前看来，priority这个属性貌似只适用于broadcast，对于Service来说可能无效
+
+**提升service进程优先级**
+* Android中的进程是托管的，当系统进程空间紧张的时候，会依照优先级自动进行进程的回收
+* 当service运行在低内存的环境时，将会kill掉一些存在的进程。因此进程的优先级将会很重要，可以在startForeground()使用startForeground()将service放到前台状态。这样在低内存时被kill的几率会低一些。
+* 【结论】如果在极度极度低内存的压力下，该service还是会被kill掉，并且不一定会restart()
+
+**onDestroy方法里重启service**
+* service +broadcast  方式，就是当service走onDestory()的时候，发送一个自定义的广播，当收到广播的时候，重新启动service
+* 也可以直接在onDestroy()里startService
+* 【结论】当使用类似口口管家等第三方应用或是在setting里-应用-强制停止时，APP进程可能就直接被干掉了，onDestroy方法都进不来，所以还是无法保证
+
+**监听系统广播判断Service状态**
+* 通过系统的一些广播，比如：手机重启、界面唤醒、应用状态改变等等监听并捕获到，然后判断我们的Service是否还存活，别忘记加权限
+* 【结论】这也能算是一种措施，不过感觉监听多了会导致Service很混乱，带来诸多不便
+
+**在JNI层,用C代码fork一个进程出来**
+
+* 这样产生的进程,会被系统认为是两个不同的进程.但是Android5.0之后可能不行
+
+**root之后放到system/app变成系统级应用**
+
+**大招: 放一个像素在前台(手机QQ)**
+
+**动画有哪两类，各有什么特点？三种动画的区别**
+
+* tween 补间动画。通过指定View的初末状态和变化时间、方式，对View的内容完成一系列的图形变换来实现动画效果。
+  Alpha
+  Scale
+  Translate
+  Rotate。
+
+* frame 帧动画
+  AnimationDrawable 控制
+  animation-list xml布局
+
+* PropertyAnimation 属性动画
+
+**Android的数据存储形式。**
+```
+* SQLite：SQLite是一个轻量级的数据库，支持基本的SQL语法，是常被采用的一种数据存储方式。Android为此数据库提供了一个名为SQLiteDatabase的类，封装了一些操作数据库的api
+* SharedPreference： 除SQLite数据库外，另一种常用的数据存储方式，其本质就是一个xml文件，常用于存储较简单的参数设置。
+* File： 即常说的文件（I/O）存储方法，常用语存储大数量的数据，但是缺点是更新数据将是一件困难的事情。
+* ContentProvider: Android系统中能实现所有应用程序共享的一种数据存储方式，由于数据通常在各应用间的是互相私密的，所以此存储方式较少使用，但是其又是必不可少的一种存储方式。例如音频，视频，图片和通讯录，一般都可以采用此种方式进行存储。每个Content Provider都会对外提供一个公共的URI（包装成Uri对象），如果应用程序有数据需要共享时，就需要使用Content Provider为这些数据定义一个URI，然后其他的应用程序就通过Content Provider传入这个URI来对数据进行操作。
+```
+
+**如何判断应用被强杀**
+在Application中定义一个static常量，赋值为－1，在欢迎界面改为0，如果被强杀，application重新初始化，在父类Activity判断该常量的值。
+
+**应用被强杀如何解决**
+如果在每一个Activity的onCreate里判断是否被强杀，冗余了，封装到Activity的父类中，如果被强杀，跳转回主界面，如果没有被强杀，执行Activity的初始化操作，给主界面传递intent参数，主界面会调用onNewIntent方法，在onNewIntent跳转到欢迎页面，重新来一遍流程。
+
+**Json有什么优劣势。**
+
+**怎样退出终止App**
+
+**Asset目录与res目录的区别。**
+res 目录下面有很多文件，例如 drawable,mipmap,raw 等。res 下面除了 raw 文件不会被压缩外，其余文件都会被压缩。同时 res目录下的文件可以通过R 文件访问。Asset 也是用来存储资源，但是 asset 文件内容只能通过路径或者 AssetManager 读取。 [官方文档](https://developer.android.com/studio/projects/index.html)
+
+**Android怎么加速启动Activity。**
+分两种情况，启动应用 和 普通Activity
+启动应用 ：Application 的构造方法，onCreate 方法中不要进行耗时操作，数据预读取(例如 init 数据) 放在异步中操作
+启动普通的Activity：A 启动B 时不要在 A 的 onPause 中执行耗时操作。因为 B 的 onResume 方法必须等待 A 的 onPause 执行完成后才能运行
+
+**Android内存优化方法：ListView优化，及时关闭资源，图片缓存等等。**
+
+**Android中弱引用与软引用的应用场景。**
+
+**Bitmap的四种属性，与每种属性队形的大小。**
+
+**View与View Group分类。自定义View过程：onMeasure()、onLayout()、onDraw()。**
+
+**如何自定义控件：**
+```
+1. 自定义属性的声明和获取
+    * 分析需要的自定义属性
+    * 在res/values/attrs.xml定义声明
+    * 在layout文件中进行使用
+    * 在View的构造方法中进行获取
+2. 测量onMeasure
+3. 布局onLayout(ViewGroup)
+4. 绘制onDraw
+5. onTouchEvent
+6. onInterceptTouchEvent(ViewGroup)
+7. 状态的恢复与保存
+```
+
+**Android长连接，怎么处理心跳机制。**
+
+**View树绘制流程**
+
+
+**下拉刷新实现原理**
+
+**Context区别**
+```
+* Activity和Service以及Application的Context是不一样的,Activity继承自ContextThemeWraper.其他的继承自ContextWrapper
+* 每一个Activity和Service以及Application的Context都是一个新的ContextImpl对象
+* getApplication()用来获取Application实例的，但是这个方法只有在Activity和Service中才能调用的到。那么也许在绝大多数情况下我们都是在Activity或者Service中使用Application的，但是如果在一些其它的场景，比如BroadcastReceiver中也想获得Application的实例，这时就可以借助getApplicationContext()方法，getApplicationContext()比getApplication()方法的作用域会更广一些，任何一个Context的实例，只要调用getApplicationContext()方法都可以拿到我们的Application对象。
+* Activity在创建的时候会new一个ContextImpl对象并在attach方法中关联它，Application和Service也差不多。ContextWrapper的方法内部都是转调ContextImpl的方法
+* 创建对话框传入Application的Context是不可以的
+* 尽管Application、Activity、Service都有自己的ContextImpl，并且每个ContextImpl都有自己的mResources成员，但是由于它们的mResources成员都来自于唯一的ResourcesManager实例，所以它们看似不同的mResources其实都指向的是同一块内存
+* Context的数量等于Activity的个数 + Service的个数 + 1，这个1为Application
+```
+
+**IntentService的使用场景与特点。**
+```
+IntentService是Service的子类，是一个异步的，会自动停止的服务，很好解决了传统的Service中处理完耗时操作忘记停止并销毁Service的问题
+优点：
+* 一方面不需要自己去new Thread
+* 另一方面不需要考虑在什么时候关闭该Service
+
+onStartCommand中回调了onStart，onStart中通过mServiceHandler发送消息到该handler的handleMessage中去。最后handleMessage中回调onHandleIntent(intent)。
+```
+
+**图片缓存**
 
 ---
 
-
-## Android面试经历
-
-### 案例一
+### 面试案例
 一面
-* 介绍一下你的项目
-* 网络框架的搭建
-* 图片加载框架的实现
-* 写个图片浏览器，说出你的思路
-* 上网站写代码，如下：
-  有一个容器类 ArrayList，保存整数类型的元素，现在要求编写一个帮助类，类内提供一个帮助函数，帮助函数的功能是删除 容器中<10的元素。
-
-
-二面
-* Activity的启动模式
-* 事件分发机制
-* 写代码，LeetCode上股票利益最大化问题
-* 写代码，剑指offer上第一次只出现一次的字符
-
-三面
-
-* 聊项目，聊大学做过的事
-* 写代码，反转字符串
-* 写代码，字符串中出现最多的字符。
-
----
-### 案例二
-一面
-
-* 说一下你怎么学习安卓的？
-* 项目中遇到哪些问题，如何解决的？
-* Android事件分发机制？
-* 三级缓存底层实现？
-* HashMap底层实现，hashCode如何对应bucket?
-* Java的垃圾回收机制，引用计数法两个对象互相引用如何解决？
-* 用过的开源框架的源码分析
-* Acticity的生命周期，Activity异常退出该如何处理？
-* tcp和udp的区别，tcp如何保证可靠的，丢包如何处理？
-
-二面：
-
-* 标号1-n的n个人首尾相接，1到3报数，报到3的退出，求最后一个人的标号
-* 给定一个字符串，求第一个不重复的字符 abbcad -> c
-
----
-
-### 案例三
-一面：
-
 * 自我介绍
+* 介绍一下你的项目，项目中遇到哪些问题，如何解决的？
+* Acticity的生命周期，Activity异常退出该如何处理？Fragment生命周期，嵌套
+* Activity的启动模式
+* 四大组件
+* Android事件分发机制？
+* 网络框架的搭建
+* 如何判断本地缓存的时候数据需要从网络端获取
+* tcp和udp的区别，tcp如何保证可靠的，丢包如何处理？
+* AsyncTask机制
+* Handler机制，Handler消息机制 ,postDelayed会造成线程阻塞吗？(不会)对内存有什么影响？
 - Toolbar的使用
-- 如何判断本地缓存的时候数据需要从网络端获取
-- 跨进程间通信
-- Handler消息机制
-- SharedPreference实现
-- 快速排序
-- 项目难点
-* Android中ClassLoader和java中有什么关系和区别？
-* 熟不熟jvm，说一下Jvm的自动内存管理？
+- SharedPreference原理
+- 事件分发机制
+- Android进程间通信，Binder机制
+- 描述下Aidl？觉得aidl有什么缺陷（一般能答到这里就很不错了）
+* 图片加载框架的实现
+* 图片缓存，三级缓存底层实现？
+* HashMap底层实现，hashCode如何对应bucket?
 * 语言基础，String类可以被继承吗？为什么？
 * Final能修饰什么？（当时我说class、field、method，他说还有吗？然后又叫我不要在意，后来回想起，应该是问到我在参数里面要不要用final，接下来是因为匿名内部类）
 * Java中有内存泄露吗？（先说本质，再结合handler+匿名内部类）当时如何分析的？
-* 描述下Aidl？觉得aidl有什么缺陷（这里在这个问题上回答有欠缺）
-* **评价一下我，如果顺利进网易，需要往技术栈加什么点尽快投入业务？**
+* 熟不熟jvm，说一下Jvm的自动内存管理？
+* Java的垃圾回收机制，引用计数法两个对象互相引用如何解决？
+* 用过的开源框架的源码分析，GSON原理，RxJava+Retrofit原理
+* Android中ClassLoader和java中有什么关系和区别？
+* 写个图片浏览器，说出你的思路
 
-
-
-二面：
-
-* 用过什么开源，举一个例子？（volley）
+二面
 * Activity生命周期？情景：现在在一张act1点了新的act2，周期如何？
 * Act的launchMode，有没有结合项目用过（自己的程序锁和微信的PC端登陆对比，不过我现在又发现，应该大约估计可能是动态加载的一个缺陷，如果有找到相关信息，请务必跟我说。具体问题就是，当在PC端登录时，Android终端的微信会跳出，即使wechat的task不是在fore，当按下确认，返回的是wechat，而不是自己先前的app）
 * View的绘制原理，有没有用canvas自己画过ui？
-* 以后想做Android什么方向？（中间件+SDK）
-* 怎么看待前端和后端？
-* 如果学前端会如何学？
-* 优缺点？兴趣？
-* 想不想来杭州？
-* **评价一下我？往技术栈加什么？**
-
----
-### 案例四
-
-一面
-
-- 自我介绍
-- 面向对象三大特性
-- Java虚拟机，垃圾回收
-- GSON
-- RxJava+Retrofit
-- 图片缓存，三级缓存
-- Android启动模式
-- 四大组件
-- Fragment生命周期，嵌套
-- AsyncTask机制
-- Handler机制
-
-二面
-
-- 面试官写程序，看错误。
 - 面试官写程序让判断GC引用计数法循环引用会发生什么情况
-- Android进程间通信，Binder机制
-- Handler消息机制，postDelayed会造成线程阻塞吗？对内存有什么影响？
 - Debug和Release状态的不同
-- 实现stack 的pop和push接口 要求：
-    - 1.用基本的数组实现
-    - 2.考虑范型
-    - 3.考虑下同步问题
-    - 4.考虑扩容问题
-
-
----
-### 案例五
-一面
-
-静态内部类、内部类、匿名内部类，为什么内部类会持有外部类的引用？持有的引用是this？还是其它？
-
-```
-静态内部类：使用static修饰的内部类
-匿名内部类：使用new生成的内部类
-因为内部类的产生依赖于外部类，持有的引用是类名.this。
-```
-
-ArrayList和Vector的主要区别是什么？
-
-```
-ArrayList在Java1.2引入，用于替换Vector
-
-Vector:
-
-线程同步
-当Vector中的元素超过它的初始大小时，Vector会将它的容量翻倍
-
-ArrayList:
-
-线程不同步，但性能很好
-当ArrayList中的元素超过它的初始大小时，ArrayList只增加50%的大小
-```
-
-[Java集合类框架](http://yuweiguocn.github.io/2016/01/06/java-collection/)
-
-
-Java中try catch finally的执行顺序
-
-```
-先执行try中代码发生异常执行catch中代码，最后一定会执行finally中代码
-```
-
-switch是否能作用在byte上，是否能作用在long上，是否能作用在String上？
-
-```
-switch支持使用byte类型，不支持long类型，String支持在java1.7引入
-```
-
-Activity和Fragment生命周期有哪些？
-
-```
-Activity——onCreate->onStart->onResume->onPause->onStop->onDestroy
-
-Fragment——onAttach->onCreate->onCreateView->onActivityCreated->onStart->onResume->onPause->onStop->onDestroyView->onDestroy->onDetach
-```
-
-
-onInterceptTouchEvent()和onTouchEvent()的区别？
-
-```
-onInterceptTouchEvent()用于拦截触摸事件
-onTouchEvent()用于处理触摸事件
-```
-
-RemoteView在哪些功能中使用
-
-```
-APPwidget和Notification中
-```
-
-SurfaceView和View的区别是什么？
-
-```
-SurfaceView中采用了双缓存技术，在单独的线程中更新界面
-View在UI线程中更新界面
-```
-
-讲一下android中进程的优先级？
-
-```
-前台进程
-可见进程
-服务进程
-后台进程
-空进程
-```
-
-tips：静态类持有Activity引用会导致内存泄露
-
-
-二面
-
-* service生命周期，可以执行耗时操作吗？
-* JNI开发流程
-* Java线程池，线程同步
-* 自己设计一个图片加载框架
-* 自定义View相关方法
-* http ResponseCode
-* 插件化，动态加载
-* 性能优化，MAT
-* AsyncTask原理
-* 65k限制
-* Serializable和Parcelable
-* 文件和数据库哪个效率高
-* 断点续传
-* WebView和JS
-* 所使用的开源框架的实现原理，源码
-
-
-
-
-
-
-
-
+* 写代码，LeetCode上股票利益最大化问题
+* 写代码，剑指offer上第一次只出现一次的字符
+* 写代码，反转字符串
+* 写代码，字符串中出现最多的字符。
+* 标号1-n的n个人首尾相接，1到3报数，报到3的退出，求最后一个人的标号
+* 给定一个字符串，求第一个不重复的字符 abbcad -> c
+* 实现stack 的pop和push接口 要求： 1.用基本的数组实现 2.考虑范型 3.考虑下同步问题 4.考虑扩容问题

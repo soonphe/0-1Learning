@@ -78,6 +78,8 @@ brew有很多使用的工具，如搜索、安装、更新等，都是可以一�
   - brew install yarn：安装yarn，javascript包管理工具
   - brew install nginx：安装nginx
   - brew install maven：安装maven
+  - brew install hbase 安装hbase
+
   - brew install --cask chrome：安装应用chrome
   - brew install --cask wechat：安装应用wechat
   - brew install --cask typora： 安装typora
@@ -357,7 +359,7 @@ brew安装nginx软件的相关信息：
 - 安装路径：/usr/local/Cellar/nginx/1.21.0 (25 files, 2.2MB) *
 - 配置文件：/usr/local/etc/nginx/nginx.conf
 - 命令：
-  - 重启：brew services start nginx
+  - 启动：brew services start nginx
   - 手动启动：nginx
 
 brew安装elasticsearch软件的相关信息:
@@ -366,8 +368,26 @@ brew安装elasticsearch软件的相关信息:
 - 安装路径：/usr/local/Cellar/elasticsearch/7.10.2 (156 files, 113.5MB) *
 - 配置文件：/usr/local/etc/elasticsearch/
 - 命令：
-  - 重启：  brew services start elasticsearch
+  - 启动：  brew services start elasticsearch
   - 手动启动：elasticsearch
+
+brew安装zookeeper软件的相关信息:
+- 版本：stable 3.9.2 (bottled), HEAD
+- 官网：https://zookeeper.apache.org/
+- 安装路径：/usr/local/Cellar/zookeeper/3.9.2 (1,114 files, 62.8MB) *
+- 配置文件 ：
+- 命令：
+  - 启动：brew services start zookeeper
+  - SERVER_JVMFLAGS="-Dapple.awt.UIElement=true" /usr/local/opt/zookeeper/bin/zkServer start-foreground
+
+brew安装kafka软件的相关信息:
+- 版本：kafka: stable 3.7.0 (bottled)
+- 官网：https://kafka.apache.org/
+- 安装路径：/usr/local/Cellar/kafka/3.7.0 (245 files, 115MB) *
+- 配置文件 ：/usr/local/etc/kafka/server.properties
+- 命令：
+  - 启动：brew services start kafka
+  - 手动启动：/usr/local/opt/kafka/bin/kafka-server-start /usr/local/etc/kafka/server.properties
 
 ### brew安装报错no bottle available!
 修复命令

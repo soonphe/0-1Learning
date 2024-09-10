@@ -1,5 +1,22 @@
 ## gps坐标计算
 
+### post插图空间插件
+postgresql插件postGIS
+需要先创建拓展：PostGIS
+{"areaCode":"420100","onlineList":[1],"distince":1,"orderType":1,"position":"114.55750231062069,30.488116978027715"}
+
+### java计算
+
+依赖：
+```
+<!-- gps位置计算 -->
+<dependency>
+	<groupId>com.vividsolutions</groupId>
+	<artifactId>jts</artifactId>
+	<version>1.13</version>
+</dependency>
+```
+
 参考代码：
 ```
 package org.starry.utils.gps;

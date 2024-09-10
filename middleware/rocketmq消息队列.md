@@ -10,25 +10,15 @@
 ### 简介
 rocket消息队列（Message Queue，简称MQ）是企业级互联网架构的核心产品，服务于整个阿里巴巴集团已超过 10 年，经过阿里巴巴交易核心链路反复打磨与历年双十一购物狂欢节的严苛考验，是一个真正具备低延迟、高并发、高可用、高可靠，可支撑万亿级数据洪峰的分布式消息中间件。
 
-MQ 的内核为由阿里巴巴集团捐赠给Apache基金会的顶级项目RocketMQ，在2016年双11全球狂欢节中，RocketMQ以万亿级的消息总量支撑了全集团3000+应用，为复杂的业务场景提供系统解耦、削峰填谷能力，保障了核心交易链路消息流转的低延迟、高吞吐。
-
-
 ### 快速入门
 使用流程：
 1. 开通消息队列服务（RocketMQ产品页）
-
 2. 为RAM用户授权(RAM控制台)
-
 3. 创建实例（RocketMQ控制台）
-
 4. 创建Topic（RocketMQ控制台）
-
 5. 创建HTTP/TCP Group ID （RocketMQ控制台）
-
 6. 获取HTTP/TCP接入点（RocketMQ控制台）
-
 7. 下载并安装HTTP/TCP SDK
-
 8. 运行HTTP/TCP示例代码收发消息
 
 说明：
@@ -36,6 +26,79 @@ MQ 的内核为由阿里巴巴集团捐赠给Apache基金会的顶级项目Rocke
 - 同一个消息队列RocketMQ版实例既有TCP协议接入点，又有HTTP协议的接入点，您需分别获取TCP协议和HTTP协议的SDK来使用对应协议的接入点，不能混用。
 - TCP协议客户端接入点仅在公网地域有公网接入点，其余地域只提供内网接入点，HTTP协议在各地域均提供公网和内网接入点。
 - 如果您的应用有跨地域使用消息队列RocketMQ版的场景，推荐您使用HTTP协议。
+
+### mac安装rocketmq
+1. 下载: http://rocketmq.apache.org/docs/quick-start/, 直接下载源代码版本
+2. 以守护进程的方式启动mqnamesrv和broker
+```
+nohup sh bin/mqnamesrv &   
+这个命令可能会nohup: ignoring input and appending output to ‘nohup.out’,
+如果出现这个,执行:
+tail -f nohup.out
+
+启动Broker
+sh bin/mqbroker -n localhost:9876
+
+使用JPS命令查看启动状态：
+21746 NamesrvStartup
+21818 BrokerStartup
+出现即为成功
+```
+3. 测试发送消息
+```
+测试发送消息
+export NAMESRV_ADDR=localhost:9876
+
+可以看到终端输出大量日志，已经发送不了很多消息
+sh bin/tools.sh org.apache.rocketmq.example.quickstart.Producer
+```
+4. 测试接受消息
+```
+sh bin/tools.sh org.apache.rocketmq.example.quickstart.Consumer
+
+消息内容如下：
+ConsumeMessageThread_1 Receive New Messages: [MessageExt [brokerName=MacBook-Pro.local, queueId=3, storeSize=204, queueOffset=120, sysFlag=0, bornTimestamp=1724380066042, bornHost=/192.168.1.30:62897, storeTimestamp=1724380066043, storeHost=/192.168.1.30:10911, msgId=C0A8011E00002A9F0000000000017DC8, commitLogOffset=97736, bodyCRC=532952986, reconsumeTimes=0, preparedTransactionOffset=0, toString()=Message{topic='TopicTest', flag=0, properties={MIN_OFFSET=0, MAX_OFFSET=121, KEYS=key, CONSUME_START_TIME=1724380484565, UNIQ_KEY=C0A8011E5DBF3AF49F1C738AA4FA0042, CLUSTER=DefaultCluster, WAIT=true, TAGS=tag}, body=[109, 101, 115, 115, 97, 103, 101, 66, 111, 100, 121], transactionId='null'}]]
+
+可以看到对应的topic和key：body为加密的消息
+topic='TopicTest',  KEYS=key，body=[109, 101, 115, 115, 97, 103, 101, 66, 111, 100, 121],
+```
+
+### 安装rocketmq控制台 rocketmq-console
+1.下载
+在 GitHub 中搜索 rocketmq-externals，其中 rocketmq-console 就是 RocketMQ 可视化控制台，我们可以将源码克隆下来，然后自己 mvn package，然后运行 jar 包。
+或者直接下载官方提供的 1.0.0 版本的 rocketmq-console
+> https://github.com/apache/rocketmq-externals/releases/tag/rocketmq-console-1.0.0
+
+2.修改配置文件
+进入rocketmq-console的src/main/resources/文件夹
+修改配置文件application.properties
+```
+rocketmq.config.namesrvAddr=127.0.0.1:9876
+注：需要修改端口的可自行修改
+```
+保存修改后的配置文件，返回rocketmq-console目录
+使用maven打包命令打包
+```
+mvn clean package -Dmaven.test.skip=true
+```
+打包完成后进入target目录
+rocketmq-console-ng-1.0.0.jar即为打包后得到的jar包
+
+3.启动程序
+```
+nohup java -jar rocketmq-console-ng-1.0.0.jar &
+```
+访问 http://127.0.0.1:8080/
+
+4.测试topic创建
+消息发送
+```
+发送消息报错：
+org.apache.rocketmq.client.exception.MQClientException: Send [3] times, still failed, cost [5]ms, Topic: TopicTest, BrokersSent: [MacBook-Pro.local, MacBook-Pro.local, MacBook-Pro.local]
+See http://rocketmq.apache.org/docs/faq/ for further details.
+
+解决办法：系统剩余磁盘必须大于10%
+```
 
 ### 使用HTTP协议的SDK收发消息集成
 参考文档：https://help.aliyun.com/document_detail/44711.html?spm=a2c4g.11186623.6.599.372a35e8LQkvOK
@@ -67,6 +130,21 @@ MQ 的内核为由阿里巴巴集团捐赠给Apache基金会的顶级项目Rocke
       <artifactId>ons-client</artifactId>
       <version>1.8.4.Final</version>
     </dependency>
+    
+    
+    或者使用apche相关依赖
+    <!-- in your <dependencies> block -->
+  <dependency>
+      <groupId>org.apache.rocketmq</groupId>
+      <artifactId>rocketmq-client</artifactId>
+      <version>4.9.4</version>
+  </dependency>
+  
+  <dependency>
+      <groupId>org.apache.rocketmq</groupId>
+      <artifactId>rocketmq-acl</artifactId>
+      <version>4.9.4</version>
+  </dependency>
 ```
 8. yml配置文件
 ```

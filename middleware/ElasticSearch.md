@@ -37,10 +37,10 @@ Windows下载安装步骤：
 
 Linux安装步骤：
 
-    解压文件 elasticsearch-2.4.0.zip
+    解压文件 elasticsearch-6.2.2
     
-    修改配置文件
-    elasticsearch-2.4.0  cat  config /elasticsearch .yml | grep  - v  "#"
+    修改配置文件（也可以不改动，直接启动）
+    elasticsearch-6.2.2  cat  config /elasticsearch .yml | grep  - v  "#"
     cluster.name: rainbow
     network.host: 127.0.0.1
     http.port: 9200
@@ -50,8 +50,13 @@ Linux安装步骤：
     http.port 表示对外提供http服务时的http端口。
     network.host 表示本地监听绑定的ip地址，此处为测试环境，直接使用本机的ip地址 127.0.0.1.
     
-    启动说明
-    elasticsearch-2.4.0  nohup  . /bin/elasticsearch  &
+    启动elasticsearch
+    nohup bin/elasticsearch  &
+    访问：http://localhost:9200/
+
+    启动kibana
+    nohup bin/kibana &  
+    访问：http://localhost:5601/
 
 ### Elasticsearch启动监听两个端口，9300和9200
 9300端口是使用tcp客户端连接使用的端口；（后台client访问）
@@ -330,7 +335,43 @@ https://localhost:9200/log_index?pretty
     }
 }
 ```
-说明：如果指定到index级别，只需要put就行，如果是type级别，则为post请求，如果指定id，则为添加数据；
+
+
+#### 索引删除和索引数据删除
+删除索引：curl -XDELETE localhost:9200/log_index
+
+删除数据：curl -XDELETE localhost:9200/log_index/_doc/_id
+
+根据条件删除数据：
+```
+POST localhost:9200/log_index?requests_per_second
+{
+  "slice":{   #手动分片删除
+    "id":1,    #两次删除需要修改id
+    "max":2 #分为两批次删除
+  }
+  "query": { 
+    "match_all": {}
+  }
+}
+```
+
+#### 创建索引并添加数据
+curl -XPOST 'http://localhost:9200/{_index}/{_type}/{_id}' -d'{"a":"avalue","b":"bvalue"}'
+```
+限定index + type添加：（不添加id会自动创建随机字符串id）
+curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type' -d'{"a":"avalue","b":"bvalue"}'
+
+限定index + type + id添加（ID相同会覆盖）：
+curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
+```
+
+#### 创建索引并设置type 和 mapping
+创建索引说明：
+- 如果指定到index级别，只需要put就行，
+- 如果是type级别，则为post请求，
+- 如果指定id，则为添加数据；
+
 elasticsearch 7.x相较于elasticsearch 6.x在有所不同：7.x中设置mapping删去了_type，如果在7.x中用6.x的方法定义会出现错误
 > "error": "Incorrect HTTP method for uri [/log_index/_type] and method [PUT], allowed: [POST]"
 
@@ -395,33 +436,6 @@ properties
 
 > 这意味着，只有同一个 index 的中的 type 都有类似的映射 (mapping) 时，才应该使用 type。否则，使用多个 type 可能比使用多个 index 消耗的资源更多。
 
-
-4. 创建索引并添加数据：curl -XPOST 'http://localhost:9200/{_index}/{_type}/{_id}' -d'{"a":"avalue","b":"bvalue"}'
-```
-限定index + type添加：
-curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type' -d'{"a":"avalue","b":"bvalue"}'
-限定index + type + id添加（ID相同会覆盖）：
-curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/log_index/log_type/log_id' -d'{"a":"avalue","b":"bvalue"}'
-```
-
-#### 索引删除和索引数据删除
-删除索引：curl -XDELETE localhost:9200/log_index
-
-删除数据：curl -XDELETE localhost:9200/log_index/_doc/_id
-
-根据条件删除数据：
-```
-POST localhost:9200/log_index?requests_per_second
-{
-  "slice":{   #手动分片删除
-    "id":1,    #两次删除需要修改id
-    "max":2 #分为两批次删除
-  }
-  "query": { 
-    "match_all": {}
-  }
-}
-```
 
 #### 索引新增数据-单条写入
 支持put/post两种请求方式：
@@ -1411,9 +1425,7 @@ public void testPutMapping() throws IOException {
 }
 ```
 
-## ElasticSearch监控工具-cerebro
-
-### 安装
+### ElasticSearch监控工具-cerebro
 1. 下载解压
    https://github.com/lmenezes/cerebro/releases
 

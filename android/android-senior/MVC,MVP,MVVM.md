@@ -63,5 +63,10 @@ MVVM模式将Presenter改名为ViewModel，基本上与MVP模式完全一致。
 
 唯一的区别是，它采用双向绑定(data-binding)：View的变动，自动反映在ViewModel，反之亦然。
 
+### mvp和mvvm的区别
+mvp：activity持有presenter对象，presenter被初始化attachView(this)相互持有，
+presenter持有view接口，activity实现view接口，presenter调用api，调用接口中的方法更新view
+mvvm：activity持有viewmodel对象，vm被初始化new MainModel(MainActivity.this, this);
+viewmodel持有view接口，activity实现view接口，viewmodel调用api，调用接口中的方法更新view
 
 
