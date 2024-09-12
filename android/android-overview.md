@@ -158,37 +158,154 @@ Gradle Wrapper命令的基本用法包括：‌
 在使用Gradle Wrapper时，‌开发者还可以指定具体的任务或子项目进行构建。‌例如，‌要为所有子项目运行测试任务，‌可以使用命令./gradlew test。‌如果需要为特定的子项目运行构建任务，‌可以使用:subproject:taskName的格式，‌如./gradlew :submodule-name:build。‌这种灵活性使得Gradle Wrapper成为管理和构建复杂项目时的强大工具12。‌
 
 
-### Andorid 分辨率
-dpi范围	密度
-0dpi ~ 120dpi	ldpi
-120dpi ~ 160dpi	mdpi	1
-160dpi ~ 240dpi	hdpi	1.5
-240dpi ~ 320dpi	xhdpi	2
-320dpi ~ 480dpi	xxhdpi	3
-480dpi ~ 640dpi	xxxhdpi	4
+### Android 依赖
 
-**ico尺寸**
-密度	建议尺寸
-mipmap-mdpi	48 * 48
-mipmap-hdpi	72 * 72
-mipmap-xhdpi	96 * 96
-mipmap-xxhdpi	144 * 144
-mipmap-xxxhdpi	192 * 192
+#### jar与arr
+Jar包里面只有代码，aar里面不光有代码还包括代码还包括资源文件，比如 drawable 文件，xml 资源文件。对于一些不常变动的 Android Library，我们可以直接引用 aar，加快编译速度
 
-**不同分辨率图片放大缩小规则：**
-- 图片所有文件dpi x 图片尺寸 = 手机dpi
-- 图片所有文件dpi越小，图片尺寸越大
-- 图片所有文件dpi越大，图片尺寸越小
-- 放大倍数未dpi之间的倍数
+#### multidex
+默认情况下，Android 应用程序支持 SingleDex，这会限制您的应用程序只有 65536 个方法（引用）。所以 multidexEnabled = true 只是意味着现在您可以在应用程序中编写超过 65536 个方法（引用）
 
-> 占用内存的算法是 (图片所属资源密度 / 手机DPI * 原始图片宽度) * (图片所属资源密度 / 手机DPI * 原始图片高度)
-
-adb查看手机分辨率：
+project根目录下配置：
 ```
-adb shell dumpsys window displays
-
-结果：init=1080x1920 420dpi cur=1080x1920 app=1080x1920 rng=1080x1017-1920x1857
+android {  
+  defaultConfig {  
+  // Enabling multidex support.  
+    multiDexEnabled true  
+  }  
+}
 ```
+
+app下配置：
+dependencies {  compile 'com.google.android:multidex:0.1'}
+
+
+如果你的工程中已经含有Application类,那么让它继承android.support.multidex.MultiDexApplication类,
+如果你的Application已经继承了其他类并且不想做改动，那么还有另外一种使用方式,覆写attachBaseContext()方法:
+
+public class MyApplication extends FooApplication {  
+@Override  
+protected void attachBaseContext(Context base) {  
+super.attachBaseContext(base);  
+MultiDex.install(this);  
+}  
+}
+
+
+### 编译、签名与打包
+
+#### android签名keystore和jks区别
+keystore 是Eclipse 打包生成的签名。
+jks是Android studio 生成的签名。
+
+
+#### aar文件
+AAR是Google为Android Studio专门推出的一种库文件格式
+- *.jar：只包含了class文件与清单文件，不包含资源文件，如图片、布局等所有res中的文件。
+- *.aar：包含所有资源，class以及res资源等全部文件。
+
+**引入aar文件**
+1. 将要集成的AAR文件拷贝到工程的libs目录下；
+2. 在项目工程的build.gradle配置文件中做以下配置：
+```
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+ implementation(name: 'IMeasureSDK', ext: 'aar')
+}
+```
+
+**android 生成一个aar文件：**
+1. 创建一个 Android Library 项目，在 Android Studio 中，点击 “File” -> “New” -> “New Project”，然后选择 “Android Library” 作为项目类型。输入项目的名称和路径，并选择适当的设置。
+2. 配置 Library 项目
+  - 添加需要的第三方库的依赖项。
+  - 设置合适的 minSdkVersion 和 targetSdkVersion。
+  - 在 Library 项目的 build.gradle 文件中，确保 apply plugin: 'com.android.library' 已被添加。
+3. 然后要引入你的项目中，在setting.gradle 中加上 include ':你的库名' 和 app build.gradle 下引入 implementation project(path: ':你的库名') ,不同gradle 版本可能写法不一样
+4. 生成 AAR 包，打开你android studio 的 命令输入界面，项目根目录，输入以下命令：
+```
+./gradlew assemble
+```
+这将生成一个AAR文件，并将其放置在.gradle_bulid/<your_module_name>/outputs/aar/目录下。
+这里同时有Release包 和Debug包，二者还是有差别的，你直接在Android Studio 里安装app 就会在 build/outputs/aar/ 目录下生成 Debug包的，当然，正式环境最好还是用 Release 包。
+
+**注意：**
+如果报错：no such file or directory: ./gradlew ，解决：那就是缺少文件，引入gradlew和gradlew.bat文件即可
+
+#### so文件
+Android 系统本质是一个经过改造的 Linux 系统，so库是Linux系统上使用的共享库（类似windows上的dll）。
+最早，Android 系统只支持 ARMv5 的 CPU 构架，随着 Android 系统的发展，又加入了 ARMv7 (2010), x86 (2011), MIPS (2012), ARMv8, MIPS64 和 x86_64 (2014)。
+每一种 CPU 构架，都定义了一种 ABI（Application Binary Interface），ABI 决定了二进制文件如何与系统进行交互
+
+| CPU架构       | 描述                                        |
+|-------------|-------------------------------------------|
+| armeabi     | 第5代ARMv5TE，使用软件浮点运算，兼容所有ARM设备，通用性强，速度慢    |
+| armeabi-v7a | 第7代ARMv7，使用硬件浮点运算，具有高级扩展功能                |
+| arm64-v8a   | 第8代，64位，包含AArch32、AArch64两个执行状态对应32、64bit |
+| x86         | intel 32位，一般用于平板                          |
+| x86_64      | intel 64位，一般用于平板                          |
+| mips        | 少接触                                       |
+| mips64      | 少接触                                       |
+
+**使用so文件**
+1. 在build文件中配置
+```
+defaultConfig {
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a","arm64-v8a", "x86", "x86_64", "mips", "mips64"
+        }
+    }
+ 
+ 
+ 
+//    读取libs中的so文件
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+```
+为什么要设置ndk的abiFilters
+其实这个可以不设置，这样编译时，就会将项目里所有依赖资源包里的so库都打到最终的apk里。
+但是有些平台，我们是不需要支持的，如果不删除的话，apk就臃肿了。如果那些so库是我们自己编译出来的，那可以直接在工程中删除对应so文件，但是如果是第三方提供的，就不好删除了，所以就需要使用abiFilters来过滤了。
+如果需要针对不同的平台出不同的包，可以在productFlavors里进行设置
+
+armeabi、armeabi-v7a、arm64-v8a的兼容性问题
+看上面的描述，以为新增一个so库文件可以随便根据需要适配的目录放，就错了。如果你有库文件在armeabi里有，但是armeabi-v7a目录下没有，那么运行在V7a的架构时，就会出现找不到so库文件的情况。具体描述参照：Android 关于arm64-v8a、armeabi-v7a、armeabi、x86下的so文件兼容问题。
+
+正确的做法
+当前市面绝大多数是arm的CPU，而且都是V7架构的了，所以可以保留armeabi或者armeabi-v7a即可。
+如果仅保留armeabi-v7a，而有些第三方包未提供v7a的包，则可以将对应armeabi包拷贝到armeabi-v7a。
+如果同时保留armeabi和armeabi-v7a，则需要保证两个目录下的so库文件数相同。
+
+#### Android更新低版本
+Android不能更新低版本
+如果一个新版本的应用的versionCode值不大于之前旧版本的versionCode值，‌系统会提示无法安装，‌因为这违反了Android的系统规则，‌即低版本的APK不能直接覆盖安装高版本的APK。
+即使versionName相同，只要versionCode不同（且新APK的versionCode更大），那么就可以进行覆盖安装。但如果versionCode也相同，那么系统就会认为这两个APK是同一个版本，从而拒绝安装或更新。
+
+#### APK打包
+Build——Generate Signed APK——选择keystore——输入keyPasswrod等——选择debug/release
+
+#### 获取当前SDK/系统版本号
+系统版本号：android.os.Build.DISPLAY
+String androidVersion = android.os.Build.VERSION.RELEASE;//android版本
+String model = android.os.Build.MODEL;//型号
+String brand = android.os.Build.BRAND;//品牌
+String dis = android.os.Build.DISPLAY;//版本号
+
+获取系统应用版本号：如1.0.0
+PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+versionCode = packageInfo.versionCode;
+
+#### 如何把自己写的库发布到网上的仓库 Bintray/JCenter/JitPack
+Bintray/JCenter/JitPack发布及配置流程
+JitPack虽然是最简单的，但是他是基于把整个项目作为依赖的，Bintray/JCenter则可以上传单个模块作为依赖
+推荐使用Bintray
+发布流程：https://blog.csdn.net/u014780554/article/details/79628041?utm_source=blogxgwz1
 
 ### Android开机过程
 * BootLoder引导,然后加载Linux内核.
@@ -363,153 +480,185 @@ finish();
 ~~~~
 
 
+### Fragment
+Fragment为何产生 :同时适配手机和平板、UI和逻辑的共享。
 
+* Fragment也会被加入回退栈中。
+* Fragment拥有自己的生命周期和接受、处理用户的事件
+* 可以动态的添加、替换和移除某个Fragment
 
-### Android 依赖
+生命周期,必须依存于Activity，Fragment依附于Activity的生命状态
 
-### jar与arr
-Jar包里面只有代码，aar里面不光有代码还包括代码还包括资源文件，比如 drawable 文件，xml 资源文件。对于一些不常变动的 Android Library，我们可以直接引用 aar，加快编译速度
+#### Fragment生命周期方法含义：
+* `public void onAttach(Context context)`：onAttach方法会在Fragment于窗口关联后立刻调用。从该方法开始，就可以通过Fragment.getActivity方法获取与Fragment关联的窗口对象，但因为Fragment的控件未初始化，所以不能够操作控件。
+* `public void onCreate(Bundle savedInstanceState)`：在调用完onAttach执行完之后立刻调用onCreate方法，可以在Bundle对象中获取一些在Activity中传过来的数据。通常会在该方法中读取保存的状态，获取或初始化一些数据。在该方法中不要进行耗时操作，不然窗口不会显示。
+* `public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState)`：该方法是Fragment很重要的一个生命周期方法，因为会在该方法中创建在Fragment显示的View，其中inflater是用来装载布局文件的，container是`<fragment>`标签的父标签对应对象，savedInstanceState参数可以获取Fragment保存的状态，如果未保存那么就为null。
+* `public void onViewCreated(View view,Bundle savedInstanceState)`：Android在创建完Fragment中的View对象之后，会立刻回调该方法。其种view参数就是onCreateView中返回的view，而bundle对象用于一般用途。
+* `public void onActivityCreated(Bundle savedInstanceState)`：在Activity的onCreate方法执行完之后，Android系统会立刻调用该方法，表示窗口已经初始化完成，从这一个时候开始，就可以在Fragment中使用getActivity().findViewById(Id);来操控Activity中的view了。
+* `public void onStart()`：这个没啥可讲的，但有一个细节需要知道，当系统调用该方法的时候，fragment已经显示在ui上，但还不能进行互动，因为onResume方法还没执行完。
+* `public void onResume()`：该方法为fragment从创建到显示Android系统调用的最后一个生命周期方法，调用完该方法时候，fragment就可以与用户互动了。
+* `public void onPause()`：fragment由活跃状态变成非活跃状态执行的第一个回调方法，通常可以在这个方法中保存一些需要临时暂停的工作。如保存音乐播放进度，然后在onResume中恢复音乐播放进度。
+* `public void onStop()`：当onStop返回的时候，fragment将从屏幕上消失。
+* `public void onDestoryView()`：该方法的调用意味着在 `onCreateView` 中创建的视图都将被移除。
+* `public void onDestroy()`：Android在Fragment不再使用时会调用该方法，要注意的是~这时Fragment还和Activity藕断丝连！并且可以获得Fragment对象，但无法对获得的Fragment进行任何操作（呵~呵呵~我已经不听你的了）。
+* `public void onDetach()`：为Fragment生命周期中的最后一个方法，当该方法执行完后，Fragment与Activity不再有关联(分手！我们分手！！(╯‵□′)╯︵┻━┻)。
 
-#### multidex
-project根目录下配置：
-android {  
-defaultConfig {  
-// Enabling multidex support.  
-multiDexEnabled true  
-}  
-}
+#### Fragment比Activity多了几个额外的生命周期回调方法：
+* onAttach(Activity):当Fragment和Activity发生关联时使用
+* onCreateView(LayoutInflater, ViewGroup, Bundle):创建该Fragment的视图
+* onActivityCreate(Bundle):当Activity的onCreate方法返回时调用
+* onDestoryView():与onCreateView相对应，当该Fragment的视图被移除时调用
+* onDetach():与onAttach相对应，当Fragment与Activity关联被取消时调用
 
-app下配置：
-dependencies {  compile 'com.google.android:multidex:0.1'}
+注意：除了onCreateView，其他的所有方法如果你重写了，必须调用父类对于该方法的实现
 
+#### Fragment与Activity之间的交互
+* Fragment与Activity之间的交互可以通过`Fragment.setArguments(Bundle args)`以及`Fragment.getArguments()`来实现。
 
-如果你的工程中已经含有Application类,那么让它继承android.support.multidex.MultiDexApplication类,
-如果你的Application已经继承了其他类并且不想做改动，那么还有另外一种使用方式,覆写attachBaseContext()方法:
+#### Fragment状态的持久化
+由于Activity会经常性的发生配置变化，所以依附它的Fragment就有需要将其状态保存起来问题。下面有两个常用的方法去将Fragment的状态持久化。
 
-public class MyApplication extends FooApplication {  
-@Override  
-protected void attachBaseContext(Context base) {  
-super.attachBaseContext(base);  
-MultiDex.install(this);  
-}  
-}
-
-### 编译、签名与打包
-
-#### android签名keystore和jks区别
-keystore 是Eclipse 打包生成的签名。
-jks是Android studio 生成的签名。
-
-
-#### aar文件
-AAR是Google为Android Studio专门推出的一种库文件格式
-- *.jar：只包含了class文件与清单文件，不包含资源文件，如图片、布局等所有res中的文件。
-- *.aar：包含所有资源，class以及res资源等全部文件。
-
-**引入aar文件**
-1. 将要集成的AAR文件拷贝到工程的libs目录下；
-2. 在项目工程的build.gradle配置文件中做以下配置：
-```
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
-
-dependencies {
- implementation(name: 'IMeasureSDK', ext: 'aar')
-}
-```
-
-**android 生成一个aar文件：**
-1. 创建一个 Android Library 项目，在 Android Studio 中，点击 “File” -> “New” -> “New Project”，然后选择 “Android Library” 作为项目类型。输入项目的名称和路径，并选择适当的设置。
-2. 配置 Library 项目
-   - 添加需要的第三方库的依赖项。
-   - 设置合适的 minSdkVersion 和 targetSdkVersion。
-   - 在 Library 项目的 build.gradle 文件中，确保 apply plugin: 'com.android.library' 已被添加。
-3. 然后要引入你的项目中，在setting.gradle 中加上 include ':你的库名' 和 app build.gradle 下引入 implementation project(path: ':你的库名') ,不同gradle 版本可能写法不一样
-4. 生成 AAR 包，打开你android studio 的 命令输入界面，项目根目录，输入以下命令：
-```
-./gradlew assemble
-```
-这将生成一个AAR文件，并将其放置在.gradle_bulid/<your_module_name>/outputs/aar/目录下。
-这里同时有Release包 和Debug包，二者还是有差别的，你直接在Android Studio 里安装app 就会在 build/outputs/aar/ 目录下生成 Debug包的，当然，正式环境最好还是用 Release 包。
-
-**注意：**
-如果报错：no such file or directory: ./gradlew ，解决：那就是缺少文件，引入gradlew和gradlew.bat文件即可
-
-#### so文件
-Android 系统本质是一个经过改造的 Linux 系统，so库是Linux系统上使用的共享库（类似windows上的dll）。
-最早，Android 系统只支持 ARMv5 的 CPU 构架，随着 Android 系统的发展，又加入了 ARMv7 (2010), x86 (2011), MIPS (2012), ARMv8, MIPS64 和 x86_64 (2014)。
-每一种 CPU 构架，都定义了一种 ABI（Application Binary Interface），ABI 决定了二进制文件如何与系统进行交互
-
-| CPU架构       | 描述                                        |
-|-------------|-------------------------------------------|
-| armeabi     | 第5代ARMv5TE，使用软件浮点运算，兼容所有ARM设备，通用性强，速度慢    |
-| armeabi-v7a | 第7代ARMv7，使用硬件浮点运算，具有高级扩展功能                |
-| arm64-v8a   | 第8代，64位，包含AArch32、AArch64两个执行状态对应32、64bit |
-| x86         | intel 32位，一般用于平板                          |
-| x86_64      | intel 64位，一般用于平板                          |
-| mips        | 少接触                                       |
-| mips64      | 少接触                                       |
-
-**使用so文件**
-1. 在build文件中配置
-```
-defaultConfig {
-        ndk {
-            abiFilters "armeabi", "armeabi-v7a","arm64-v8a", "x86", "x86_64", "mips", "mips64"
+* 方法一：
+  * 可以通过`protected void onSaveInstanceState(Bundle outState)`,`protected void onRestoreInstanceState(Bundle savedInstanceState)` 状态保存和恢复的方法将状态持久化。
+* 方法二(更方便,让Android自动帮我们保存Fragment状态)：
+  * 我们只需要将Fragment在Activity中作为一个变量整个保存，只要保存了Fragment，那么Fragment的状态就得到保存了，所以呢.....
+    * `FragmentManager.putFragment(Bundle bundle, String key, Fragment fragment)` 是在Activity中保存Fragment的方法。
+    * `FragmentManager.getFragment(Bundle bundle, String key)` 是在Activity中获取所保存的Frament的方法。
+  * 很显然，key就传入Fragment的id，fragment就是你要保存状态的fragment，但，我们注意到上面的两个方法，第一个参数都是Bundle，这就意味着*FragmentManager*是通过Bundle去保存Fragment的。但是，这个方法仅仅能够保存Fragment中的控件状态，比如说EditText中用户已经输入的文字（*注意！在这里，控件需要设置一个id，否则Android将不会为我们保存控件的状态*），而Fragment中需要持久化的变量依然会丢失，但依然有解决办法，就是利用方法一！
+  * 下面给出状态持久化的事例代码：
+    ```		
+        @Override
+        protected void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.fragment_activity);
+            if( savedInstanceState != null ){
+                fragmentB = (FragmentB) getSupportFragmentManager().getFragment(savedInstanceState,"fragmentB");
+            }
+            init();
         }
-    }
- 
- 
- 
-//    读取libs中的so文件
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['libs']
+
+        @Override
+        protected void onSaveInstanceState(Bundle outState) {
+            if( fragmentB != null ){
+                getSupportFragmentManager().putFragment(outState,"fragmentB",fragmentB);
+            }
+            super.onSaveInstanceState(outState);
         }
-    }
+
+        /** Fragment中保存变量的代码 **/
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            AppLog.e("onCreateView");
+            if ( null != savedInstanceState ){
+                String savedString = savedInstanceState.getString("string");
+                //得到保存下来的string
+            }
+            View root = inflater.inflate(R.layout.fragment_a,null);
+            return root;
+        }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            outState.putString("string","anAngryAnt");
+            super.onSaveInstanceState(outState);
+        }
+    ```
+
+#### 静态的使用Fragment
+1. 继承Fragment，重写onCreateView决定Fragment的布局
+2. 在Activity中声明此Fragment,就和普通的View一样
+
+#### Fragment常用的API
+* android.support.v4.app.Fragment 主要用于定义Fragment
+* android.support.v4.app.FragmentManager 主要用于在Activity中操作Fragment，可以使用FragmentManager.findFragmenById，FragmentManager.findFragmentByTag等方法去找到一个Fragment
+* android.support.v4.app.FragmentTransaction 保证一些列Fragment操作的原子性，熟悉事务这个词
+
+主要的操作都是FragmentTransaction的方法(一般我们为了向下兼容，都使用support.v4包里面的Fragment),getFragmentManager() // Fragment若使用的是support.v4包中的，那就使用getSupportFragmentManager代替
 ```
-为什么要设置ndk的abiFilters
-其实这个可以不设置，这样编译时，就会将项目里所有依赖资源包里的so库都打到最终的apk里。
-但是有些平台，我们是不需要支持的，如果不删除的话，apk就臃肿了。如果那些so库是我们自己编译出来的，那可以直接在工程中删除对应so文件，但是如果是第三方提供的，就不好删除了，所以就需要使用abiFilters来过滤了。
-如果需要针对不同的平台出不同的包，可以在productFlavors里进行设置
+	FragmentTransaction transaction = fm.benginTransatcion();//开启一个事务
+	transaction.add() 
+	//往Activity中添加一个Fragment
 
-armeabi、armeabi-v7a、arm64-v8a的兼容性问题
-看上面的描述，以为新增一个so库文件可以随便根据需要适配的目录放，就错了。如果你有库文件在armeabi里有，但是armeabi-v7a目录下没有，那么运行在V7a的架构时，就会出现找不到so库文件的情况。具体描述参照：Android 关于arm64-v8a、armeabi-v7a、armeabi、x86下的so文件兼容问题。
+	transaction.remove() 
+	//从Activity中移除一个Fragment，如果被移除的Fragment没有添加到回退栈（回退栈后面会详细说），这个Fragment实例将会被销毁。
 
-正确的做法
-当前市面绝大多数是arm的CPU，而且都是V7架构的了，所以可以保留armeabi或者armeabi-v7a即可。
-如果仅保留armeabi-v7a，而有些第三方包未提供v7a的包，则可以将对应armeabi包拷贝到armeabi-v7a。
-如果同时保留armeabi和armeabi-v7a，则需要保证两个目录下的so库文件数相同。
+	transaction.replace()
+	//使用另一个Fragment替换当前的，实际上就是remove()然后add()的合体~
 
-#### Android更新低版本
-Android不能更新低版本
-如果一个新版本的应用的versionCode值不大于之前旧版本的versionCode值，‌系统会提示无法安装，‌因为这违反了Android的系统规则，‌即低版本的APK不能直接覆盖安装高版本的APK。
-即使versionName相同，只要versionCode不同（且新APK的versionCode更大），那么就可以进行覆盖安装。但如果versionCode也相同，那么系统就会认为这两个APK是同一个版本，从而拒绝安装或更新。
+	transaction.hide()
+	//隐藏当前的Fragment，仅仅是设为不可见，并不会销毁
 
-#### APK打包
-Build——Generate Signed APK——选择keystore——输入keyPasswrod等——选择debug/release
+	transaction.show()
+	//显示之前隐藏的Fragment
 
-#### 获取当前SDK/系统版本号
-系统版本号：android.os.Build.DISPLAY
-String androidVersion = android.os.Build.VERSION.RELEASE;//android版本
-String model = android.os.Build.MODEL;//型号
-String brand = android.os.Build.BRAND;//品牌
-String dis = android.os.Build.DISPLAY;//版本号
+	detach()
+	//当fragment被加入到回退栈的时候，该方法与*remove()*的作用是相同的，
+	//反之，该方法只是将fragment从视图中移除，
+	//之后仍然可以通过*attach()*方法重新使用fragment，
+	//而调用了*remove()*方法之后，
+	//不仅将Fragment从视图中移除，fragment还将不再可用。
 
-获取系统应用版本号：如1.0.0
-PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-versionCode = packageInfo.versionCode;
+	attach()
+	//重建view视图，附加到UI上并显示。
 
-### 如何把自己写的库发布到网上的仓库 Bintray/JCenter/JitPack
-Bintray/JCenter/JitPack发布及配置流程
-JitPack虽然是最简单的，但是他是基于把整个项目作为依赖的，Bintray/JCenter则可以上传单个模块作为依赖
-推荐使用Bintray
-发布流程：https://blog.csdn.net/u014780554/article/details/79628041?utm_source=blogxgwz1
+	transatcion.commit()
+	//提交一个事务
+```
+
+#### 管理Fragment回退栈
+```
+* 跟踪回退栈状态
+  * 我们通过实现*``OnBackStackChangedListener``*接口来实现回退栈状态跟踪，具体如下
+  public class XXX implements FragmentManager.OnBackStackChangedListener 
+
+  /** 实现接口所要实现的方法 **/
+ @Override
+ public void onBackStackChanged() {
+     //do whatevery you want
+ }
+ /** 设置回退栈监听接口 **／
+ getSupportFragmentManager().addOnBackStackChangedListener(this);
+```
+* 管理回退栈
+  * ``FragmentTransaction.addToBackStack(String)`` *--将一个刚刚添加的Fragment加入到回退栈中*
+  * ``getSupportFragmentManager().getBackStackEntryCount()`` *－获取回退栈中实体数量*
+  * ``getSupportFragmentManager().popBackStack(String name, int flags)`` *－根据name立刻弹出栈顶的fragment*
+  * ``getSupportFragmentManager().popBackStack(int id, int flags)`` *－根据id立刻弹出栈顶的fragment*
 
 ### UI界面
+
+#### Andorid 分辨率
+dpi范围	密度
+0dpi ~ 120dpi	ldpi
+120dpi ~ 160dpi	mdpi	1
+160dpi ~ 240dpi	hdpi	1.5
+240dpi ~ 320dpi	xhdpi	2
+320dpi ~ 480dpi	xxhdpi	3
+480dpi ~ 640dpi	xxxhdpi	4
+
+**ico尺寸**
+密度	建议尺寸
+mipmap-mdpi	48 * 48
+mipmap-hdpi	72 * 72
+mipmap-xhdpi	96 * 96
+mipmap-xxhdpi	144 * 144
+mipmap-xxxhdpi	192 * 192
+
+**不同分辨率图片放大缩小规则：**
+- 图片所有文件dpi x 图片尺寸 = 手机dpi
+- 图片所有文件dpi越小，图片尺寸越大
+- 图片所有文件dpi越大，图片尺寸越小
+- 放大倍数未dpi之间的倍数
+
+> 占用内存的算法是 (图片所属资源密度 / 手机DPI * 原始图片宽度) * (图片所属资源密度 / 手机DPI * 原始图片高度)
+
+adb查看手机分辨率：
+```
+adb shell dumpsys window displays
+
+结果：init=1080x1920 420dpi cur=1080x1920 app=1080x1920 rng=1080x1017-1920x1857
+```
 
 #### Android五种基础布局 
 全都继承自ViewGroup
@@ -538,7 +687,7 @@ JitPack虽然是最简单的，但是他是基于把整个项目作为依赖的�
 * 之后运行 App 时，优先访问内存中的图片缓存，若内存中没有，则加载本地SD卡中的图片
 * 总之，只在初次访问新内容时，才通过网络获取图片资源
 
-### android Bitmap绘制图片
+#### android Bitmap绘制图片
 ```
 绘制照片：
 文件解码为位图：
@@ -639,7 +788,6 @@ pw.setAsDropDown(View view);//设置PopupWindow弹出的位置。
 
 
 ### 事件分发机制
-
 * 对于一个根ViewGroup来说,发生点击事件首先调用dispatchTouchEvent
 * 如果这个ViewGroup的onIterceptTouchEvent返回true就表示它要拦截当前事件,接着这个ViewGroup的onTouchEvent就会被调用.如果onIterceptTouchEvent返回false,那么就会继续向下调用子View的dispatchTouchEvent方法
 * 当一个View需要处理事件的时候,如果它没有设置onTouchListener,那么直接调用onTouchEvent.如果设置了Listenter 那么就要看Listener的onTouch方法返回值.为true就不调,为false就调onTouchEvent
@@ -729,175 +877,6 @@ RecycleBin机制是ListView能够实现成百上千条数据都不会OOM最重�
 
 View的流程分三步，onMeasure()用于测量View的大小，onLayout()用于确定View的布局，onDraw()用于将View绘制到界面上。
 
-
-
-### 关于Rxjava与Disposable
-多个响应
-```
-protected CompositeDisposable mDisposable;
-mDisposable = new CompositeDisposable();
-加入：
-mDisposable.add（网络请求与view回调）
-销毁：
-if(compositeDisposable!=null){
-compositeDisposable.clear();
-}
-```
-单个响应式目标
-```
-Disposable timeDisposable = null;
-加入：
-rcodeDisposable = Observable.interval(2 * 60, TimeUnit.SECONDS).subscribe(aLong -> {
-   updateQrcode();
-});
-销毁：
-timeDisposable.dispose();
-```
-
-
-Rxjava定时请求：
-```
-        return Observable.interval(10, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .takeUntil(aLong -> {
-                    return aLong == 0;
-                })
-                .subscribeWith(new DisposableObserver<Long>() {
-                    @Override
-                    public void onNext(Long count) {
-                        if (count == 0) {
-                            timerListener.onComplete();
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-```
-takeUntil操作符:当第二个Observable发射了一项数据或者终止时，丢弃原Observable发射的任何数据。
-
-DisposableObserver是RxJava中的一个观察者实现类，它继承自Observer接口，并且具有一些额外的特性。
-与常规观察者相比，DisposableObserver具有以下特点：
-- 可以手动取消订阅：DisposableObserver提供了dispose()方法，可以手动取消订阅，避免内存泄漏和资源浪费。
-- 自动取消订阅：DisposableObserver在观察者不再需要接收事件时，会自动取消订阅，释放资源。
-- 简化代码：DisposableObserver可以通过匿名内部类的方式实现，简化了代码编写过程
-
-**Disposable**
-Disposable是rxjava中用于处理资源释放的接口。当我们订阅Observable时，会返回一个Disposable对象，用于手动取消订阅并释放资源。下面是一个示例代码：
-在 RxJava 中，在数据流结束后，如果不取消订阅，则可能会导致内存泄露。我们可以通过使用 Disposable 来取消订阅关系。在 RxJava 中，onError 和 onComplete 中，都存在 this::dispose。这也是为什么 onError 和 onComplete 不能同时存在的原因。
-
-有两个方法
-```
-   // 取消订阅
-   void dispose();
-   // 判断订阅状态
-   boolean isDisposed();
-```
-示例代码：
-```
-// 创建一个Disposable对象
-Disposable disposable;
-
-// 创建一个Observable对象，发射一组数字
-Observable<Integer> observable = Observable.just(1, 2, 3, 4, 5);
-
-// 订阅Observable并获取Disposable对象
-disposable = observable.subscribe(
-    data -> System.out.println(data), // onNext回调
-    error -> System.out.println("Error: " + error), // onError回调
-    () -> System.out.println("Complete") // onComplete回调
-);
-
-// 销毁Disposable对象
-disposable.dispose();
-```
-
-**CompositeDisposable**
-CompositeDisposable 类是一个存放 Disposable 的 hash 容器，对放入其中的 disposable 会将其解除订阅。如果在添加是，容器内已经被解除，那么新增的会被阻断。
-在使用的时候，我们使用容器，调用，add或者 addAll，容器退出时，调用 clear 方法即可将容器内的关系解除。
-
-
-### RxJava Observable的compose方法
-Observable是一个可观察的数据序列，我们可以通过对Observable进行一系列的操作来对数据进行处理和转换。其中，compose方法是非常有用的一个方法，可以将一系列的操作封装为一个操作符，从而提高代码的复用性和可读性。
-compose方法的定义如下所示：
-```
-public final <R> Observable<R> compose(Observable.Transformer<? super T, ? extends R> transformer)
-```
-其中，Observable.Transformer是一个接口，其定义如下：
-```
-public interface Transformer<T, R> {
-Observable<R> call(Observable<T> observable);
-}
-```
-compose方法的作用是将一个Observable的数据序列转换为另一个Observable的数据序列。
-```
-Observable<Integer> observable = Observable.just(1, 2, 3, 4, 5)
-    .compose(new Observable.Transformer<Integer, Integer>() {
-        @Override
-        public Observable<Integer> call(Observable<Integer> upstream) {
-            return upstream.map(new Func1<Integer, Integer>() {
-                @Override
-                public Integer call(Integer integer) {
-                    return integer * 2;
-                }
-            });
-        }
-    });
-
-observable.subscribe(new Action1<Integer>() {
-    @Override
-    public void call(Integer integer) {
-        System.out.println(integer);
-    }
-});
-```
-在上面的示例中，我们首先创建了一个包含数字1到5的Observable，然后通过compose方法将原始的Observable转换为一个新的Observable，
-新的Observable将原始数据序列中的每个元素都乘以2。
-最后，我们通过subscribe方法订阅新的Observable，并打印出每个元素的值。
-
-使用compose方法的好处
-- 提高代码复用性：通过将一系列的操作封装为一个操作符，我们可以在多个地方重复使用这个操作符，而不需要重复编写相同的代码。
-- 提高可读性：将一系列的操作封装为一个操作符，可以让代码结构更加清晰，易于理解。
-- 简化代码逻辑：将复杂的操作拆分为多个小的操作符，可以让代码逻辑更加清晰简洁。
-
-
-### rxjava提供的方法
-- just（）一将一个或多个对象转换成发射这个或这些对象的一个Observable
-- from()一将一个lterable,一个Future,或者一个数组转换成一个Observable 
-- repeat（）一创建一个重复发射指定数据或数据序列的Observable 
-- repeatWhen（）一创建一个重复发射指定数据或数据序列的Observable，它依赖于另一个Observable发射的数据 
-- create()一使用一个函数从头创建一个Observable 
-- defer()一只有当订阅者订阅才创建Observable;为每个订阅创建一个新的Observable 
-- range（）一创建一个发射指定范围的整数序列的Observable 
-- interval（）一创建一个按照给定的时间间隔发射整数序列的Observable
-- timer（）一创建一个在给定的延时之后发射单个数据的Observable 
-- empty（）一创建一个什么都不做直接通知完成的Observable
-- error（）一创建一个什么都不做直接通知错误的Observable
-- never()一创建一个不发射任何数据的Observable
-
-测试Rxjava中的操作符interval()时出现了很奇怪的问题，怎么试都不能执行。
-
-原因是我们的操作不是阻塞的：我们创建了一个每隔一段时间就发射数据的 Observable，然后我们注册了一个 Subscriber 来打印收到的数据。这两个操作都是非阻塞的，而 发射数据的计时器是运行在另外一个线程的，但是这个线程不会阻止 JVM 结束当前的程序，所以 如果没有 System.in.read(); 这个阻塞操作，还没发射数据则程序就已经结束运行了。
-解决：
-- 添加：Thread.sleep(20000);
-- 或使用传参
-```
-  Observable.interval(1, TimeUnit.SECONDS)
-  变更为：
-  Observable.interval(1, TimeUnit.SECONDS, Schedulers.trampoline())
-```
-**Schedulers.computation() 与 Schedulers.trampoline()区别**
-immediate()方法返回的是ImmediateScheduler类的实例，而trampoline()方法返回的是TrampolineScheduler类的实例。
-从ImmediateScheduler类的官网介绍中可以看出ImmediateScheduler执行在当前main线程。
-从TrampolineScheduler类的官网介绍中可以看出TrampolineScheduler不会立即执行，当其他排队任务介绍时才执行，当然TrampolineScheduler运行在当前main线程。
-
 ### mkkv
 tencent.mmkv：键值对存储系统
 使用方式：
@@ -912,10 +891,6 @@ kv.putString(MMKVService.DEVICE_CFG,ServiceLocator.getGson().toJson(deviceCfgInf
 - 读取数据：        int idValue =  mmkv.decodeInt("Id");
 * 注意事项：MMKV可以存储各种类型的数据，包括String、Int、Float、Double、 ByteArray等。您只需要根据需要使用相应的encode和decode方法
 
-### handle
-android handle解析：android主线程不能访问网络，子线程不能更新UI，当子线程操作涉及UI更新时，Handle就出现了
-Handler运行在主线程中(UI线程中)，  
-它与子线程可以通过Message对象来传递数据， 这个时候，Handler就承担着接受子线程传过来的(子线程用sendMessage()方法传递)Message对象，(里面包含数据)，把这些消息放入主线程队列中，配合主线程进行更新UI
 
 ### android进程与线程
 
@@ -961,6 +936,12 @@ rxjava中io线程与主线程：
 默认情况下，手机放置一段时间后，是会熄屏，然后停止cpu的。执行后台任务时，需要唤醒cpu。唤醒cpu可以使用闹钟（alarm），本文不做具体介绍，本文考虑的是接收到广播之后的处理。
 Receiver是worker thread的执行是并行的，Receiver执行完毕之后，可能被回收。这样就不能保证工作线程正常执行。
 正确的方向是Receiver启动一个后台的Service（一般是IntentService），来执行后台任务。
+
+#### 线程休眠 Thread.sleep和SystemClock.sleep()
+SystemClock.sleep()和Thread.sleep() 是 Java 中用于线程休眠的方法，它们都可以暂停当前线程一段时间以实现一些特定的功能。它们的主要区别如下：
+SystemClock.sleep()方法是 Android 中提供的 API，它是一个简单的休眠方法，不会抛出 InterruptedException 异常，并且可以保证在任何情况下都能正常工作，无需担心线程安全问题。
+而Thread.sleep()方法是 Java 中的标准 API，当线程处于 sleep 状态时，如果有其他线程中断了该线程，则会抛出 InterruptedException 异常，因此需要进行异常处理，否则可能会导致程序崩溃。
+
 
 ### Android闹钟服务AlarmManager 
 1.Timer类与AlarmManager类区别：
@@ -1011,165 +992,11 @@ class LocalReceiver extends BroadcastReceiver {
 public void onReceive(Context context, Intent intent) {
 ```
 
-### Android进程间通信mBinder
-Binder机制是Android进行IPC（进程间通信）的主要方式
-Binder跨进程通信机制：基于C/S架构，由Client、Server、ServerManager和Binder驱动组成。 
-进程空间分为用户空间和内核空间。
-用户空间不可以进行数据交互；
-内核空间可以进行数据交互，
-所有进程共用 一个内核空间 
-Client、Server、ServiceManager均在用户空间中实现，而Binder驱动程序则是在内核空间中实现的；
+### kotlin跨平台
+kotlin-multiplatform：android studio安装`Kotlin Multiplatform plugin`、`Kotlin plugin`插件
 
-为何新增Binder来作为主要的IPC方式
-Android也是基于Linux内核，Linux现有的进程通信手段有管道/消息队列/共享内存/套接字/信号量。
-
-既然有现有的IPC方式，为什么重新设计一套Binder机制呢？
-
-主要是出于以上三个方面的考量：
-```
-1. 效率：传输效率主要影响因素是内存拷贝的次数，拷贝次数越少，传输速率越高。从Android进程架构角度 分析：对于消息队列、Socket和管道来说，数据先从发送方的缓存区拷贝到内核开辟的缓存区中，再从内核缓存区拷 贝到接收方的缓存区，一共两次拷贝。
-
-一次数据传递需要经历：用户空间 –> 内核缓存区 –> 用户空间，需要2次数据拷贝，这样效率不高。 
-
-而对于Binder来说，数据从发送方的缓存区拷贝到内核的缓存区，而接收方的缓存区与内核的缓存区是映射到同 一块物理地址的，节省了一次数据拷贝的过程 ： 共享内存不需要拷贝，Binder的性能仅次于共享内存。
-
-2、稳定性：上面说到共享内存的性能优于Binder，那为什么不采用共享内存呢，因为共享内存需要处理并发同 步问题，容易出现死锁和资源竞争，稳定性较差。 Binder基于C/S架构 ，Server端与Client端相对独立，稳定性较 好。
-3、安全性：传统Linux IPC的接收方无法获得对方进程可靠的UID/PID，从而无法鉴别对方身份；而Binder机制 为每个进程分配了UID/PID，且在Binder通信时会根据UID/PID进行有效性检测。
-```
-从进程间通信的角度看，Binder 是一种进程间通信的机制；
-
-从 Server 进程的角度看，Binder 指的是 Server 中的 Binder 实体对象(Binder类 IBinder)；
-
-从 Client 进程的角度看，Binder 指的是对 Binder 代理对象，是 Binder 实体对象的一个远程代理
-
-从传输过程的角度看，Binder 是一个可以跨进程传输的对象；Binder 驱动会自动完成代理对象和本地对象之间 的转换。 从Android Framework角度来说，Binder是ServiceManager连接各种Manager和相应ManagerService的桥梁
-
-
-使用方法：
-```
-android.os.Parcel
-
-android.os.Parcel request = android.os.Parcel.obtain();
-android.os.Parcel reply = android.os.Parcel.obtain();
-mBinder.transact(BINDER_GET_PREVIEW_SIZE, request, reply, 0);//去拿前路子码流分辨率大小
-```
-示例代码:1. 直接利用Binder的transact实现：
-```
-public class IPCService extends Service {
-private static final String DESCRIPTOR = "IPCService";
-private final String[] names = {"B神","艹神","基神","J神","翔神"};
-private MyBinder mBinder = new MyBinder();
-private class MyBinder extends Binder {
-  @Override
-  protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
-      switch (code){
-          case 0x001: {
-              Log.d("TAG", "MyBinder Switch块 -----" + android.os.Process.myPid());
-              data.enforceInterface( "IPCService");
-              int num = data.readInt();
-              int num1 = data.readInt();
-              int num2 = data.readInt();
-              String test = data.readString();
-              reply.writeNoException();
-              reply.writeString(names[num] + "  " + android.os.Process.myPid() + "    " + num1 + "   " + num2 + "   " + test);
-              reply.writeInt(1);
-              reply.writeString("收到");
-              return true;
-          }
-      }
-      Log.d("TAG", "MyBinder   OnTransact块 ----- " + android.os.Process.myPid());
-      return super.onTransact(code, data, reply, flags);
-  }
-}
-@Override
-public IBinder onBind(Intent intent) {
-  return mBinder;
-}
-}
-/**
- * AndroidManifest.xml
-         <service android:name="net.binderlearning.IPCService"
-                 android:process=".myservice"/>
-*/
-
-```
-client:
-```
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    private EditText edit_num;
-    private Button btn_query;
-    private TextView txt_result;
-    private IBinder mIBinder;
-    private ServiceConnection PersonConnection  = new ServiceConnection()
-    {
-        @Override
-        public void onServiceDisconnected(ComponentName name)
-        {
-            mIBinder = null;
-        }
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service)
-        {
-            mIBinder =  service;
-            Log.d("TAG", "客户端-----" + android.os.Process.myPid());
-        }
-    };
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        bindViews();
-        //绑定远程Service
-        Intent service = new Intent(this,IPCService.class);
-        bindService(service, PersonConnection, BIND_AUTO_CREATE);
-        btn_query.setOnClickListener(this);
-    }
-    private void bindViews() {
-        edit_num = (EditText) findViewById(R.id.edit_num);
-        btn_query = (Button) findViewById(R.id.btn_query);
-        txt_result = (TextView) findViewById(R.id.txt_result);
-    }
-    @Override
-    public void onClick(View v) {
-        int num = Integer.parseInt(edit_num.getText().toString());
-        if (mIBinder == null)
-        {
-            Toast.makeText(this, "未连接服务端或服务端被异常杀死", Toast.LENGTH_SHORT).show();
-        } else {
-            android.os.Parcel _data = android.os.Parcel.obtain();
-            android.os.Parcel _reply = android.os.Parcel.obtain();
-            String _result = null;
-            try{
-                _data.writeInterfaceToken("IPCService");
-                _data.writeInt(num);
-                _data.writeInt(4);
-                mIBinder.transact(0x001, _data, _reply, 0);
-                _reply.readException(); //读取异常
-                _result = _reply.readString();
-                String test = _reply.readString();
-                int test1 = _reply.readInt();
-                Toast.makeText(this, "我收到的内容是：" + test + "    " + test1, Toast.LENGTH_SHORT).show();
-                txt_result.setText(_result);
-                edit_num.setText("");
-                Log.d("TAG", "客户端-----" + android.os.Process.myPid());
-            }catch (RemoteException e)
-            {
-                e.printStackTrace();
-            } finally
-            {
-                _reply.recycle();
-                _data.recycle();
-            }
-        }
-    }
-}
-
-```
-
-### 多环境
-4.多环境开发
-kotlin-multiplatform：android sutdio+Kotlin Multiplatform plugin、Kotlin plugin插件
 Mac安装环境检测：brew install kdoctor
+```
 [~]$ kdoctor      
 Environment diagnose (to see all details, use -v option):
 [✓] Operation System
@@ -1186,60 +1013,21 @@ Install Kotlin Multiplatform Mobile plugin - https://plugins.jetbrains.com/plugi
 
 Conclusion:
 ✓ Your operation system is ready for Kotlin Multiplatform Mobile Development!
+```
 
 **Kotlin Multiplatform和Compose Multiplatform**
 * Kotlin Multiplatform：提供了底层逻辑的跨平台，为 Compose Multiplatform 提供了基础支撑
 * Compose Multiplatform：Compose UI 的跨平台框架，提供 UI 跨平台能力
 
 sqldelight 数据库
+```
   plugins {
 +  id("app.cash.sqldelight") version "2.0.2"
    }
    dependencies {
 +  implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
    }
-
-
-### android GPS相关
-在Android设备上检测GPS信号，‌主要可以通过以下步骤实现：‌
 ```
-1.检查设备是否具有GPS硬件：‌
-* 		这可以通过检查设备是否具有LocationManager服务来实现。‌如果设备支持GPS，‌那么就可以进行后续的操作。‌
-* locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-* if (!openGps() && !openNetWork()) {
-*     MyLog.e(TAG, "gps未打开");
-*     return;
-* }
-
-2.获取位置管理器（‌LocationManager）‌实例：‌
-* 		通过调用getSystemService(Context.LOCATION_SERVICE)方法获取LocationManager实例，‌以便进行进一步的操作。‌
-
-3.检查是否有可用的GPS提供者：‌
-* 		通过调用LocationManager的getProviders方法来检查是否有可用的GPS提供者。‌
-通过以上步骤，‌可以在Android设备上检测GPS信号，‌并据此进行相应的操作
-```
-
-maxSatellites=255
-satellites.size = 16
-
-GPS SNR（‌信噪比）‌是衡量GPS信号强度的一个重要指标，‌通常用分贝（‌dB）‌表示。‌
-SNR值越大，‌表示信号相对于噪声的强度越大，‌即信号越强。‌
-典型的SNR值在0到50之间，‌其中50表示非常好的信号。‌
-一般来说，‌在行业里，‌SNR值至少要40以上才算及格，‌能勉强保证在恶劣气候下20米以内的精准度。‌如果SNR值低于这个标准，‌可能会影响到GPS信号的接收和定位的准确性‌
-GPS系统由24颗卫星组成，‌这些卫星分布在6个轨道上，‌每个轨道有4颗卫星
-
-信号打印：
-```
-2024-08-13 09:58:35.350  4206-4206  GpsSignalExample        com.bd.train                         E  Satellite status changed
-2024-08-13 09:58:35.350  4206-4206  GpsSignalExample        com.bd.train                         E  Max SNR: 35 dB
-```
-
-
-
-### Thread.sleep和SystemClock.sleep() 
-SystemClock.sleep()和Thread.sleep() 是 Java 中用于线程休眠的方法，它们都可以暂停当前线程一段时间以实现一些特定的功能。它们的主要区别如下：
-SystemClock.sleep()方法是 Android 中提供的 API，它是一个简单的休眠方法，不会抛出 InterruptedException 异常，并且可以保证在任何情况下都能正常工作，无需担心线程安全问题。
-而Thread.sleep()方法是 Java 中的标准 API，当线程处于 sleep 状态时，如果有其他线程中断了该线程，则会抛出 InterruptedException 异常，因此需要进行异常处理，否则可能会导致程序崩溃。
 
 ### Android常见问题处理
 

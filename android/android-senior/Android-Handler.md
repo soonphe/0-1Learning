@@ -1,6 +1,18 @@
-> 老司机们都知道，Android的线程间通信就靠Handler、Looper、Message、MessageQueue这四个麻瓜兄弟了，那么，他们是怎么运作的呢？下面做一个基于主要源代码的大学生水平的分析。 [原文链接](http://anangryant.leanote.com/post/Handler%E3%80%81Looper%E3%80%81Message%E3%80%81MessageQueue%E5%88%86%E6%9E%90)
+# 0-1Learning
 
-##Looper(先分析这个是因为能够引出四者的关系)
+![alt text](../../static/common/svg/luoxiaosheng.svg "公众号")
+![alt text](../../static/common/svg/luoxiaosheng_learning.svg "学习")
+![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
+
+
+## Android-Handler
+Android的线程间通信就靠Handler、Looper、Message、MessageQueue
+
+android handle解析：android主线程不能访问网络，子线程不能更新UI，当子线程操作涉及UI更新时，Handle就出现了
+Handler运行在主线程中(UI线程中)，  
+它与子线程可以通过Message对象来传递数据， 这个时候，Handler就承担着接受子线程传过来的(子线程用sendMessage()方法传递)Message对象，(里面包含数据)，把这些消息放入主线程队列中，配合主线程进行更新UI
+
+### Looper
 在Looper中，维持一个`Thread`对象以及`MessageQueue`，通过Looper的构造函数我们可以知道:
 ```
     private Looper(boolean quitAllowed) {
@@ -16,7 +28,7 @@
 1. `looper.loop()`
 2. `looper.prepare()`
 
-###looper.loop()（在当前线程启动一个Message loop机制，此段代码将直接分析出Looper、Handler、Message、MessageQueue的关系）
+### looper.loop()（在当前线程启动一个Message loop机制，此段代码将直接分析出Looper、Handler、Message、MessageQueue的关系）
 ```
  public static void loop() {
         final Looper me = myLooper();//获得当前线程绑定的Looper
@@ -82,7 +94,7 @@
 4. `Looper`：负责分发食物的人
 
 
-###looper.prepare()（在当前线程关联一个Looper对象）
+### looper.prepare()（在当前线程关联一个Looper对象）
 ```
  private static void prepare(boolean quitAllowed) {
         if (sThreadLocal.get() != null) {
@@ -97,7 +109,7 @@
 2. 如果没有的话，那么就设置一个新的`Looper`到当前线程。
 
 --------------
-##Handler
+### Handler
 由于我们使用Handler的通常性的第一步是:
 ```
  Handler handler = new Handler(){
@@ -134,7 +146,7 @@ public Handler(Callback callback, boolean async) {
 1. `Looper.loop()`死循环中的`msg.target`是什么时候被赋值的？
 2. `handler.handleMessage(msg)`在什么时候被回调的？
 
-###A1：`Looper.loop()`死循环中的`msg.target`是什么时候被赋值的？
+### A1：`Looper.loop()`死循环中的`msg.target`是什么时候被赋值的？
 要分析这个问题，很自然的我们想到从发送消息开始，无论是`handler.sendMessage(msg)`还是`handler.sendEmptyMessage(what)`，我们最终都可以追溯到以下方法
 ```
 public boolean sendMessageAtTime(Message msg, long uptimeMillis) {
@@ -166,7 +178,7 @@ private boolean enqueueMessage(MessageQueue queue, Message msg, long uptimeMilli
 ```
 
 
-###A2：`handler.handleMessage(msg)`在什么时候被回调的？
+### A2：`handler.handleMessage(msg)`在什么时候被回调的？
 通过以上的分析，我们很明确的知道`Message`中的`target`是在什么时候被赋值的了，我们先来分析在`Looper.loop()`中出现过的过的`dispatchMessage(msg)`方法
 
 ```
@@ -191,15 +203,13 @@ public void dispatchMessage(Message msg) {
 ------------------
 通过以上的分析，我们可以很清晰的知道Handler、Looper、Message、MessageQueue这四者的关系以及如何合作的了。
 
-#总结：
+### 总结：
 当我们调用`handler.sendMessage(msg)`方法发送一个`Message`时，实际上这个`Message`是发送到**与当前线程绑定**的一个`MessageQueue`中，然后**与当前线程绑定**的`Looper`将会不断的从`MessageQueue`中取出新的`Message`，调用`msg.target.dispathMessage(msg)`方法将消息分发到与`Message`绑定的`handler.handleMessage()`方法中。
 
 一个`Thread`对应多个`Handler`
 一个`Thread`对应一个`Looper`和`MessageQueue`，`Handler`与`Thread`共享`Looper`和`MessageQueue`。
 `Message`只是消息的载体，将会被发送到**与线程绑定的唯一的**`MessageQueue`中，并且被**与线程绑定的唯一的**`Looper`分发，被与其自身绑定的`Handler`消费。
 
-------
-- Enjoy Android :) 如果有误，轻喷，欢迎指正。
 
 
 

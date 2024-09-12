@@ -7,12 +7,11 @@
 
 ## Android-Rxjava-retrofit
 
-### RxJava异步操作
+### RxJava
 RxJava ：异步
 解释：a library for composing asynchronous and event-based programs using observable sequences for the Java VM"（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库）
-『同样是做异步，为什么人们用它，而不用现成的 AsyncTask / Handler / XXX / ... ？』
 
-RxJava 有四个基本概念：
+### RxJava 有四个基本概念：
 - Observable (可观察者，即被观察者)、
 - Observer (观察者)、
 - subscribe (订阅)、
@@ -24,8 +23,175 @@ RxJava 有四个基本概念：
 - onCompleted(): 事件队列完结。RxJava 不仅把每个事件单独处理，还会把它们看做一个队列。RxJava 规定，当不会再有新的 onNext() 发出时，需要触发 onCompleted() 方法作为标志。
 - onError(): 事件队列异常。在事件处理过程中出异常时，onError() 会被触发，同时队列自动终止，不允许再有事件发出。
 
-在一个正确运行的事件序列中, onCompleted() 和 onError() 有且只有一个，并且是事件序列中的最后一个。
-需要注意的是，onCompleted() 和 onError() 二者也是互斥的，即在队列中调用了其中一个，就不应该再调用另一个。
+注：在一个正确运行的事件序列中, onCompleted() 和 onError() 有且只有一个，并且是事件序列中的最后一个。 
+**需要注意的是，onCompleted() 和 onError() 二者也是互斥的，即在队列中调用了其中一个，就不应该再调用另一个。**
+
+### Rxjava提供的方法
+- just（）一将一个或多个对象转换成发射这个或这些对象的一个Observable
+- from()一将一个lterable,一个Future,或者一个数组转换成一个Observable
+- repeat（）一创建一个重复发射指定数据或数据序列的Observable
+- repeatWhen（）一创建一个重复发射指定数据或数据序列的Observable，它依赖于另一个Observable发射的数据
+- create()一使用一个函数从头创建一个Observable
+- defer()一只有当订阅者订阅才创建Observable;为每个订阅创建一个新的Observable
+- range（）一创建一个发射指定范围的整数序列的Observable
+- interval（）一创建一个按照给定的时间间隔发射整数序列的Observable
+- timer（）一创建一个在给定的延时之后发射单个数据的Observable
+- empty（）一创建一个什么都不做直接通知完成的Observable
+- error（）一创建一个什么都不做直接通知错误的Observable
+- never()一创建一个不发射任何数据的Observable
+
+测试Rxjava中的操作符interval()时出现了很奇怪的问题，怎么试都不能执行。
+
+原因是我们的操作不是阻塞的：我们创建了一个每隔一段时间就发射数据的 Observable，然后我们注册了一个 Subscriber 来打印收到的数据。这两个操作都是非阻塞的，而 发射数据的计时器是运行在另外一个线程的，但是这个线程不会阻止 JVM 结束当前的程序，所以 如果没有 System.in.read(); 这个阻塞操作，还没发射数据则程序就已经结束运行了。
+解决：
+- 添加：Thread.sleep(20000);
+- 或使用传参
+```
+  Observable.interval(1, TimeUnit.SECONDS)
+  变更为：
+  Observable.interval(1, TimeUnit.SECONDS, Schedulers.trampoline())
+```
+**Schedulers.computation() 与 Schedulers.trampoline()区别**
+- immediate()方法返回的是ImmediateScheduler类的实例，而trampoline()方法返回的是TrampolineScheduler类的实例。
+- 从ImmediateScheduler类的官网介绍中可以看出ImmediateScheduler执行在当前main线程。
+- 从TrampolineScheduler类的官网介绍中可以看出TrampolineScheduler不会立即执行，当其他排队任务介绍时才执行，当然TrampolineScheduler运行在当前main线程。
+
+### Rxjava与Disposable
+Disposable为销毁观察者与被观察者的绑定关系，避免内存泄露
+
+多个响应
+```
+protected CompositeDisposable mDisposable;
+mDisposable = new CompositeDisposable();
+加入：
+mDisposable.add（网络请求与view回调）
+销毁：
+if(compositeDisposable!=null){
+compositeDisposable.clear();
+}
+```
+单个响应式目标
+```
+Disposable timeDisposable = null;
+加入：
+rcodeDisposable = Observable.interval(2 * 60, TimeUnit.SECONDS).subscribe(aLong -> {
+   updateQrcode();
+});
+销毁：
+timeDisposable.dispose();
+```
+
+Rxjava定时请求：
+```
+        return Observable.interval(10, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .takeUntil(aLong -> {
+                    return aLong == 0;
+                })
+                .subscribeWith(new DisposableObserver<Long>() {
+                    @Override
+                    public void onNext(Long count) {
+                        if (count == 0) {
+                            timerListener.onComplete();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+```
+takeUntil操作符:当第二个Observable发射了一项数据或者终止时，丢弃原Observable发射的任何数据。
+
+DisposableObserver是RxJava中的一个观察者实现类，它继承自Observer接口，并且具有一些额外的特性。
+与常规观察者相比，DisposableObserver具有以下特点：
+- 可以手动取消订阅：DisposableObserver提供了dispose()方法，可以手动取消订阅，避免内存泄漏和资源浪费。
+- 自动取消订阅：DisposableObserver在观察者不再需要接收事件时，会自动取消订阅，释放资源。
+- 简化代码：DisposableObserver可以通过匿名内部类的方式实现，简化了代码编写过程
+
+**Disposable**
+Disposable是rxjava中用于处理资源释放的接口。当我们订阅Observable时，会返回一个Disposable对象，用于手动取消订阅并释放资源。下面是一个示例代码：
+在 RxJava 中，在数据流结束后，如果不取消订阅，则可能会导致内存泄露。我们可以通过使用 Disposable 来取消订阅关系。在 RxJava 中，onError 和 onComplete 中，都存在 this::dispose。这也是为什么 onError 和 onComplete 不能同时存在的原因。
+
+有两个方法
+```
+   // 取消订阅
+   void dispose();
+   // 判断订阅状态
+   boolean isDisposed();
+```
+示例代码：
+```
+// 创建一个Disposable对象
+Disposable disposable;
+
+// 创建一个Observable对象，发射一组数字
+Observable<Integer> observable = Observable.just(1, 2, 3, 4, 5);
+
+// 订阅Observable并获取Disposable对象
+disposable = observable.subscribe(
+    data -> System.out.println(data), // onNext回调
+    error -> System.out.println("Error: " + error), // onError回调
+    () -> System.out.println("Complete") // onComplete回调
+);
+
+// 销毁Disposable对象
+disposable.dispose();
+```
+
+**CompositeDisposable**
+CompositeDisposable 类是一个存放 Disposable 的 hash 容器，对放入其中的 disposable 会将其解除订阅。如果在添加是，容器内已经被解除，那么新增的会被阻断。
+在使用的时候，我们使用容器，调用，add或者 addAll，容器退出时，调用 clear 方法即可将容器内的关系解除。
+
+
+### RxJava Observable的compose方法
+Observable是一个可观察的数据序列，我们可以通过对Observable进行一系列的操作来对数据进行处理和转换。其中，compose方法是非常有用的一个方法，可以将一系列的操作封装为一个操作符，从而提高代码的复用性和可读性。
+compose方法的定义如下所示：
+```
+public final <R> Observable<R> compose(Observable.Transformer<? super T, ? extends R> transformer)
+```
+其中，Observable.Transformer是一个接口，其定义如下：
+```
+public interface Transformer<T, R> {
+Observable<R> call(Observable<T> observable);
+}
+```
+compose方法的作用是将一个Observable的数据序列转换为另一个Observable的数据序列。
+```
+Observable<Integer> observable = Observable.just(1, 2, 3, 4, 5)
+    .compose(new Observable.Transformer<Integer, Integer>() {
+        @Override
+        public Observable<Integer> call(Observable<Integer> upstream) {
+            return upstream.map(new Func1<Integer, Integer>() {
+                @Override
+                public Integer call(Integer integer) {
+                    return integer * 2;
+                }
+            });
+        }
+    });
+
+observable.subscribe(new Action1<Integer>() {
+    @Override
+    public void call(Integer integer) {
+        System.out.println(integer);
+    }
+});
+```
+在上面的示例中，我们首先创建了一个包含数字1到5的Observable，然后通过compose方法将原始的Observable转换为一个新的Observable，
+新的Observable将原始数据序列中的每个元素都乘以2。
+最后，我们通过subscribe方法订阅新的Observable，并打印出每个元素的值。
+
+使用compose方法的好处
+- 提高代码复用性：通过将一系列的操作封装为一个操作符，我们可以在多个地方重复使用这个操作符，而不需要重复编写相同的代码。
+- 提高可读性：将一系列的操作封装为一个操作符，可以让代码结构更加清晰，易于理解。
+- 简化代码逻辑：将复杂的操作拆分为多个小的操作符，可以让代码逻辑更加清晰简洁。
 
 ### Rxjava编写
 1. 创建Observer 观察者或者Subscriber订阅者（也直接使用Action）
@@ -258,6 +424,14 @@ public interface BlogService {
     Call<ResponseBody> getBlog(@Path("id") int id);
 }
 ```
+
+注解参数
+- @Path：所有在网址中的参数（URL的问号前面），如：http://102.10.10.132/api/Accounts/{accountId}
+- @Query：URL问号后面的参数，如：http://102.10.10.132/api/Comments?access_token={access_token}
+- @QueryMap：相当于多个@Query
+- @Field：用于POST请求，提交单个数据
+- @Body：相当于多个@Field，以对象的形式提交
+
 这里是interface不是class，所以我们是无法直接调用该方法，我们需要用Retrofit创建一个BlogService的代理对象。
 ```
 BlogService service = retrofit.create(BlogService.class);
@@ -354,102 +528,195 @@ public interface BlogService {
     Call<ResponseBody> getBlog(@Path("id") int id);
 }
 ```
+
+### okhttp上传图片
+示例代码：
+```
+public void uploadPhoto(String path) {
+     File file = new File(path);
+     if (!file.exists()) {
+         MyLog.e(TAG, "照片不存在或已上传");
+         return;
+     }
+     OkHttpClient httpClient = new OkHttpClient();
+     RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), file);
+     //构建请求参数体，文件上传同时携带formdata数据，如果需要上传json，添加.addPart(body: RequestBody)
+     MultipartBody multipartBody = new MultipartBody.Builder()
+             .setType(MultipartBody.FORM)
+             .addFormDataPart("file", photoId+ ".jpg", body)
+             .addFormDataPart("coachId", trainPhoto.getCoachid())
+             .addFormDataPart("studentId", trainPhoto.getStuid())
+             .build();
+     //请求参数request
+     Request request = new Request.Builder()
+             .url(AppConfig.HTTP_BASE_URL + "train/trainphoto/uploadImg")
+             .addHeader("phone", phone)
+             .addHeader("imei", imei)
+             .post(multipartBody)
+             .build();
+     //执行请求
+     Call call = httpClient.newCall(request);
+     call.enqueue(new Callback() {
+         @Override
+         public void onFailure(@NotNull Call call, @NotNull IOException e) {
+             MyLog.e(TAG, "onFailure: ",e);
+         }
+
+         @Override
+         public void onResponse(@NotNull Call call, @NotNull Response response) {
+             try {
+                 JsonObject json = new JsonParser().parse(response.body().string()).getAsJsonObject();
+             } catch (Exception e) {
+                 MyLog.e(TAG, "照片: 上传失败");
+             }
+         }
+     });
+}
+```
+
  
 ### retrofit上传图片
-android图片上传
-
-
-后台请求路径
+后台请求路径，使用MultipartFile接收文件
+```
+//接收单图
+@PostMapping("uploads")
+public CommonResult uploads(@ApiParam(required = true, value = "file") @RequestParam(value = "file") MultipartFile file) {
+//接收多图+其他参数
+@PostMapping("uploads")
 public UploadResult uploads(@RequestParam(value = "file", required = false) MultipartFile[] files, String file_type) {
+```
 
-多图上传——数量不确定
+### android端图片上传
+上传接口定义
+```
+//图片上传，MultipartBody.Part模式（推荐）
 @Multipart
-@POST()
-Observable<ResponseBody> uploadFiles(
-@Url String url,
-@PartMap() Map<String, RequestBody> maps);        //RequestBody
+@POST("card/upload")
+Observable<FileUploadBean> uploadFile(@Part MultipartBody.Part file);
 
-
-    @Multipart
-    @POST("common/uploads")
-    Call<ResponseBody> uploadFile(@PartMap Map<String, RequestBody> params );        //RequestBody
-
-RequestBody requestBody3 = RequestBody.create(MediaType.parse(""), "123456");        //第一个参数
-Map<String, RequestBody> params = new HashMap<>();
-params.put("file_type", requestBody3);
-
-        for(int i = 0; i<fileList.size();i++){
-            File file = fileList.get(i);
-            RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-            params.put("file\"; filename=\""+ file.getName(), requestBody);
-        }
-
-/**
-
-* 通过 List<MultipartBody.Part> 传入多个part实现多文件上传
-
-* @param parts 每个part代表一个
-
-* @return 状态信息
-
-*/
-
+//图片上传+其他参数，RequestBody模式（未验证）,MultipartBody继承自RequestBody
 @Multipart
+@POST("card/upload")
+Call<Response> uploadFile(@Query("des") String description, @Part("uploadFile\"; filename=\"test.jpg\"") RequestBody imgs );
 
-@POST("users/image")
-
-Call<BaseResponse<String>> uploadFilesWithParts(@Part() List<MultipartBody.Part> parts);
-
-//@Part List<MultipartBody.Part> partList
-
-public static List<MultipartBody.Part> filesToMultipartBodyParts(List<File> files) {
-
-List<MultipartBody.Part> parts = new ArrayList<>(files.size());
-
-for (File file : files) {
-
-// TODO: 16-4-2  这里为了简单起见，没有判断file的类型
-
-RequestBody requestBody = RequestBody.create(MediaType.parse("image/png"), file);
-
-MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
-
-parts.add(part);
-
-}
-
-return parts;
-
-}
-
-
-——————————————————————————————————————————————————————
-
-图片上传——数量已知：
+//多图上传
 @Multipart
-@POST("card/upload")    //uploadFile(@Part("file\"; filename=\"avatar.png\"") RequestBody file)
-Observable<FileUploadBean> uploadFile(@Part MultipartBody.Part file);        //MultipartBody
+@POST("card/upload")
+Call<BaseResponse<String>> uploadFile(@Part() List<MultipartBody.Part> parts);
 
-            File file=new File(s);
-            RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-            MultipartBody.Part photoPart = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
-            RetrofitUtils.getInstance().getRetrofit_Post().uploadFile(photoPart).
-
-
-
-同时上传一张图片和字符串
+//多图上传+其他参数
 @Multipart
+@POST("card/upload")
+Observable<GoodsReturnPostEntity> uploadFile(@PartMap Map<String, RequestBody> map, @Part List<MultipartBody.Part>  parts);
+```
 
-@POST("user/updateAvatar.do")
-
-Call<Response> updateAvatar (@Query("des") String description, @Part("uploadFile\"; filename=\"test.jpg\"") RequestBody imgs );
-}
-
-//RequestBody
-
-        final File file = new File(filename);
-        RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-Call<Response> call = service.updateInfo(msg, requestBody );
+图片上传，MultipartBody.Part模式
+```
+// 准备图片文件
+File file=new File(s);
+// 创建RequestBody
+RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+// 将RequestBody转换为MultipartBody.Part对象
+MultipartBody.Part photoPart = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+// 创建Retrofit实例
+Retrofit retrofit = new Retrofit.Builder()
+        .baseUrl("http://your-api-url.com/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build();
+// 创建服务实例
+ApiService service = retrofit.create(ApiService.class);
+// 发送请求
+Call<ResponseBody> call = service.uploadFile(photoPart).
+call.enqueue(new Callback<ResponseBody>() {
+    @Override
+    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+        // 处理响应
+    }
  
- 
+    @Override
+    public void onFailure(Call<ResponseBody> call, Throwable t) {
+        // 处理错误
+    }
+});
+```
+图片上传+其他参数，RequestBody模式（未验证）
+```
+//同时上传一张图片和字符串
+final File file = new File(filename);
+RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+Call<Response> call = service.updateInfo(msg, requestBody);
+```
+
+多图上传
+```
+   //遍历添加文件
+   List<MultipartBody.Part> parts = new ArrayList<>(files.size());
+   for (File file : files) {
+      RequestBody requestBody = RequestBody.create(MediaType.parse("image/png"), file);
+      MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+      parts.add(part);
+   }
+   //执行网络请求
+   HttpRequestClient.getRetrofitHttpClient().create(GoodsReturnApiService.class)
+        .uploadFile(parts)
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Observer<GoodsReturnPostEntity () {
+         ...
+         });
+```
+
+多图上传+其他参数
+```
+private void postGoodsPicToServer(){
+    Map<String,RequestBody  params = new HashMap< ();
+    //以下参数是伪代码，参数需要换成自己服务器支持的
+    params.put("type", convertToRequestBody("type"));
+    params.put("title",convertToRequestBody("title"));
+    params.put("info",convertToRequestBody("info");
+    params.put("count",convertToRequestBody("count"));
+
+    //为了构建数据，同样是伪代码
+    String path1 = Environment.getExternalStorageDirectory() + File.separator + "test1.jpg";
+    String path2 = Environment.getExternalStorageDirectory() + File.separator + "test1.jpg";
+
+    List<File>  fileList = new ArrayList<File> ();
+
+    fileList.add(new File(path1));
+    fileList.add(new File(path2));
+
+    List<MultipartBody.Part  partList = filesToMultipartBodyParts(fileList);
+
+    HttpRequestClient.getRetrofitHttpClient().create(GoodsReturnApiService.class)
+        .postGoodsReturnPostEntitys(params,partList)
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Observer<GoodsReturnPostEntity () {
+          @Override
+          public void onSubscribe(@NonNull Disposable d) {
+
+          }
+
+          @Override
+          public void onNext(@NonNull GoodsReturnPostEntity goodsReturnPostEntity) {
+
+          }
+
+          @Override
+          public void onError(@NonNull Throwable e) {
+
+          }
+
+          @Override
+          public void onComplete() {
+
+          }
+        });
+}
+
+private RequestBody convertToRequestBody(String param){
+    RequestBody requestBody = RequestBody.create(MediaType.parse("text/plain"), param);
+    return requestBody;
+  }
+```
 

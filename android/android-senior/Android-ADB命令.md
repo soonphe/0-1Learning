@@ -52,6 +52,8 @@ adb -s 0123456789ABCDEF push D:\JuzhongWork\Download /storage/sdcard0/
 adb install <apkfile> //比如：adb install baidu.apk
 保留数据和缓存文件，重新安装apk：
 adb install -r <apkfile> //比如：adb install -r baidu.apk
+安装测试APK
+adb install -t xxxx.apk
 安装apk到sd卡：
 adb install -s <apkfile> // 比如：adb install -s baidu.apk
 卸载APK：

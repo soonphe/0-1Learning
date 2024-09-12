@@ -7,30 +7,67 @@
 
 ## Android-GPS定位信息
 
-### 主要实现方法
+### 基础使用
+权限：
+```
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" /
+```
+
+### 继承GpsStatus.Listener, LocationListener
+> public class GPSLocation implements GpsStatus.Listener, LocationListener {
+
 - onGpsStatusChanged：gps状态改变
 - onLocationChanged：定位信息改变时
 
-启动定位：
+启动方式：
 ```
-    @SuppressLint("MissingPermission")
-    public void startGps() {
+    //检查设备是否具有GPS硬件：‌可以通过检查设备是否具有LocationManager服务来实现。‌如果设备支持GPS，‌那么就可以进行后续的操作。‌
+    public GPSLocation(Context context) {
+        this.context = context;
+        //获取位置管理器（‌LocationManager）‌实例：‌通过调用getSystemService(Context.LOCATION_SERVICE)方法获取LocationManager实例，‌以便进行进一步的操作。‌
+        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (!openGps() && !openNetWork()) {
+            MyLog.e(TAG, "gps未打开");
+            return;
+        }
         Criteria criteria = new Criteria();//
         criteria.setAccuracy(Criteria.ACCURACY_COARSE);//设置定位精准度
         criteria.setSpeedRequired(true);//是否要求速度
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setPowerRequirement(Criteria.POWER_LOW);//低功率
         criteria.setSpeedAccuracy(Criteria.ACCURACY_HIGH);//设置速度精确度
         criteria.setHorizontalAccuracy(Criteria.ACCURACY_HIGH);//设置水平方向精确度
+        //检查是否有可用的GPS提供者：‌通过调用LocationManager的getProviders方法来检查是否有可用的GPS提供者。‌
         provider = locationManager.getBestProvider(criteria, true);
-        locationManager.requestLocationUpdates(provider, 2000, 0, this);
-        locationManager.addGpsStatusListener(this);
-        prevGpsLocation = new Location(provider);
-        currentGpsLocation = new Location(provider);
+        locationManager.requestLocationUpdates(provider, 2000, 0, this);    //使用给定参数和回调来监听位置更新
+        locationManager.addGpsStatusListener(this);     //添加gps状态监听
+        prevGpsLocation = new Location(provider);       //前一个gps位置对象
+        currentGpsLocation = new Location(provider);    //当前gps位置对象
+    }    
+    /**
+     * 判断gps是否开启
+     */    
+    private boolean openGps() {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+    /**
+     * 判断网络
+     */
+    private boolean openNetWork() {
+        return locationManager
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+    /**
+     * 销毁
+     */
+    public void endDestroy() {
+        locationManager.removeGpsStatusListener(this);
+        locationManager.removeUpdates(this);
     }
 ```
 
-### 监听gps定位变化信息
-示例代码
+### 实现示例：
 ```
 public class GPSLocation implements GpsStatus.Listener, LocationListener {
     private static GPSLocation gpsLocation;
@@ -314,4 +351,70 @@ public class GPSLocation implements GpsStatus.Listener, LocationListener {
         void updateLocation(Location location);
     }
 }
+```
+
+### 检测GPS信号
+主要通过重载方法：onGpsStatusChanged(int event) 实现，event中的卫星数量和信噪比进行判断：
+
+示例代码：
+```
+    @Override
+    public void onGpsStatusChanged(int event) {
+        switch (event) {
+            case GpsStatus.GPS_EVENT_STARTED:
+                Log.e("GpsSignalExample", "GPS started");
+                break;
+            case GpsStatus.GPS_EVENT_STOPPED:
+                Log.e("GpsSignalExample", "GPS stopped");
+                break;
+            case GpsStatus.GPS_EVENT_FIRST_FIX:
+                Log.e("GpsSignalExample", "Got first fix");
+                break;
+            case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+                int count = 0;
+                //当GPS状态变为GPS_EVENT_SATELLITE_STATUS时，我们遍历所有卫星并记录最大的信号强度（使用getSnr方法），然后输出最大信号强度。
+                @SuppressLint("MissingPermission") GpsStatus gpsStatus = locationManager.getGpsStatus(null);
+                int maxSatellites = gpsStatus.getMaxSatellites();
+                Iterable<GpsSatellite> satellites = gpsStatus.getSatellites();
+                int maxSnr = 0;
+                for (GpsSatellite satellite : satellites) {
+                    int snr = (int) satellite.getSnr(); // SNR in dB
+                    if (snr > maxSnr) {
+                        maxSnr = snr;
+                    }
+                    count++;
+                }
+                //判断卫星数量小于10并且最大信噪比小于maxSnrLimit则提示为信号弱
+                if(count<10 && maxSnr < maxSnrLimit){
+                    lastRemind++;
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastClickTime > 1000 && lastRemind < 3) {
+                        Log.e("GpsSignalExample", "Satellite status changed，maxSatellites："+ maxSatellites + "，satellites："+count+ ",Max SNR: " + maxSnr + " dB");
+                        lastClickTime = currentTime;
+                        voicePlayOperation("GPS定位信号弱");
+                    }
+                }else{
+                    lastRemind = 0;
+                }
+                break;
+        }
+    }
+```
+常见的：
+```
+maxSatellites=255
+satellites.size = 16
+```
+
+#### GPS SNR（‌信噪比） 
+GPS SNR（‌信噪比）‌是衡量GPS信号强度的一个重要指标，‌通常用分贝（‌dB）‌表示。‌
+SNR值越大，‌表示信号相对于噪声的强度越大，‌即信号越强。‌
+典型的SNR值在0到50之间，‌其中50表示非常好的信号。‌
+一般来说，‌在行业里，‌SNR值至少要40以上才算及格，‌能勉强保证在恶劣气候下20米以内的精准度。‌如果SNR值低于这个标准，‌可能会影响到GPS信号的接收和定位的准确性‌
+GPS系统由24颗卫星组成，‌这些卫星分布在6个轨道上，‌每个轨道有4颗卫星
+
+信号打印：
+```
+2024-08-13 09:58:35.350  4206-4206  GpsSignalExample        com.bd.train                         E  Satellite status changed
+2024-08-13 09:58:35.350  4206-4206  GpsSignalExample        com.bd.train                         E  Max SNR: 35 dB
 ```
