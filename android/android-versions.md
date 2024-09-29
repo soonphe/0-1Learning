@@ -2,6 +2,15 @@
 
 参考android开发者官网：https://developer.android.google.cn/about/versions?hl=zh-cn
 
+### Android 15()[API ]
+- 前台服务的变更
+- 更改了应用何时可以修改勿扰模式的全局状态
+- OpenJDK API 变更
+- 限制后台 activity 启动
+- 更安全的 intent
+- 请求音频焦点的限制 以 Android 15 为目标平台的应用必须是顶级应用或运行前台服务，才能请求音频焦点。如果应用在不符合其中任何一项要求时尝试请求焦点，该调用将返回 AUDIOFOCUS_REQUEST_FAILED。
+- 更新后的非 SDK 限制
+
 ### Android 14()[API 34]
 - 默认拒绝设定精确的闹钟
 - 当应用进入缓存时，上下文注册的广播将加入队列

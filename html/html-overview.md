@@ -42,6 +42,99 @@ XMLHttpRequest对象的responseText和responseXML属性分别获得字符串形�
 4 };
 ```
 
+### js定时器、延时器
+在JavaScript中，可以使用setTimeout和setInterval来设置定时器。
+
+setTimeout用于设置一个单次定时器，当定时器到期后，会执行一次指定的函数。
+```
+// 设置一个1000毫秒后执行的定时器
+setTimeout(function() {
+    console.log('Hello, World!');
+}, 1000);
+```
+
+setInterval用于设置一个重复定时器，每隔一定时间间隔就执行一次指定的函数。
+```
+// 设置一个每2000毫秒执行一次的定时器
+setInterval(function() {
+    console.log('Hello, World!');
+}, 2000);
+```
+要取消定时器，可以使用clearTimeout或clearInterval，传入相应的定时器标识。
+```
+// 设置一个定时器，然后取消它
+var timerId = setTimeout(function() {
+    console.log('This will not be logged.');
+}, 1000);
+ 
+clearTimeout(timerId);
+ 
+// 设置一个重复定时器，然后在第二次执行之前取消它
+var intervalId = setInterval(function() {
+    console.log('Hello, World!');
+    clearInterval(intervalId);
+}, 2000);
+```
+
+### 模板字符串
+JavaScript 模板字符串（template string）是一种字符串字面量，使用反引号（`）来标识。它可以包含变量，并且可以内嵌表达式。模板字符串可以包含换行符，而无需使用+运算符连接多行字符串。
+
+模板字符串中可以嵌入变量或表达式，其写法是在${}内部写入JavaScript表达式。
+```
+//解法1：
+let name = 'John';
+let age = 25;
+let greeting = `Hello, my name is ${name} and I am ${age} years old.`;
+console.log(greeting);
+
+//解法2：
+let x = 10;
+let y = 20;
+let sum = `${x} + ${y} = ${x + y}`;
+console.log(sum);
+
+function multiply(a, b) {
+  return `${a} * ${b} = ${a * b}`;
+}
+console.log(multiply(5, 6));
+```
+
+### 解构赋值
+在 ES6 中，允许按照一定的模式，从数组和对象中提取值，对变量进行赋值，这种行为被称为解构（Destructuring）。
+解构赋值的规则是，只要被解构的值（等号右边的值）不为对象或者数组（如字符串、数值、布尔值），就先将其转为对象。但 undefined 和 null 除外，因为它俩无法转为对象，所以进行解构赋值会报错。
+
+只要某种数据结构具有 Iterator 接口（可遍历结构），都可以采用数组形式的解构赋值。JavaScript 中原生具备 Iterator 接口的数据结构如下：
+- Array
+- Map
+- Set
+- String
+- TypedArray
+- 函数的 arguments 对象
+- NodeList 对象
+
+基础解构示例：
+```
+// 在 ES5 我们只能直接指定值
+var a = 1 var b = 2 var c = 3
+// 在 ES6 允许这样为变量赋值
+let [a, b, c] = [1, 2, 3]
+let [foo, [[bar], baz]] = [1, [[2], 3]]
+let [ , , third] = ["foo", "bar", "baz"]
+let [x, , y] = [1, 2, 3]
+let [head, ...tail] = [1, 2, 3, 4]
+let [x, y, ...z] = ['a']    // x="a" y=undefined
+```
+如果解构不成功，变量的值就等于 undefined
+```
+let [foo] = []  // foo=undefined
+let [bar, foo] = [1]    //foo=undefined
+```
+当等号左边的模式，只匹配一部分等号右边的数组，依然可以解构成功，这种情况属于不完全解构。
+```
+let [x, y] = [1, 2, 3]; //x=1 y=2
+let [a, [b], d] = [1, [2, 3], 4]; //a= 1 b=2 d=4
+```
+
 
 ### Icon
 1. img一个页面的请求资源中图片 img 占了大部分，所以为了优化有了image sprite 就是所谓的雪碧图，

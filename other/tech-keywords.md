@@ -71,9 +71,27 @@ Github排行榜：https://www.githubs.cn/top
 - 数据库集群管理工具：mycat
 - ES Web管理工具：Cerebro
 
+5. 阿里常见的框架
+- arthas : 线上动态排查问题的工具
+- easyexcel ： 快速读写excel的Java工具类
+- nacos： 微服务发现和配置中心
+- apache dubbo : 分布式rpc调用框架 ( apache项目中 star数第3）
+- apache seata : 分布式事务组件（apache项目中star数第7）
+- flink ：流处理工具（apache项目中 star数第8）
+- rocketMQ：分布式消息中间件（apache 项目中 start数第10）
+- spring-cloud-alibaba ：微服务整合框架
+- druid ：java 数据库连接池
+- fastjson ：快速json解析器
+- canal ： mysql binlog解析器
+- Sentinel ： 限流降级
+- DataX : 大数据同步中间件
+- cobar ： java mysql 分库分表
+
 
 ### frontend
 1. Base framework
+- Babel：允许你用现代化的js语法编写兼容旧浏览器的代码
+- Eslint：帮助开发找出代码中潜在的问题
 - Node服务端：Koa/Express
 - 语法要求：Es6
 - 技术选型：vue
@@ -85,6 +103,8 @@ Github排行榜：https://www.githubs.cn/top
 - 代码检查：eslint
 - cookie管理：js-cookie
 - 加密工具：js-md5
+- 常见框架组合：html / css3 / typescript / ES6 / webpack + nodejs / vue / react / angularjs / bootstrap / jQuery
+- 进阶： Wasm + Rust（WebAssembly (WASM) 已成为一种强大的工具。它使得开发者可以在浏览器中运行高性能的代码，跨越传统的 JavaScript 性能限制。Rust 语言因其高效性和内存安全性，成为了编写 WASM 模块的热门选择）
 
 2. module
 - api：网络请求

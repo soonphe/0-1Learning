@@ -5,7 +5,7 @@
 ![alt text](../../static/common/svg/luoxiaosheng_wechat.svg "微信")
 
 
-## Android-GPS定位信息
+## Android-GPS
 
 ### 基础使用
 权限：

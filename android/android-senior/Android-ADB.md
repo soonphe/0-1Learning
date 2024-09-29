@@ -43,10 +43,12 @@ su shell切换到普通用户
 adb devices
 adb tcpip 5555（端口号，可以指定其他值），该命令将会重启手机上的adbd，开启网络调试功能：
 adb connect 192.168.1.137:5555，如果需要手机确认就点击确认，提示connected即为连接成功
+adb disconnect：断开与Android设备的连接时
+如果你想断开特定设备的连接，可以指定设备的IP地址或者端口：adb disconnect <IP地址>:<端口>，示例：adb disconnect 192.168.1.10:5555
 
 推送资源：
-adb -s BaytrailDB47EC8B push D:\JuzhongWork\Download /storage/sdcard0/
-adb -s 0123456789ABCDEF push D:\JuzhongWork\Download /storage/sdcard0/
+adb -s BaytrailDB47EC8B push D:\xxx\Download /storage/sdcard0/
+adb -s 0123456789ABCDEF push D:\xxx\Download /storage/sdcard0/
 
 安装APK：
 adb install <apkfile> //比如：adb install baidu.apk
@@ -60,7 +62,10 @@ adb install -s <apkfile> // 比如：adb install -s baidu.apk
 adb uninstall <package> //比如：adb uninstall com.baidu.search
 卸载app但保留数据和缓存文件：
 adb uninstall -k <package> //比如：adb uninstall -k com.baidu.search
-
+adb卸载预置app：
+输入adb shell pm uninstall --user 0 包名 
+-k 卸载应用且保留数据与缓存，如果不加 -k 则全部删除。
+--user 指定用户 id，Android 系统支持多个用户，默认用户只有一个，id=0。
 
 adb查找app：
 pm path 包名  （获取特定应用程序包的路径。这个命令非常有用，尤其是在需要定位应用程序的具体存储位置时）
@@ -71,9 +76,6 @@ adb shell pm list packages >alllist.txt  //生成本地文件
 方法二：打开APP再输命令(查找当前打开的APP全限定名)
 adb shell dumpsys window w | findstr \/ | findstr name=
 adb shell dumpsys activity | grep "activity"
-
-adb卸载app：
-输入adb shell pm uninstall --user 0 加软件包的名字回车就行能卸载的应用自己搜百度 
 
 
 adb获取屏幕分辨率有两种方法
@@ -89,9 +91,6 @@ adb获取系统版本
 强制停止APP:adb shell am force-stop <package-name>
 进入shell并输入ps指令：adb shell ps
 进入shell并查询指定pid详细信息：adb shell cat /proc/<pid>/maps
-
-adb disconnect：断开与Android设备的连接时
-如果你想断开特定设备的连接，可以指定设备的IP地址或者端口：adb disconnect <IP地址>:<端口>，示例：adb disconnect 192.168.1.10:5555
 
 adb查询运行内存和存储
 adb shell cat /proc/meminfo   		查询运行内存（RAM）使用情况：

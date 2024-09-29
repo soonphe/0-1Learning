@@ -99,6 +99,55 @@ ffmpeg相关依赖（会自动下载）
   -i dummy：这是输入参数，dummy 是一个虚拟设备名称，用于触发设备列表的输出。
 - ffplay -f dshow -i video="Integrated Camera"：使用前置摄像头进行捕捉画面
 
+- ffmpeg -i input.mp4 -ss 00:00:00  -vframes 1 -q:v 2 output.jpg   ：FFmpeg来截取视频帧
+  * 		-i [输入文件]：指定输入的视频文件。
+  * 		-ss [开始时间]：指定从视频的哪个时间点开始截取。时间格式可以是秒、分:秒或小时:分:秒。例如，-ss 00:00:10 表示从视频的第10秒开始截取。
+  * 		-vframes 1：表示只截取一帧画面。
+  * 		-q:v 2：指定输出图片的质量，数字越小质量越高，范围通常是0-31。
+  * 		output.jpg：指定输出的图片文件名和格式（例如output.jpg）。
+* ffmpeg -i input.mp4 -vf "select=not(mod(n\,10)==0" -q:v 2 output.jpg  ：FFmpeg循环批量截取帧
+  * 		-i <input_video>: 指定输入视频文件。
+  * 		-vf "select=not(mod(n\,10)==0": 使用视频过滤器选择每10帧保存一张图片。
+  * 		-q:v 2: 设置输出图片的JPEG质量为2（范围从0到31，其中0质量最好但文件最大，31质量最差但文件最小）。
+  * 		output.jpg: 指定输出图片的路径和文件名。
+
+### ffprobe文件说明
+ffprobe shy.mp3
+```
+Input #0, mp3, from 'shy.mp3':
+  Metadata:
+    genre           : Blues
+    encoder         : Lavf56.4.101
+    comment         : 163 key(Don't modify):L64FU3W4YxX3ZFTmbZ+8/UO6KmVXLfTij3uZN/wCXE4a00XHtvOwccwFlS+8ednRD4MnrdUH+aUYZFVY8bObsrabtBM2Ps/UAWPJtsmW/3RXnn6eJcNUHrPALM0003fIpQnn6MOWbdXqog6WFDLpaZJhoPMnFy9u41HxCalUwMEc+mkHNn+nSLlioJfpv4wPBwUhxfLNmOScmXPzOary2k37A/brRx7QUlMD9rkaZ
+    album           : 社会摇
+    title           : 社会摇
+    artist          : 萧全
+    track           : 1
+  Duration: 00:04:09.34, start: 0.025056, bitrate: 323 kb/s
+    Stream #0:0: Audio: mp3, 44100 Hz, stereo, s16p, 320 kb/s
+    Stream #0:1: Video: mjpeg, yuvj444p(pc, bt470bg/unknown/unknown), 500x500 [SAR 72:72 DAR 1:1], 90k tbr, 90k tbn, 90k tbc
+    Metadata:
+      comment         : Media (e.g. label side of CD)
+```
+genre：类型
+encoder：编码器
+comment：评论
+album：专辑
+title：标题
+artist：艺术家
+track：轨道
+
+Duration: 00:04:09.34, start: 0.025056, bitrate: 323 kb/s
+这行信息表示，该视频文件的时长是4分9秒340毫秒，开始播放时间是0.025056，整个文件的比特率是256Kbit/s，然后我们看下一行信息：
+
+Stream #0:0: Audio: mp3, 44100 Hz, stereo, s16p, 320 kb/s
+这行信息表示，第一个流是音频流，编码格式是MP3格式，采样率是44.1KHz，声道是立体声，采样表示格式是SInt16(short)的planner(平铺格式)，这路流的比特率320Kbit/s。
+
+Stream #0:0(und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p, 960x540, 1008 kb/s, 25 fps, 25 tbr, 25k tbn, 50 tbc (default)
+这行信息表示，第一个流是视频流，编码格式是H264格式(封装格式为AVC1)，每一帧的数据表示为yuv420p，分辨率为960x540，这路流的比特率为1108Kbit/s，帧率为每秒钟25帧。
+
+Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 92 kb/s (default)
+这行信息表示第二个流是音频流，编码方式为ACC（封装格式为MP4A），并且采用的Profile是LC规格，采样率是44.1KHz，声道是立体声，这路流的比特率92Kbit/s。
 
 ### 推流的几种方式
 ```
