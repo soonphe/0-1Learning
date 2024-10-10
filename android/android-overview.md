@@ -1132,3 +1132,11 @@ android.useAndroidX=true
 # Automatically convert third-party libraries to use AndroidX
 android.enableJetifier=true
 ~~~~
+
+**Android避免内存溢出（Out of Memory）方法总结**
+当出现错误：Out of Memory，表示当前设备的缓存不足以运行该程序造成内存溢出
+
+解决方法一： 牺牲其他程序进程来获取更大的内存空间
+使用步骤： 只要在AndroidManifest.xml文件中的<application>节点属性中加上”android:largeHeap="true"
+
+原理： 可以在程序中使用ActivityManager.getMemoryClass()方法来获取App内存正常使用情况下的大小，通过ActivityManager.getLargeMemoryClass()可获得开启largeHeap时最大的内存大小

@@ -16,8 +16,5 @@
 cd ~/WeChatProjects/timber-applets
 cp -R weapp-library/timber-applets
 
-8.小程序相关key
-appId：wxaba4ff958edb5ca7  appSecret：41eeac32a5781a4c08a2c690dd2dd107
-
 2.小程序界面编写（template编写，引用）
 - 页面跳转报错：app.json中已添加，报找不到的页面从哪个上级页面进入的就把配置写在上级页面配置下面

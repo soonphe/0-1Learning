@@ -87,6 +87,10 @@ adb获取系统版本
 获取系统版本:adb shell getprop ro.build.version.release
 获取系统api版本:adb shell getprop ro.build.version.sdk
 
+adb获取CPU架构：
+adb shell getprop ro.product.cpu.abi        返回设备的主要CPU架构，比如arm64-v8a、armeabi-v7a、x86或x86_64等。
+adb shell getprop ro.product.cpu.abilist    查询设备支持的所有架构
+
 进入shell：adb shell
 强制停止APP:adb shell am force-stop <package-name>
 进入shell并输入ps指令：adb shell ps
