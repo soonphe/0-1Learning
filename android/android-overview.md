@@ -292,20 +292,76 @@ Build——Generate Signed APK——选择keystore——输入keyPasswrod等—�
 
 #### 获取当前SDK/系统版本号
 系统版本号：android.os.Build.DISPLAY
+```
 String androidVersion = android.os.Build.VERSION.RELEASE;//android版本
 String model = android.os.Build.MODEL;//型号
 String brand = android.os.Build.BRAND;//品牌
 String dis = android.os.Build.DISPLAY;//版本号
+```
 
 获取系统应用版本号：如1.0.0
+```
 PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
 versionCode = packageInfo.versionCode;
+```
+
+#### android.os.Build类是一个非常方便使用的类，不需要任何权限
+```
+android.os.Build.BOARD：获取设备基板名称
+android.os.Build.BOOTLOADER：获取设备引导程序版本号
+android.os.Build.BRAND：获取设备品牌
+android.os.Build.CPU_ABI：获取设备指令集名称（CPU的类型）
+android.os.Build.CPU_ABI2：获取第二个指令集名称
+android.os.Build.DEVICE：获取设备驱动名称
+android.os.Build.DISPLAY：获取设备显示的版本包（在系统设置中显示为版本号）和ID一样
+android.os.Build.FINGERPRINT：设备的唯一标识。由设备的多个信息拼接合成
+android.os.Build.HARDWARE：设备硬件名称，一般和基板名称一样（BOARD）
+android.os.Build.HOST：设备主机地址
+android.os.Build.ID：设备版本号
+android.os.Build.MODEL：获取手机的型号 设备名称。如：SM-N9100（三星Note4）
+android.os.Build.MANUFACTURER：获取设备制造商。如：samsung
+android:os.Build.PRODUCT：产品的名称
+android:os.Build.RADIO：无线电固件版本号，通常是不可用的 显示
+unknownandroid.os.Build.TAGS：设备标签。如release-keys或测试的test-keys
+android.os.Build.TIME：时间
+android.os.Build.TYPE：设备版本类型主要为”user” 或”eng”
+android.os.Build.USER：设备用户名 基本上都为android-build
+android.os.Build.VERSION.RELEASE：获取系统版本字符串
+android.os.Build.VERSION.CODENAME：设备当前的系统开发代号，一般使用REL代替
+android.os.Build.VERSION.INCREMENTAL：系统源代码控制值，一个数字或者git哈希值
+android.os.Build.VERSION.SDK：系统的API级别，推荐使用下面的SDK_INT来查看
+android.os.Build.VERSION.SDK_INT：系统的API级别，int数值类型
+android.os.Build.VERSION_CODES类：包含所有已公布的Android版本号，全部为int常量
+```
+
+安卓升级，无法更好地获取IMEI了，需要自己构造UUID，安卓系统升级非常频繁，build中的一些“硬件”信息会跟着升级而改变。
+既要求UUID是唯一的，又要求不随系统升级而改变，是不可能的。
+只能在保持ID值不变的前提下，尽量地使得ID不重复
+如果需要取值不随系统升级而变化，可以参考
+```
+Build.MANUFACTURE，这个是硬件厂商，不会随升级而变，同一厂商的手机无数，供选择之一
+Build.PRODUCT，这个是手机厂商，不会随升级而变，同一厂商的手机无数，供选择之一
+Build.DISPLAY，这个是显示参数，取得的值各式各样，没有出现取不到的情况，不会随升级而变，供选择之一
+Build.HARDWARE，内核硬件名，目前看，不会随系统升级而改变，供选择之一
+
+其他一堆参数，基本上都会随着系统升级而变，或者无法获得
+Build.FINGERPRINT，名义上是硬件指纹，实际上是随着系统升级而变的，编译版本、日期变了也会改变，并非真正的硬件参数
+```
 
 #### 如何把自己写的库发布到网上的仓库 Bintray/JCenter/JitPack
 Bintray/JCenter/JitPack发布及配置流程
 JitPack虽然是最简单的，但是他是基于把整个项目作为依赖的，Bintray/JCenter则可以上传单个模块作为依赖
 推荐使用Bintray
 发布流程：https://blog.csdn.net/u014780554/article/details/79628041?utm_source=blogxgwz1
+
+#### 安卓versionName / versionCode的最大长度
+android:versionCode -相对于其他版本，表示应用程序代码版本的integer值。
+android:versionCode最大的值是MAXINT (2147483647)。但是，如果您上传了一个具有此值的应用程序，则您的应用程序将永远无法更新。
+android:versionCode -一个整数值，表示应用程序代码的版本，相对于其他版本。该值是一个整数，以便其他应用程序能够以编程方式对其进行评估，例如检查升级或降级关系。您可以将值设置为任意整数，但应确保应用程序的每个连续发行版都使用更大的值。系统不强制执行此行为，但通过连续发布增加值是规范的。通常，您将发布versionCode设置为1的应用程序的第一个版本，然后在每个版本中单调地增加值，而不管发行版是主要版本还是次要版本。这意味着android:versionCode值不一定与用户可以看到的应用程序发布版本有很大的相似之处(参见下面的android:versionName )。应用程序和发布服务不应向用户显示此版本值。
+
+android:versionName -表示应用程序代码的发布版本的string值，应该显示给用户。
+android:versionName -一个字符串值，表示应用程序代码的发布版本，应该向用户显示。值是一个字符串，因此您可以将应用程序版本描述为..。字符串，或作为任何其他类型的绝对或相对版本标识符。与android:versionCode一样，系统不将此值用于任何内部目的，只允许应用程序将其显示给用户。发布服务还可以提取android:versionName值，以便显示给用户。
+这是一个字符串，所以它没有最大值。
 
 ### Android开机过程
 * BootLoder引导,然后加载Linux内核.
@@ -626,6 +682,98 @@ Fragment为何产生 :同时适配手机和平板、UI和逻辑的共享。
   * ``getSupportFragmentManager().popBackStack(String name, int flags)`` *－根据name立刻弹出栈顶的fragment*
   * ``getSupportFragmentManager().popBackStack(int id, int flags)`` *－根据id立刻弹出栈顶的fragment*
 
+### 关于Services
+第一种方式：通过StartService启动Service
+通过startService启动后，service会一直无限期运行下去，只有外部调用了stopService()或stopSelf()方法时，该Service才会停止运行并销毁。
+
+要创建一个这样的Service，你需要让该类继承Service类，然后重写以下方法：
+```
+onCreate()
+1.如果service没被创建过，调用startService()后会执行onCreate()回调；
+2.如果service已处于运行中，调用startService()不会执行onCreate()方法。
+也就是说，onCreate()只会在第一次创建service时候调用，多次执行startService()不会重复调用onCreate()，此方法适合完成一些初始化工作。
+
+onStartCommand()
+如果多次执行了Context的startService()方法，那么Service的onStartCommand()方法也会相应的多次调用。onStartCommand()方法很重要，我们在该方法中根据传入的Intent参数进行实际的操作，比如会在此处创建一个线程用于下载数据或播放音乐等。
+
+onBind()
+Service中的onBind()方法是抽象方法，Service类本身就是抽象类，所以onBind()方法是必须重写的，即使我们用不到。
+
+onDestory()
+在销毁的时候会执行Service该方法。
+```
+这几个方法都是回调方法，且在主线程中执行，由android操作系统在合适的时机调用。
+
+第二种方式：通过bindService启动Service
+bindService启动服务特点：
+1. bindService启动的服务和调用者之间是典型的client-server模式。调用者是client，service则是server端。service只有一个，但绑定到service上面的client可以有一个或很多个。这里所提到的client指的是组件，比如某个Activity。
+2. client可以通过IBinder接口获取Service实例，从而实现在client端直接调用Service中的方法以实现灵活交互，这在通过startService方法启动中是无法实现的。
+3. bindService启动服务的生命周期与其绑定的client息息相关。当client销毁时，client会自动与Service解除绑定。当然，client也可以明确调用Context的unbindService()方法与Service解除绑定。当没有任何client与Service绑定时，Service会自行销毁。
+
+TestTwoService创建如下：
+要想让Service支持bindService调用方式，需要做以下事情：
+1.在Service的onBind()方法中返回IBinder类型的实例。
+2.onBInd()方法返回的IBinder的实例需要能够返回Service实例本身。通常，最简单的方法就是在service中创建binder的内部类，加入类似getService()的方法返回Service，这样绑定的client就可以通过getService()方法获得Service实例了。
+代码：
+```
+public class TestTwoService extends Service{
+
+    //client 可以通过Binder获取Service实例
+    public class MyBinder extends Binder {
+        public TestTwoService getService() {
+            return TestTwoService.this;
+        }
+    }
+
+    //通过binder实现调用者client与Service之间的通信
+    private MyBinder binder = new MyBinder();
+
+    private final Random generator = new Random();
+
+    @Override
+    public void onCreate() {
+        Log.i("Kathy","TestTwoService - onCreate - Thread = " + Thread.currentThread().getName());
+        super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i("Kathy", "TestTwoService - onStartCommand - startId = " + startId + ", Thread = " + Thread.currentThread().getName());
+        return START_NOT_STICKY;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.i("Kathy", "TestTwoService - onBind - Thread = " + Thread.currentThread().getName());
+        return binder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.i("Kathy", "TestTwoService - onUnbind - from = " + intent.getStringExtra("from"));
+        return false;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i("Kathy", "TestTwoService - onDestroy - Thread = " + Thread.currentThread().getName());
+        super.onDestroy();
+    }
+
+    //getRandomNumber是Service暴露出去供client调用的公共方法
+    public int getRandomNumber() {
+        return generator.nextInt();
+    }
+}
+```
+client端要做的事情：
+1.创建ServiceConnection类型实例，并重写onServiceConnected()方法和onServiceDisconnected()方法。
+2.当执行到onServiceConnected回调时，可通过IBinder实例得到Service实例对象，这样可实现client与Service的连接。
+3.onServiceDisconnected回调被执行时，表示client与Service断开连接，在此可以写一些断开连接后需要做的处理。
+
+
+
 ### UI界面
 
 #### Andorid 分辨率
@@ -703,6 +851,36 @@ String watermarkFilePath = filePath.replace(".jpg", "_small.jpg");
 文件压缩：
 FileOutputStream out = new FileOutputStream(watermarkFilePath)
 result.compress(Bitmap.CompressFormat.JPEG, 80, out);
+```
+
+**bitmap裁剪**
+```
+//加载路径图片
+Bitmap src = BitmapFactory.decodeFile(filePaths[0]);
+//创建裁剪区域
+Rect rect = new Rect(left, top, right, bottom);
+//bitmap框定裁剪区域
+Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height());
+//创建新的bitmap
+Bitmap result = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
+//展示新bitmap
+imageView.setImageBitmap(croppedBitmap);
+
+//bitmap文件保存路径
+File trainDir = new File(MyApplication.getApp().environmentProvider.invoke().getLogPath(), "train");
+File f = new File(trainDir.getAbsolutePath() + "/" +  "tmplName" + ".jpg");
+if (f != null && f.exists() && f.isFile()) {
+    f.delete();
+}
+try {
+    FileOutputStream fos = new FileOutputStream(f);
+    //bitmap文件保存，100为质量，fos为输出文件流
+    croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+    fos.flush();
+    fos.close();
+} catch (IOException e) {
+    throw new RuntimeException(e);
+}
 ```
 
 #### Android自定义Dialog
@@ -1078,6 +1256,19 @@ sqldelight 数据库
    }
 ```
 
+### Android 休眠
+1、Android设备屏幕暗下来的时候，并不是立即就进入了休眠模式；当所有唤醒源都处于de-avtive状态后，系统才会进入休眠。
+2、Android设备连着adb线到其他设备的情况下，设备是不会进入休眠模式的。
+3、有休眠操作就有唤醒，就需要唤醒源。唤醒源有很多种，在内核注册，比如常用的Power按键。
+4、曾经困惑的一个问题：系统怎么知道自己应该进入休眠模式了？它的判断依据是什么？
+在wakelock时代，系统休眠过程中去检测休眠锁；如果系统中没有其他部件持有休眠锁，就尝试进入休眠模式，没有异常事件发生的话就进入休眠模式。 Android从4.4开始使用autosleep机制，只要不存在任何active的唤醒源(wakeup_source)了，就进入休眠模式。
+
+休眠相关广播：
+```
+    public static final String SYSTEM_SLEEP_ACTION = "com.zqc.action.system_sleep";//休眠广播
+    public static final String SYSTEM_WAKEUP_ACTION = "com.zqc.action.system_wakeup";//唤醒广播
+```
+
 ### Android常见问题处理
 
 > Java.lang.NoClassDefFoundError: Failed resolution of: Lorg/apache/http/conn/scheme/SchemeRegistry
@@ -1140,3 +1331,11 @@ android.enableJetifier=true
 使用步骤： 只要在AndroidManifest.xml文件中的<application>节点属性中加上”android:largeHeap="true"
 
 原理： 可以在程序中使用ActivityManager.getMemoryClass()方法来获取App内存正常使用情况下的大小，通过ActivityManager.getLargeMemoryClass()可获得开启largeHeap时最大的内存大小
+
+**TP跳点**
+TP跳点：TP是 TouchPad触摸屏的意思，Touch panel
+TP跳点的原因：
+TP的感应区域是由一条条的感应通道组成的，若某几条感应通道坏了，那么点击该区域时，TP无法感应到电场发生了变化，因此点击该区域时无反应，
+但是周围相邻的正常通道会感应到电场的变化，因此那块区域就会出现触摸事件。给人的感觉就是，触摸了这块区域，但是另外一块区域响应了
+导致触摸屏乱跳的原因大概分为5类：
+(1) 触摸屏硬件通道损坏 (2)触摸屏固件版本太低 (3) 触摸屏工作电压异常 (4) 射频干扰 (5)触摸屏校准异常

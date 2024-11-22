@@ -230,6 +230,7 @@ git push -u gitlab  --all
 ### gitlab 流水线
 GitLab CI/CD 流水线配置主要通过在项目根目录下的 .gitlab-ci.yml 文件来定义。以下是一个简单的例子，展示了如何配置一个基础的流水线来自动化测试和部署。
 
+test.gitlab-ci.yml
 ```
 stages:
   - build

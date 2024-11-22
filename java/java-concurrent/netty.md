@@ -601,3 +601,623 @@ channel.close();
   }
   });
 ```
+
+### netty处理消息结构
+字符串或json结构：
+```
+public class SocketHandler extends ChannelInboundHandlerAdapter {
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // 由于我们配置的是 字节数组 编解码器，所以这里取到的用户发来的数据是 byte数组
+//        byte[] data = (byte[]) msg;
+        String data = (String) msg;
+
+        // 给其他人转发消息
+//        for (Channel client : clients) {
+//            if (!client.equals(ctx.channel())) {
+//                client.writeAndFlush(data);
+//            }
+//        }
+        ReqObj reqObj = gson.fromJson(data, ReqObj.class);
+        // check msgId
+        String msgId = reqObj.getMsgId();
+        switch (msgId) {
+            case "S01":
+                handleS01(ctx, reqObj);
+                break;
+            case "R02":
+                handleR02(ctx, reqObj);
+                break;
+            default:
+                log.error("unknown msgId: {}", msgId);
+                ctx.channel().close();
+        }
+    }
+
+```
+
+ByteBuf结构：
+```
+public class ClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
+    private static final String TAG = "ClientHandler";
+    ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, ByteBuf>> subPackages = new ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, ByteBuf>>(10);
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf in) {
+        SubPacketAttr subPacketAttr = null;
+        String isSplit = "0";
+        if (in != null && in.capacity() > 15) {
+            //logger.debug("转前后\n{}", ByteBufUtil.prettyHexDump(in));
+            // MyLog.e("转义前\n{}", ByteBufUtil.prettyHexDump(in));
+            ByteBuf jt808Buf = Unpooled.buffer(in.capacity());
+            // 转义
+            int length = 0;
+            int headLength = 16;
+            while (in.isReadable()) {
+                int tmp = in.readByte();
+                if (tmp == 0x7d) {
+                    int next = in.readByte();
+                    if (next == 0x01) {
+                        jt808Buf.writeByte(tmp);
+                    } else {
+                        jt808Buf.writeByte(0x7e);
+                    }
+                } else {
+                    jt808Buf.writeByte(tmp);
+                }
+                length++;
+            }
+//            MyLog.d("转义后\n{}", ByteBufUtil.hexDump(jt808Buf));
+            // 检查检验位
+            jt808Buf.resetReaderIndex();
+            int first = jt808Buf.readByte();
+            while (jt808Buf.isReadable()) {
+                if (jt808Buf.readerIndex() < length - 1) {
+                    first = first ^ jt808Buf.readByte();
+                } else {
+                    break;
+                }
+            }
+            int tmp2 = jt808Buf.readByte();
+            if (first != tmp2) {
+                MyLog.e("校验位错误,{},{}", first + "  " + tmp2);
+            } else {
+                jt808Buf.resetReaderIndex();
+                //logger.debug("{}", ByteBufUtil.prettyHexDump(jt808Buf));
+                BaseHead head = new BaseHead();
+                Integer msgId = jt808Buf.getUnsignedShort(1);
+                head.setMsgId(msgId);
+                String sb = org.apache.commons.lang3.StringUtils.leftPad(Integer.toBinaryString(jt808Buf.getShort(3)), 16, "0");
+                int bodyLength = Integer.parseInt(sb.substring(6), 2);
+                byte[] dst = new byte[8];
+                jt808Buf.getBytes(5, dst);
+                String mobile = BCDUtils.bcd2Str(dst);
+                //TODO
+                //mobile=StringUtils.stripStart(mobile, "0");
+              /*  MyLog.e("消息体",
+                        "ID=0x" + Integer.toHexString(msgId) +
+                                "属性=" + sb +
+                                "长度=" + sb.substring(6) +
+                                "是否分包=" + sb.substring(2, 3)
+                                + "长度=" + bodyLength +
+                                "手机号=" + mobile);*/
+                isSplit = sb.substring(2, 3);
+
+
+                ByteBuf jt808Buf2 = null;
+                //判断是否分包
+                if ("1".equals(isSplit)) {
+                    headLength = 20;
+                    jt808Buf2 = Unpooled.buffer(in.capacity());
+                    subPacketAttr = new SubPacketAttr();
+                    subPacketAttr.setSum(jt808Buf.getShort(16));
+                    subPacketAttr.setNumber(jt808Buf.getShort(18));
+//                    logger.info("总包数{},第{}分包", subPacketAttr.getSum(), subPacketAttr.getNumber());
+                    jt808Buf.readerIndex(headLength);
+                    if (subPacketAttr.getNumber() == 1) {
+                        //第一包建MAP
+                        ConcurrentHashMap<Integer, ByteBuf> subData = new ConcurrentHashMap<Integer, ByteBuf>(subPacketAttr.getSum());
+                        subData.put(subPacketAttr.getNumber(), jt808Buf.readBytes(bodyLength));
+                        subPackages.put(msgId, subData);
+//                        logger.info("合并分包 ,第{}包，{},分包为：\n{}", subPacketAttr.getNumber(), subData.size());
+                    } else {
+                        ConcurrentHashMap<Integer, ByteBuf> subData = subPackages.get(msgId);
+                        if (subData != null) {
+                            subData.put(subPacketAttr.getNumber(), jt808Buf.readBytes(bodyLength));
+//                            logger.info("合并分包 ,第{}包，{},分包为：\n{}", subPacketAttr.getNumber(), subData.size());
+                        }
+                    }
+
+
+                }
+//                logger.debug("headLength={}", headLength);
+                jt808Buf.readerIndex(headLength);
+                switch (msgId) {
+                    case 0X8001:
+                        // 服务器通用应答
+                        int LineNum = jt808Buf.readUnsignedShort();
+                        int id = jt808Buf.readUnsignedShort();
+                        int result = jt808Buf.readUnsignedByte();
+                        MyLog.d("通用应答", "流水号=" + LineNum + ",msgid=" + Integer.toHexString(id)  + ",结果=" + result);
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                InfomationHandler infomationHandler1 = AppConfig.tcpMap.get("8001_" + LineNum);
+                                if (null == infomationHandler1) return;
+                                if (result == 0) {
+                                    infomationHandler1.success(LineNum + "");
+                                } else {
+                                    infomationHandler1.fail(result);
+                                }
+                                AppConfig.tcpMap.remove("8001_" + LineNum);
+                            }
+                        });
+
+
+                        break;
+                    case 0x8100:
+```
+原始结构数据与解析后结构数据：
+```
+原始数据
+FFFFFF80 FFFFFF80 01 00 05 00 00 01 36 27 58 68 FFFFFF85 FFFFFF88 4C 3C 33 66 01 02 00 0F 
+
+UnpooledHeapByteBuf(ridx: 0, widx: 22, cap: 22)
+ID=0x8001属性=0000000000000101长度=0000000101是否分包=0长度=5手机号=0000013627586885
+8080010005000001362758688588c33c33d501020033
+说明：
+ID= getUnsignedShort(1); 第1位short, 即为：FFFFFF80 01
+属性= jt808Buf.getShort(3); 第3位short，转成16位，即为：00 05
+长度= sb.substring(6); 为属性截取的字符串 
+是否分包= sb.substring(2, 3); 也是属性截取的字符串 
+手机号= getBytes(5, dst);   第5位byte，即为：01 36 27 58 68 FFFFFF85
+后面为流水号：16位
+最后面为00
+
+//获取此缓冲区中指定绝对索引处的16位短整数。此方法不会修改此缓冲区的readerIndex或writerIndex。
+jt808Buf.getShort(3);
+//获取此缓冲区中指定绝对索引处的无符号16位短整数。此方法不会修改此缓冲区的readerIndex或writerIndex。
+jt808Buf.getUnsignedShort(1);
+byte[] dst = new byte[8];
+//从指定的绝对索引开始，将此缓冲区的数据传输到指定的目标。此方法不会修改此缓冲区的readerIndex或writerIndex
+jt808Buf.getBytes(5, dst);
+//直接转义打印
+ByteBufUtil.hexDump(jt808Buf));
+
+```
+
+其他示例：
+```
+FFFFFF80 FFFFFF89 00 00 1B 00 00 01 36 27 58 68 FFFFFF85 FFFFFF88 4D 3C 13 FFFFFF85 03 00 00 2C FFFFFF8B 54 30 30 30 30 30 30 30 30 30 30 30 30 31 37 39 00 00 00 00 17 
+UnpooledHeapByteBuf(ridx: 0, widx: 44, cap: 44)
+ID=0x8900属性=0000000000011011长度=0000011011是否分包=0长度=27手机号=0000013627586885
+
+2024-10-12 15:15:04.872  9454-9715  原始消息    E  UnpooledHeapByteBuf(ridx: 0, widx: 44, cap: 44)
+2024-10-12 15:15:04.886  9454-9715  消息体     E  ID=0x8900属性=0000000000011011长度=0000011011是否分包=0长度=27手机号=0000013627586885
+2024-10-12 15:15:04.985  9454-9715  原始消息    E  UnpooledHeapByteBuf(ridx: 0, widx: 17, cap: 17)
+2024-10-12 15:15:04.996  9454-9715  消息体     E  ID=0x8104属性=0000000000000000长度=0000000000是否分包=0长度=0手机号=0000013627586885
+2024-10-12 15:15:05.089  9454-9715  原始消息    E  UnpooledHeapByteBuf(ridx: 0, widx: 22, cap: 22)
+2024-10-12 15:15:05.100  9454-9715  消息体     E  ID=0x8001属性=0000000000000101长度=0000000101是否分包=0长度=5手机号=0000013627586885
+
+不转换为16进制：
+-128 -128 1 0 5 0 0 1 54 39 88 104 -123 -120 -108 60 51 -88 0 2 0 24
+UnpooledHeapByteBuf(ridx: 0, widx: 22, cap: 22)
+ID=0x8001属性=0000000000000101长度=0000000101是否分包=0长度=5手机号=0000013627586885
+```
+
+### netty ByteBuf
+在netty中有一个重要的对象——ByteBuf，它其实等同于Java Nio中的ByteBuffer，但是 ByteBuf对Nio中的ByteBuffer的功能做了很多增强
+和普通ByteBuffer最大的区别之一，就是ByteBuf可以自动扩容，默认长度是256，如果内容长度超过阈值时，会自动触发扩容
+```
+public class NettyByteBufExample {
+ 
+    public static void main(String[] args) {
+        ByteBuf buf=ByteBufAllocator.DEFAULT.buffer(); //构建一个ByteBuf
+        System.out.println("=======before ======");
+        log(buf);
+        //构建一个字符串
+        StringBuilder stringBuilder=new StringBuilder();
+        for (int i = 0; i < 400; i++) {
+            stringBuilder.append("-"+i);
+        }
+        buf.writeBytes(stringBuilder.toString().getBytes());
+        System.out.println("=======after ======");
+        buf.readShort(); //读取2个字节
+        buf.readByte(); //读取一个字节
+ 
+        log(buf);
+    }
+    private static void log(ByteBuf buf){
+        StringBuilder sb=new StringBuilder();
+        sb.append(" read index:").append(buf.readerIndex());  //读索引
+        sb.append(" write index:").append(buf.writerIndex()); //写索引
+        sb.append(" capacity :").append(buf.capacity()) ; //容量
+        ByteBufUtil.appendPrettyHexDump(sb,buf);
+        System.out.println(sb.toString());
+    }
+}
+```
+
+ByteBuf创建的方法有两种
+1.第一种，创建基于堆内存的ByteBuf：
+```
+ByteBuf buffer=ByteBufAllocator.DEFAULT.heapBuffer(10);
+```
+2.第二种，创建基于直接内存（堆外内存）的ByteBuf（默认情况下用的是这种）：
+
+Java中的内存分为两个部分，一部分是不需要jvm管理的直接内存，也被称为堆外内存。堆外内存就是把内存对象分配在JVM堆意外的内存区域，这部分内存不是虚拟机管理，而是由操作系统来管理，这样可以减少垃圾回收对应用程序的影响。
+```
+ByteBufAllocator.DEFAULT.directBuffer(10);
+```
+直接内存的好处是读写性能会高一些：
+
+如果数据放在堆中，此时需要把java堆空间中的数据放到远程服务器，首先要把堆中的数据拷贝到直接内存（堆外内存）然后再发送。
+如果是把数据直接存储到堆外内存中，发送的时候就少了一个复制步骤。
+但是它也有缺点，由于缺少了JVM的内存管理，所以需要我们自己来维护堆外内存，防止内存溢出。
+
+ByteBuf的存储结构
+- 废弃字节
+- 读指针：readIndex
+- 可读字节
+- 写指针：writeIndex
+- 可写字节
+- 可扩容字节
+
+容量：capacity 包含（废弃字节，读指针：readIndex ，可读字节 ，写指针：writeIndex ，可写字节）
+ByteBuf其实是一个字节容器，该容器中包含三个部分，
+- 已经丢弃的字节，这部分数据是无效的可读字节，
+- 可读字节，这部分数据是ByteBuf的主体数据，从ByteBuf里面读取的数据都来自这部分；
+- 可写字节，所有写到ByteBuf的数据都会存储到这一段
+- 可扩容字节，表示ByteBuf最多还能扩容多少容量。
+
+在ByteBuf中，有两个指针：
+- readerIndex： 读指针，每读取一个字节，readerIndex自增加1。ByteBuf里面总共有witeIndex-readerIndex个字节可读，当readerIndex和writeIndex相等的时候，ByteBuf不可读
+- writeIndex： 写指针，每写入一个字节，writeIndex自增加1，直到增加到capacity后，可以触发扩容后继续写入。
+- ByteBuf中还有一个maxCapacity最大容量，默认的值是 Integer.MAX_VALUE ，当ByteBuf写入数据时，如果容量不足时，会触发扩容，直到capacity扩容到maxCapacity。
+
+### 读写方法
+Netty的ByteBuf数据位置索引是从0开始的，类似于数组。
+- getByte(int index)：从指定位置读出一字节，这个操作不会改变ByteBuf的readerIndex或者 writerIndex 的位置。这个操作也不受readerIndex的影响（例如，当前readerIndex是1，但照样可以用getByte(0)从位置0处得到数据）。如果index小于0，或者index + 1大于ByteBuf的容量，就会抛出IndexOutOfBoundsException异常。
+- readByte()：从当前readerIndex 读出一字节，并且将readerIndex的值增加1。如果ByteBuf的readableBytes的值小于1，就会抛出IndexOutOfBoundsException异常。
+- readBytes(byte[] dst)：从当前readerIndex 读出dst.length个字节到字节数组dst中，并将buffer的readerIndex增加dst.length。操作完成后，buffer和数组dst的内容修改互不影响。
+- isReadable()：方法判断是否有可读的数据。当(this.writerIndex -this.readerIndex) 的值大于0，isReadable()返回true。
+- writeShort(int value)：在ByteBuf的当前writerIndex位置开始写入一个16位的整数，并且将writerIndex增加2。因为输入参数是int型，占4个字节，高位的16位被丢弃。
+- getShort(int index)：从ByteBuf的绝对位置index开始，读取1个16位的整数。这个方法不改变ByteBuf的readerIndex和writerIndex。
+- getBytes(int index, byte[] dst)：从ByteBuf的位置index开始，拷贝部分字节的内容到数组dst中，拷贝的字节数等于dst数组的长度。拷贝以后，再修改本buffer或者数组dst的内容互不影响。
+- buffer.release();  // 释放ByteBuf
+- buf.readerIndex(0);// 确保当前缓冲区的读索引为0
+- jt808Buf.resetReaderIndex(); //将当前readerIndex重新定位到此缓冲区中标记的readerIndex。
+- jt808Buf.readerIndex(); //返回此缓冲区的readerIndex。
+- ByteBufUtil.hexDump(jt808Buf)); //打印ByteBuf
+
+
+打印byteBuf示例：
+```
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+ 
+public class ByteBufPrinter {
+    public static void main(String[] args) {
+        // 创建一个示例ByteBuf
+        ByteBuf buffer = Unpooled.buffer(256);
+        for (int i = 0; i < 256; i++) {
+            buffer.writeByte(i); // 填充缓冲区
+        }
+ 
+        // 完整打印ByteBuf的内容
+        printByteBuf(buffer);
+ 
+        // 释放ByteBuf
+        buffer.release();
+    }
+ 
+    private static void printByteBuf(ByteBuf buf) {
+        // 确保当前缓冲区的读索引为0
+        buf.readerIndex(0);
+        // 确保当前缓冲区的写索引为缓冲区的最大容量
+        buf.writerIndex(buf.capacity());
+ 
+        // 遍历缓冲区并打印每个字节
+        for (int i = 0; i < buf.capacity(); i++) {
+            byte b = buf.getByte(i);
+            System.out.print(String.format("%02X ", b)); // 以16进制格式打印字节
+        }
+        System.out.println(); // 换行
+    }
+}
+```
+
+#### Write相关方法
+对于write方法来说，ByteBuf提供了针对各种不同数据类型的写入，比如：
+
+writeChar，写入char类型
+writeInt，写入int类型
+writeFloat，写入float类型
+writeBytes， 写入nio的ByteBuffer
+writeCharSequence， 写入字符串
+```
+    public static void main(String[] args) {
+        ByteBuf buf=ByteBufAllocator.DEFAULT.buffer(); //构建一个ByteBuf
+        System.out.println("=======before ======");
+        log(buf);
+        //构建一个字符串
+        StringBuilder stringBuilder=new StringBuilder();
+        for (int i = 0; i < 400; i++) {
+            stringBuilder.append("-"+i);
+        }
+        buf.writeBytes(stringBuilder.toString().getBytes());
+        System.out.println("=======after ======");
+        buf.readShort(); //读取2个字节
+        buf.readByte(); //读取一个字节
+ 
+        log(buf);
+    }
+    private static void log(ByteBuf buf){
+        StringBuilder sb=new StringBuilder();
+        sb.append(" read index:").append(buf.readerIndex());  //读索引
+        sb.append(" write index:").append(buf.writerIndex()); //写索引
+        sb.append(" capacity :").append(buf.capacity()) ; //容量
+        ByteBufUtil.appendPrettyHexDump(sb,buf);
+        System.out.println(sb.toString());
+    }
+
+```
+
+#### 扩容
+当向ByteBuf写入数据时，发现容量不足时，会触发扩容，而具体的扩容规则是：
+
+构建ByteBuf时，如不传入容量参数，默认容量大小为256
+
+假设ByteBuf初始容量是10：
+```
+如果写入后数据大小未超过512个字节，则选择下一个16的整数倍进行库容。 比如写入数据后大小为12，则扩容后的capacity是16。
+如果写入后数据大小超过512个字节，则选择下一个2n。 比如写入后大小是512字节，则扩容后的capacity是2的10次方=1024 。（因为2的9次方=512，长度已经不够了）
+扩容不能超过max capacity，否则会报错。
+```
+
+#### Reader相关方法
+reader方法也同样针对不同数据类型提供了不同的操作方法：
+
+readByte ，读取单个字节
+readInt ， 读取一个int类型
+readFloat ，读取一个float类型
+
+读完一个字节后，这个字节就变成了废弃部分，再次读取的时候只能读取 未读取的部分数据。
+
+另外，如果想重复读取哪些已经读完的数据，这里提供了两个方法来实现标记和重置：
+```
+public static void main(String[] args) {
+        //由JVM来管理内存
+        ByteBuf buf=ByteBufAllocator.DEFAULT.heapBuffer(); //堆内存
+        buf.writeBytes(new byte[]{1,2,3,4});
+        log(buf);
+        buf.writeInt(5);
+        log(buf);
+        System.out.println("开始进行读取操作");
+        buf.markReaderIndex(); //标记索引位置.  markWriterIndex()
+        byte b=buf.readByte();
+        System.out.println(b);
+        buf.resetReaderIndex(); //重新回到标记位置
+        log(buf);
+    }
+
+```
+
+#### Unpooled
+我们希望把header和body合并成一个ByteBuf，通常的做法是：
+```
+ByteBuf allBuf=Unpooled.buffer(header.readableBytes()+body.readableBytes());
+allBuf.writeBytes(header);
+allBuf.writeBytes(body);
+```
+在这个过程中，我们把header和body拷贝到了新的allBuf中，这个过程在无形中增加了两次数据拷贝操作。那有没有更高效的方法减少拷贝次数来达到相同目的呢？
+
+#### CompositeByteBuf组件
+在Netty中，提供了一个CompositeByteBuf组件，它提供了这个功能：
+```
+public static void main(String[] args) {
+        ByteBuf header= ByteBufAllocator.DEFAULT.buffer();
+        header.writeBytes(new byte[]{1,2,3,4,5});
+        ByteBuf body=ByteBufAllocator.DEFAULT.buffer();
+        body.writeBytes(new byte[]{6,7,8,9,10});
+/*        ByteBuf total= Unpooled.buffer(header.readableBytes()+body.readableBytes());
+        total.writeBytes(header);
+        total.writeBytes(body);*/
+        //从逻辑成面构建了一个总的buf数据。
+        //第二个零拷贝实现
+       /* CompositeByteBuf compositeByteBuf=Unpooled.compositeBuffer();
+        compositeByteBuf.addComponents(true,header,body);
+        log(compositeByteBuf);*/
+        //Unpooled
+        ByteBuf total=Unpooled.wrappedBuffer(header,body);
+        log(total);
+        header.setByte(2,9);
+        log(total);
+    }
+```
+之所以CompositeByteBuf能够实现零拷贝，是因为在组合header和body时，并没有对这两个数据进行复制，而是通过CompositeByteBuf构建了一个逻辑整体，里面仍然是两个真实对象，也就是有一个指针指向了同一个对象，所以这里类似于浅拷贝的实现。
+
+#### wrappedBuffer
+在Unpooled工具类中，提供了一个wrappedBuffer方法，来实现CompositeByteBuf零拷贝功能
+```
+public static void main(String[] args) {
+        ByteBuf header= ByteBufAllocator.DEFAULT.buffer();
+        header.writeBytes(new byte[]{1,2,3,4,5});
+        ByteBuf body=ByteBufAllocator.DEFAULT.buffer();
+        body.writeBytes(new byte[]{6,7,8,9,10});
+        ByteBuf total=Unpooled.wrappedBuffer(header,body);
+        log(total);
+        header.setByte(2,9);
+        log(total);
+    }
+```
+
+#### copiedBuffer
+copiedBuffer，和wrappedBuffer最大的区别是，该方法会实现数据复制
+copiedBuffer和wrappedbuffer的区别，可以看到在 case 标注的位置中，修改了原始ByteBuf的值，并没有影响到allBb。
+```
+public static void main(String[] args) {
+        ByteBuf header= ByteBufAllocator.DEFAULT.buffer();
+        header.writeBytes(new byte[]{1,2,3,4,5});
+        ByteBuf body=ByteBufAllocator.DEFAULT.buffer();
+        body.writeBytes(new byte[]{6,7,8,9,10});
+        ByteBuf allBb=Unpooled.copiedBuffer(header,body);
+        log(allBb);
+        header.setByte(2,9);
+        log(allBb);
+    }
+```
+
+#### 分包算法
+分包算法是指在数据传输过程中，由于网络传输的限制，数据包的大小超过了网络传输的限制，需要将一个大的数据包拆分成多个小的数据包进行传输，接收端接收到数据包后，需要将多个小的数据包合并成一个大的数据包。
+```
+消息体消息：
+ByteBuf out = Unpooled.buffer(256);
+		out.writeInt(Integer.parseInt(gnss.getAlarm(), 2));
+                out.writeInt(Integer.parseInt(gnss.getStatus(), 2));
+                out.writeInt(gnss.getLat());
+                out.writeInt(gnss.getLng());
+                out.writeShort(gnss.getSpeedCar());
+                out.writeShort(gnss.getSpeedGPS());
+                out.writeShort(gnss.getAngle());
+                out.writeBytes(BCDUtils.str2Bcd(gnss.getTimestamp()));
+```
+
+消息头消息：
+```
+ByteBuf extBody = Unpooled.buffer(256);
+	extBody.writeShort(t.getExtMsgId());
+        extBody.writeShort(t.getExtMsgAttr());
+        extBody.writeShort(getJobNum());
+        extBody.writeBytes(t.getDeviceId().getBytes());
+        extBody.writeInt(tmp.readableBytes());  //这里tmp为消息体消息，写完消息头之后加上消息体
+        extBody.writeBytes(tmp);
+        // 扩展消息进行加密
+        extBody.resetReaderIndex();
+        byte[] ready = new byte[extBody.readableBytes()];
+        extBody.readBytes(ready);
+        extBody.writeBytes(CertUtil.sign(ready, 0, CertUtil.getPrivateKey(t.getKey(), t.getPwd())));
+```
+
+添加补充消息：
+```
+ByteBuf out = Unpooled.buffer(256);
+            out.writeByte(0x13);// 0x13
+            extend.resetReaderIndex();
+            out.writeBytes(extend);
+```
+
+添加head头，计算分包数，生成List<ByteBuf>，最后遍历list逐条发送
+主要实现：重写消息头，一致性msgId，添加其他数据
+```
+public List<ByteBuf> head(ByteBuf all, JT808Msg msg, io.netty.channel.Channel channel) {
+        List<ByteBuf> ret = new ArrayList<ByteBuf>();
+        int bodyLength = all.writerIndex();
+        int packageNum = 1;
+        if (bodyLength > 0) {
+            packageNum = bodyLength / 1023 + (bodyLength % 1023 == 0 ? 0 : 1);
+        }
+        // Log.d("消息体长度，分包数", bodyLength + "-" + packageNum);
+        all.resetReaderIndex();
+        for (int i = 0; i < packageNum; i++) {
+            ByteBuf tmp = Unpooled.buffer(1024 + 128);
+            // 根据消息体属性
+            StringBuffer lengthSB = new StringBuffer("00");
+            if (packageNum > 1) {
+                lengthSB.append("1");
+            } else {
+                lengthSB.append("0");
+            }
+            lengthSB.append("000");
+            // 长度计算
+            int readIndex = all.readableBytes();
+            String binaryString = StringUtils.leftPad(
+                    Integer.toBinaryString(readIndex > 1023 ? 1023 : readIndex % 1023), 10, "0");
+            lengthSB.append(binaryString);
+
+            // 消息头
+            tmp.writeByte(128);
+            tmp.writeShort(msg.getBaseHead().getMsgId());
+            // 消息体属性
+            // Log.d("消息体属性{}", lengthSB.toString());
+            tmp.writeShort(Integer.parseInt(lengthSB.toString(), 2));
+            // 手机号
+            tmp.writeBytes(BCDUtils.str2Bcd(StringUtils.leftPad(msg.getBaseHead().getMobile(), 16, "0")));
+            // 流水号
+            int lineNo = getLineNum();
+
+            msg.getBaseHead().setLineNum(lineNo);
+            tmp.writeShort(lineNo);
+            tmp.writeByte(0);
+            if (packageNum > 1) {
+                tmp.writeShort(packageNum);
+                tmp.writeShort(i + 1);
+            }
+            //Log.d("{}-{}", "" + tmp.readableBytes() + all.readableBytes());
+            if (i + 1 == packageNum) {
+                all.readBytes(tmp, readIndex);
+            } else {
+                all.readBytes(tmp, 1023);
+            }
+            //Log.d("{}-{}", "" + tmp.readableBytes() + all.readableBytes());
+            tmp.resetReaderIndex();
+            // 生成校验位
+            int check = tmp.readByte();
+            while (tmp.isReadable()) {
+                check = check ^ tmp.readByte();
+            }
+            tmp.writeByte(check);
+            //Log.d("发送第{}包,流水号={}", "发送第" + i + 1 + "-" + lineNo);
+            tmp.resetReaderIndex();
+            // Log.d("基本消息头+体数据为\n{}\n-分包数{}", ByteBufUtil.prettyHexDump(tmp));
+            ret.add(tmp);
+        }
+        return ret;
+    }
+```
+
+发送消息：
+```
+                if (TcpClient.getInstance().channel != null && TcpClient.getInstance().channel.isOpen() && TcpClient.getInstance().channel.isActive()) {
+                    this.channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
+                        @Override
+                        public void operationComplete(ChannelFuture future) throws Exception {
+                            MyLog.d("TcpClient", "数据发送成功" +msg.getBaseHead().getLineNum() + Integer.toHexString(msgId));
+                        }
+                    });
+```
+
+
+客户端上传json字符串：
+```
+        ReqObj req = new ReqObj();
+        req.setMsgId("S01");
+        req.setMsgBody("hello");
+        String jsonReq = ServiceLocator.getGson().toJson(req);
+		//将json字符串转换为ByteBuf
+            ByteBuf byteBuf = Unpooled.copiedBuffer(jsonReq, CharsetUtil.UTF_8);
+            if (this.channel != null && this.channel.isOpen() && this.channel.isActive()) {
+                this.channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        MyLog.d("LnTcpClient", "直连数据发送成功");
+                    }
+                });
+            }
+```
+
+服务端解析json字符串：
+```
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // 由于我们配置的是 字节数组 编解码器，所以这里取到的用户发来的数据是 byte数组
+        String data = (String) msg;
+        ReqObj reqObj = gson.fromJson(data, ReqObj.class);
+```
+
+中国移动物联网平台JT/T808协议文档：
+https://www.etsi.org/deliver/etsi_ts/102900_102999/102940/01.01.01_60/ts_102940v010101p.pdf
+

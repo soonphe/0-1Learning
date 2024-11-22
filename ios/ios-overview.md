@@ -10,9 +10,7 @@
 mac自带gem（ruby包管理），可以替换国内源
 > gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/
 
-
 ```
-
 相关命令：
 安装cocoaPod：sudo gem install cocoapods  或  sudo gem install -n /usr/local/bin cocoapods
 pod setup//配置pod

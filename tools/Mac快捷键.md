@@ -8,6 +8,8 @@
 ## mac快捷键、xcode快捷键、IDEA快捷键
 
 ### Mac快捷键
+空格键      ：快速查看/预览照片视频
+Command+I  ：查看文件简介
 Command + H：隐藏窗口
 Command + M：最小化窗口
 Command + W：关闭页面窗口

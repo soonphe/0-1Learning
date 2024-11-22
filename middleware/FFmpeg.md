@@ -149,6 +149,41 @@ Stream #0:0(und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p, 960x540, 1008
 Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 92 kb/s (default)
 这行信息表示第二个流是音频流，编码方式为ACC（封装格式为MP4A），并且采用的Profile是LC规格，采样率是44.1KHz，声道是立体声，这路流的比特率92Kbit/s。
 
+### ffprobe -i input.mp4  查看输入mp4文件的基本信息
+视频流信息中依次包含了视频的编码格式/编码档次(h264 Base line)、视频的像素格式(yuv420p)、视频的分辨率(480x360)、视频的码率(978kb/s)、视频的帧率(25fps)。
+音频流信息中依次包含了音频的编码格式/编码级别(AAC LC)、音频的采样率(44100HZ)、音频的声道(stereo/双声道)、音频的码率(132kb/s)。
+
+ffprobe -i input.mp4 -show_format  查看输入mp4文件的格式信息(-show_format)
+[FORMAT]
+filename=202408211629130859_back.mp4
+nb_streams=2
+nb_programs=0
+nb_stream_groups=0
+format_name=mov,mp4,m4a,3gp,3g2,mj2
+format_long_name=QuickTime / MOV
+start_time=0.000000
+duration=31.241200
+size=708297
+bit_rate=181375
+probe_score=100
+TAG:major_brand=mp42
+TAG:minor_version=0
+TAG:compatible_brands=isommp42
+TAG:creation_time=2024-08-21T08:29:45.000000Z
+TAG:com.android.version=8.1.0
+[/FORMAT]
+包含了文件名(filename=input.mp4、mp4文件中包含的码流个数(nb_streams=2)、格式名称(format_name=mov,mp4)、mp4文件时长(duration=10.00(单位是秒))、mp4文件的大小(size=1393457(单位字节))、mp4文件码率(bit_rate=1114765(单位是bits/s))，以及其他参数
+
+ffprobe -i input.mp4 -show_streams  查看输入mp4文件的视频和音频码流信息(-show_streams)
+视频流的标号index=0，所以先显示视频的streams信息。视频的streams信息包含了视频编码参数(h264编码、profile=Baseline)、视频宽高(=480,=360)、视频的宽高比(display_aspect_ratio=4:3)、视频的像素格式(yuv420p)、视频的颜色空间信息(color_range/color_space/color_transfer/color_primaries)、视频的帧率(r_frame_rate)、视频的基准时间(time_base)、视频的帧数(nb_frames)等。
+[STREAM]
+i…
+[/STREAM]
+ffprobe -i input.mp4 -show_frames  查看输入mp4文件的帧信息(-show_frames)，如果视频包含了200帧，则会显示200帧的信息，所以show_frames的信息是非常多的
+ffprobe -i input.mp4 -show_format -show_streams -show_frames  可以在一条命令中使用-show_format -show_streams -show_frames 来查看输入音视频的详细信息
+
+
+
 ### 推流的几种方式
 ```
 RTMP

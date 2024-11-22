@@ -619,7 +619,7 @@ session required pam_limits.so
 
 查看指定端口tcp连接信息（tcpdump tcp port 80）
 
-### 文件返回
+### 接口返回文件流
 ```
 // 设置响应的内容类型（根据你的文件类型设置）
 response.setContentType("text/plain");
@@ -647,6 +647,10 @@ ServletOutputStream outputStream = response.getOutputStream()) {
 我们使用FileInputStream来读取文件的内容，并将其写入到ServletOutputStream中。
 我们使用了一个缓冲区来提高效率，并在循环中读取和写入数据，直到文件的所有内容都被发送。最后，当try-with-resources块结束时，ServletOutputStream和FileInputStream都会自动关闭。
 
+### 关于文件流 InputStream的read方法
+- read()：首先我们来看这个没有参数的read方法,从(来源)输入流中(读取的内容)读取数据的下一个字节到(去处)java程序内部中,返回值为0到255的int类型的值，返回值为字符的ASCII值(如a就返回97,n就返回110).如果没有可用的字节,因为已经到达流的末尾, -1返回的值,运行一次只读一个字节,所以经常与while((len = inputstream.read()) != -1)一起使用. 
+- read(byte [] b )：从(来源)输入流中(读取内容)读取的一定数量字节数,并将它们存储到(去处)缓冲区数组b中,返回值为实际读取的字节数,运行一次读取一定的数量的字节数.java会尽可能的读取b个字节,但也有可能读取少于b的字节数.至少读取一个字节第一个字节存储读入元素b[0],下一个b[1],等等。读取的字节数是最多等于b的长度.如果没有可用的字节,因为已经到达流的末尾, -1返回的值 ,如果b.length==0,则返回0.
+- read( byte [] b , int off , int len)：读取 len字节的数据从输入流到一个字节数组。试图读取多达 len字节,但可能读取到少于len字节。返回实际读取的字节数为整数。 第一个字节存储读入元素b[off],下一个b[off+1],等等。读取的字节数是最多等于len。k被读取的字节数,这些字节将存储在元素通过b[off+k-1]b[off],离开元素通过b[off+len-1]b[off+k]未受影响。read(byte[]b)就是相当于read(byte [] b , 0 , b.length).所以两者差不多.性质一样.
 
 ### SpringData
 Spring Data : Spring 的一个子项目。用于简化数据库访问，支持NoSQL 和 关系数据存储。其主要目标是使数据库的访问变得方便快捷。
@@ -676,6 +680,13 @@ Pageablepageable=PageRequest.of(pageNUmber,pageSize);
 
 问：Switch能否用string做参数？
 答：在Java 5以前，switch(expr)中，expr只能是byte、short、char、int。从Java 5开始，Java中引入了枚举类型，expr也可以是enum类型，从Java 7开始，expr还可以是字符串（String），但是长整型（long）在目前所有的版本中都是不可以的。
+
+switch匹配多参数：
+case TIMING:
+case COACH_LOGOUT:
+case PHOTO_LSSUE:
+    mainModel.initUploadPhoto(path, pictureType, null, faceMatching, null);
+    break;
 
 问：String、StringBuffer与StringBuilder的区别
 答：其中String是只读字符串，也就意味着String引用的字符串内容是不能被改变的。

@@ -660,6 +660,69 @@ nginx配置80端口转发：本地真实服务地址：proxy_pass http://localho
 最终访问线上地址：http://jzedu-recruit-stable.djtest.cn/#/clue/list
 就能通过本机后台cookie验证
 
+### Flex布局
+Flet布局 语法（Flex 指定容器 —父元素）
+注意：设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效。
+
+```
+<template>
+  <div class="box">
+    <div class="item"></div>
+  </div>
+</template>
+<style scoped>
+  .box{
+    // 将box指定为Flex容器
+    display: flex;
+    // 行内元素当然也可以使用flex布局
+    display: inline-flex;
+    // Webkit 内核的浏览器，必须加上-webkit前缀。
+    display: -webkit-flex;
+  }
+</style>
+```
+
+容器属性
+- flex-direction
+- flex-wrap
+- flex-flow
+- justify-content
+- align-items
+- align-content
+```
+<style scoped>
+	// row（默认值）：主轴为水平方向，起点在左端   下图第三幅
+	// row-reverse：主轴为水平方向，起点在右端    下图第四幅
+	// column：主轴为垂直方向，起点在上沿         下图第二幅 
+	// column-reverse：主轴为垂直方向，起点在下沿 下图第一幅
+  .box {
+    flex-direction: row | row-reverse | column | column-reverse;
+  }
+  	// 默认情况下，项目都排在一条线（又称"轴线"）上。flex-wrap属性定义，如果一条轴线排不下，如何换行
+	// nowrap（默认）：不换行           下图第一幅
+	// wrap：换行，第一行在上方         下图第二幅 
+	// wrap-reverse：换行，第一行在下方 下图第三幅
+  .box {
+    flex-wrap: nowrap | wrap | wrap-reverse;
+  }
+   // flex-flow属性是flex-direction属性和flex-wrap属性的简写形式，默认值为row nowrap
+    flex-flow: <flex-direction> || <flex-wrap>;
+        // flex-start（默认值）：左对齐
+    // flex-end：右对齐
+    // center： 居中
+    // space-between：两端对齐，项目之间的间隔都相等
+    // space-around：每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+    justify-content: flex-start | flex-end | center | space-between | space-around;
+    
+    // flex-start：交叉轴的起点对齐
+    // flex-end：交叉轴的终点对齐
+    // center：交叉轴的中点对齐
+    // baseline: 项目的第一行文字的基线对齐
+    // stretch（默认值）：如果项目未设置高度或设为auto，将占满整个容器的高度
+    align-items: flex-start | flex-end | center | baseline | stretch;
+</style>
+```
+还有：语法（Flex 指定项目 —子元素）
 
 
 ### rem自适应布局
